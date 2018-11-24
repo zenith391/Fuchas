@@ -1,14 +1,11 @@
 local driver = {}
 
-driver.path = "/Shindows/Libraries/?.lua;/Users/Shared/Libraries/?.lua;./?.lua;/?.lua"
+driver.path = "/Shindows/Drivers/?.lua;/Users/Shared/Drivers/?.lua;./?.lua;/?.lua"
 
 local loading = {}
 
 local loaded = {
-  ["mouse"] = loadDriver("/Shindows/Drivers/smouse.lua"),
-  ["keyboard"] = loadDriver("/Shindows/Drivers/skeyboard.lua"),
-  ["filesystem"] = nil, -- FileSystem driver is to do
-  ["audio"] = loadDriver("/Shindows/Drivers/pcspeaker.lua")
+  
 }
 driver.loaded = loaded
 
@@ -41,7 +38,7 @@ end
 function driver.changeDriver(type, path)
     checkArg(1, type, "string")
     checkArg(2, path, "string")
-    local driver = getDriver(path)
+    local driver = loadDriver(path)
     loaded[type] = driver
 end
 
@@ -49,31 +46,36 @@ function driver.getDriver(type)
     return loaded[type];
 end
 
-local function loadDriver(path)
-  checkArg(1, module, "string")
-  if not loading[module] then
+function driver.isDriverAvailable(path)
+	local ok, drv = loadDriver(path)
+	return ok == true
+end
+
+function loadDriver(path)
+  checkArg(1, path, "string")
+  if not loading[path] then
     local available, library, status, step
 
-    step, library, status = "not found", package.searchpath(module, package.path)
+    step, library, status = "not found", driver.searchpath(path, driver.path)
 
     if library then
       step, library, status = "loadfile failed", loadfile(library)
     end
 
     if library then
-      loading[module] = true
-      step, available, library, status = "load failed", pcall(library, module)
-      loading[module] = false
+      loading[path] = true
+      step, available, library, status = "load failed", pcall(library, path)
+      loading[path] = false
     end
 
-	if available == false then
-		error("Component not available")
-	end
+	--if available == false then
+	--	error("Component not available")
+	--end
 	
-    assert(library, string.format("module '%s' %s:\n%s", module, step, status))
+    --assert(library, string.format("driver '%s' %s:\n%s", path, step, status))
     return status
   else
-    error("already loading: " .. module .. "\n" .. debug.traceback(), 2)
+    error("already loading: " .. path .. "\n" .. debug.traceback(), 2)
   end
 end
 
@@ -92,6 +94,13 @@ function driver.delay(lib, file)
   setmetatable(lib, mt)
 end
 
+driver.loaded = {
+  ["mouse"] = loadDriver("smouse"),
+  ["keyboard"] = nil,--loadDriver("/Shindows/Drivers/skeyboard.lua"),
+  ["filesystem"] = nil, -- FileSystem driver is to do
+  ["audio"] = loadDriver("pcspeaker")
+}
+
 -------------------------------------------------------------------------------
 
-return package
+return driver

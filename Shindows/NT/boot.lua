@@ -93,5 +93,15 @@ print("3D powered by OCGL made by MineOS team") -- not yet implemented
 print("2D (GUI + Console) powered by OCX made by me.")
 print("Universal Networking (unet) made by \"LetDevDev\"")                        -- not yet implemented
 os.sleep(1)
-dofile("/Shindows/NT/Boot/component.lua")
-dofile("/Shindows/load.lua")
+local f, err = pcall(function()
+	dofile("/Shindows/NT/Boot/component.lua")
+	dofile("/Shindows/load.lua")
+end)
+if err ~= nil then
+	--gpu.setBackground(0x4444DD)
+	gpu.setForeground(0x00FF00)
+	gpu.fill(1, 1, w, h, " ")
+	y = 1
+	print("Error while loading:")
+	print(err)
+end

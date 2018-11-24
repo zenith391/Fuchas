@@ -1,5 +1,6 @@
 local c = require("OCX/ConsoleUI")
 local fs = require("filesystem")
+local drv = require("driver")
 c.clear(0x000000)
 local pu = c.label("Loading Shindows..")
 local p = c.progressBar(5)
@@ -50,6 +51,14 @@ if fs.exists("/installing") then
 	pu.render()
 	p.dirty = true
 	p.render()
+	if drv.isDriverAvailable("internet") then
+		drv.changeDriver("internet", "internet")
+		local int = drv.getDriver("internet")
+		int.httpDownload("https://raw.githubusercontent.com/zenith391/Shindows_OC/master/Shindows/Libraries/filesystem.lua", "/test/test.lua")
+	end
+	print(tostring(drv.isDriverAvailable("internet")))
+	--error(debug.traceback())
+	return
 end
 
 local f, err = pcall(function()

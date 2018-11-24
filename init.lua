@@ -20,4 +20,5 @@ end
 
 while true do
   computer.pullSignal()
+  coroutine.yield()
 end
