@@ -64,8 +64,8 @@ function print(msg)
 end
 
 function os.sleep(n)  -- seconds
-  local t0 = os.clock()
-  while os.clock() - t0 <= n do
+  local t0 = computer.uptime()
+  while computer.uptime() - t0 <= n do
 	coroutine.yield()
   end
 end
