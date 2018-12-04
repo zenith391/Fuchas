@@ -100,6 +100,7 @@ end)
 if err ~= nil then
 	--gpu.setBackground(0x4444DD)
 	gpu.setForeground(0x00FF00)
+	gpu.setBackground(0xFFFFFF)
 	gpu.fill(1, 1, w, h, " ")
 	y = 1
 	print("Error while loading:")

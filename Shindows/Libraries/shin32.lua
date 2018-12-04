@@ -41,18 +41,20 @@ function io.tou32(arr, off)
 end
 
 function dll.newProcess(name, func)
-	-- TODO use coroutines
-	local t = require("thread")
-	local pid = math.random(4096)
-	while processes[pid] ~= nil do
-		pid = math.random(4096) -- Windoors might stop responding at 4096th active process.. But even modern PCs does'nt have that much processes
-	end
-	local proc = t.create(function(pid, name)
+	local pid = table.getn(processes) + 1
+	local proc = coroutine.create(function(pid, name)
 		activeProcesses = activeProcesses + 1
 		func(pid, name)
 		activeProcesses = activeProcesses - 1
 	end, pid, name)
 	processes[pid] = {name, proc}
+	coroutine.resume(proc, pid, name)
+end
+
+function dll.scheduler()
+	for k, p in pairs(processes) do
+		coroutine.resume(p)
+	end
 end
 
 function dll.getActiveProcesses()
