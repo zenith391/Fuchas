@@ -1,5 +1,5 @@
 function component.isAvailable(type)
-	return table.getn(component.list(type)) ~= 0
+	return table.maxn(component.list(type)) ~= 0
 end
 
 function component.getPrimary(type)

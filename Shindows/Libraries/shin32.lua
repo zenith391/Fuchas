@@ -53,8 +53,15 @@ end
 
 function dll.scheduler()
 	for k, p in pairs(processes) do
-		coroutine.resume(p)
+		if coroutine.status(p[2]) == "dead" then
+			table.remove(processes, k)
+		else
+			coroutine.resume(p[2])
+		end
+		--print("resoume")
 	end
+	require("event").pull() -- event yield
+	--coroutine.yield()
 end
 
 function dll.getActiveProcesses()
