@@ -1,6 +1,7 @@
 local dll = {}
 local windows = {}
 local processes = {}
+local sysvars = {}
 local nextWinID = 2
 local activeProcesses = 0
 
@@ -38,6 +39,14 @@ function io.tou32(arr, off)
 	local v1 = readu16(off)
 	local v2 = readu16(off + 2)
 	return v1 + (v2*65536)
+end
+
+function dll.getSystemVars() 
+	return sysvars
+end
+
+function dll.getSystemVar(var)
+	return sysvars[var]
 end
 
 function dll.newProcess(name, func)

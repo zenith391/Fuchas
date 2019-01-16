@@ -4,10 +4,7 @@ driver.path = "/Shindows/Drivers/?.lua;/Users/Shared/Drivers/?.lua;./?.lua;/?.lu
 
 local loading = {}
 
-local loaded = {
-  
-}
-driver.loaded = loaded
+local loaded = {}
 
 function driver.searchpath(name, path, sep, rep)
   checkArg(1, name, "string")
@@ -38,17 +35,22 @@ end
 function driver.changeDriver(type, path)
     checkArg(1, type, "string")
     checkArg(2, path, "string")
-    local driver = loadDriver(path)
+    local ok, driver = loadDriver(path)
     loaded[type] = driver
 end
 
 function driver.getDriver(type)
+	y = 1
+	for k, v in pairs(loaded) do
+		print(k, 0xFFFFFF)
+		print(v, 0xFFFFFF)
+	end
     return loaded[type];
 end
 
 function driver.isDriverAvailable(path)
 	local ok, drv = loadDriver(path)
-	return ok == true
+	return not not ok
 end
 
 function loadDriver(path)
@@ -64,7 +66,7 @@ function loadDriver(path)
 
     if library then
       loading[path] = true
-      step, available, library, status = "load failed", pcall(library, path)
+      step, status, available, library = "load failed", pcall(library, path)
       loading[path] = false
     end
 
@@ -73,7 +75,7 @@ function loadDriver(path)
 	--end
 	
     --assert(library, string.format("driver '%s' %s:\n%s", path, step, status))
-    return status
+    return available, library
   else
     error("already loading: " .. path .. "\n" .. debug.traceback(), 2)
   end
@@ -94,12 +96,8 @@ function driver.delay(lib, file)
   setmetatable(lib, mt)
 end
 
-driver.loaded = {
-  ["mouse"] = loadDriver("smouse"),
-  ["keyboard"] = nil,--loadDriver("/Shindows/Drivers/skeyboard.lua"),
-  ["filesystem"] = nil, -- FileSystem driver is to do
-  ["audio"] = loadDriver("pcspeaker")
-}
+loaded["mouse"] = loadDriver("smouse")
+loaded["audio"] = loadDriver("pcspeaker")
 
 -------------------------------------------------------------------------------
 

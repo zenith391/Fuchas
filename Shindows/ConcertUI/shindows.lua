@@ -1,3 +1,4 @@
+-- Main UI file for the Operating System frontend UI (optional)
 local shin = require("shin32")
 function run()
 	local draw = require("OCX/OCDraw")

@@ -29,38 +29,44 @@ end
 function dofile(file)
   local program, reason = loadfile(file)
   if program then
-    local result = table.pack(pcall(program))
-    if result[1] then
-      return table.unpack(result, 2, result.n)
-    else
-      error(result[2])
-    end
+	local result = table.pack(pcall(program))
+	if result[1] then
+	  return table.unpack(result, 2, result.n)
+	else
+	  error(result[2])
+	end
   else
-    error(reason)
+	error(reason)
   end
 end
 
 y = 1
-function print(msg)
+function print(msg, fore)
 	local x = 1
-  if gpu and screen then
-  		for i = 1, #msg do
-  			local c = msg:sub(i,i)
-		    if y == h then
-		      gpu.copy(1, 2, w, h - 1, 0, -1)
-		      gpu.fill(1, h, w, 1, " ")
-	    	else
-	      	if c == '\n' then
-	      		y = y + 1
-	      		x = 1
-	      	else
-	      		gpu.set(x, y, c)
-	      		x = x + 1
-	      	end
-	    	end
-	    end
-	    y = y + 1
-  end
+	msg = tostring(msg)
+	if fore == nil then fore = 0xFFFFFF end
+	if gpu and screen then
+		gpu.setForeground(fore)
+		if msg:find("\n") then
+			for line in msg:gmatch("\n") do
+				if y == h then
+					gpu.copy(1, 2, w, h - 1, 0, -1)
+					gpu.fill(1, h, w, 1, " ")
+				else
+					gpu.set(x, y, msg)
+				end
+				y = y + 1
+			end
+		else
+			if y == h then
+				gpu.copy(1, 2, w, h - 1, 0, -1)
+				gpu.fill(1, h, w, 1, " ")
+			else
+				gpu.set(x, y, msg)
+				y = y + 1
+			end
+		end
+	end
 end
 
 function os.sleep(n)  -- seconds
@@ -77,36 +83,34 @@ local c = coroutine.create(function()
 	_G.package.loaded.component = component
 	_G.package.loaded.computer = computer
 	_G.package.loaded.filesystem = assert(loadfile("/Shindows/Libraries/filesystem.lua"))()
-	_G.package.loaded.io = io
 	_G.io = {} -- software-defined by shin32
 	print("Done!")
-	print("Mounting filesytem..")
 	require("filesystem").mount(computer.getBootAddress(), "/")
-	require("filesystem").mount(computer.getBootAddress(), "C:")
-	print("Done!")
+	require("filesystem").mount(computer.getBootAddress(), "C:/")
 	print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " running on " .. _VERSION)
 	print(math.ceil(computer.freeMemory() / 1024) .. "KiB FREE")
 	print("OS Architecture: " .. OSDATA.ARCH)
 	y = 45
-	--print(require("filesystem").get("C:/Shindows/NT/Boot/component.lua"))
 	print("Made by zenith391 (Zen1th on OC forum)")
 	print("Credits:")
 	print("3D powered by OCGL made by MineOS") -- not yet implemented
 	print("2D (GUI + Console) powered by OCX.")
-	print("GERT api layer 2, 3, 4 and 5 made by GlobalEmpire")    -- not yet implemented
+	print("GERT api layer 2, 3, 4 and 5 made by GlobalEmpire")	  -- not yet implemented
 	os.sleep(0.25)
 	local f, err = pcall(function()
-		dofile("/Shindows/NT/Boot/component.lua")
+		-- number in names is for execution order
+		for k, v in require("filesystem").list("C:/Shindows/NT/Boot/") do
+			dofile("/Shindows/NT/Boot/" .. k)
+		end
 		dofile("/Shindows/load.lua")
 	end)
 	if err ~= nil then
-		--gpu.setBackground(0x4444DD)
-		gpu.setForeground(0x00FF00)
-		gpu.setBackground(0xFFFFFF)
-		gpu.fill(1, 1, w, h, " ")
-		y = 1
-		print("Error while loading:")
-		print(err)
+		gpu.setBackground(0x4444DD)
+		--gpu.setForeground(0x00FF00)
+		--gpu.fill(1, 1, w, h, " ")
+		y = 20
+		print("Error while loading:", 0x00FF00)
+		print(err, 0x00FF00)
 	end
 end)
 while true do
