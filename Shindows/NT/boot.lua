@@ -46,25 +46,27 @@ function print(msg, fore)
 	msg = tostring(msg)
 	if fore == nil then fore = 0xFFFFFF end
 	if gpu and screen then
-		gpu.setForeground(fore)
+		if type(fore) == "number" then
+			gpu.setForeground(fore)
+		end
 		if msg:find("\n") then
-			for line in msg:gmatch("\n") do
+			for line in msg:gmatch("([^\n]+)") do
 				if y == h then
 					gpu.copy(1, 2, w, h - 1, 0, -1)
 					gpu.fill(1, h, w, 1, " ")
-				else
-					gpu.set(x, y, msg)
+					y = y - 1
 				end
+				gpu.set(x, y, line)
 				y = y + 1
 			end
 		else
 			if y == h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
 				gpu.fill(1, h, w, 1, " ")
-			else
-				gpu.set(x, y, msg)
-				y = y + 1
+				y = y - 1
 			end
+			gpu.set(x, y, msg)
+			y = y + 1
 		end
 	end
 end

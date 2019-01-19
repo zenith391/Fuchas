@@ -21,6 +21,7 @@ function lib.clear()
 end
 
 function lib.read()
+	print(event.pull())
 	local c = ""
 	while c ~= '\n' do
 		print(event.pull())

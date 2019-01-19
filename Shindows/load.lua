@@ -73,11 +73,15 @@ if fs.exists("/installing") then
 	print(tostring(drv.isDriverAvailable("internet")))
 	return
 end
-
-local f, err = pcall(function()
-	dofile("/Shindows/shindows.lua")
-end)
 y = 1
-if err ~= nil then
+local f, err = xpcall(function()
+	local l = loadfile("/Shindows/DOS/sh.lua")()
+	return l()
+end, function(err)
 	print(err)
+	print(debug.traceback(" ", 1))
+end)
+if f == false then
+	print("Error:", 0xFF0000)
+	print(err, 0xFF0000)
 end
