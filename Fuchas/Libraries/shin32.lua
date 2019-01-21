@@ -1,3 +1,4 @@
+-- Author: zenith391
 local dll = {}
 local windows = {}
 local processes = {}

@@ -4,41 +4,14 @@ local c = require("OCX/ConsoleUI")
 local fs = require("filesystem")
 local drv = require("driver")
 c.clear(0x000000)
-local pu = c.label("Loading Fuchas..")
-local p = c.progressBar(6)
-p.x = 55
-p.y = 45
-p.width = 50
-p.height = 2
-p.render()
-pu.x = 70
-pu.y = 42
-pu.foreground = 0xFFFFFF
-pu.render()
 
-function updatebar()
-	p.progress = p.progress + 1
-	p.render()
-	coroutine.yield()
-end
--- Preload libraries
+-- Bootstrap routine
 _G.shin32 = require("shin32")
 dofile("Fuchas/autorun.lua") -- system variables autorun
-updatebar()
-require("shinamp")
-updatebar()
-require("keyboard")
-updatebar()
-require("OCX/OCDraw")
-updatebar()
-require("OCX/OCUI")
-updatebar()
-require("shell")
-updatebar()
 
 local function httpDownload(url, dest)
 	local h = component.getPrimary("internet").request(url)
-	--h:finishConnect()
+	h:finishConnect()
 	local file = require("filesystem").open(dest, "w")
 	local data = ""
 	while data ~= nil do
