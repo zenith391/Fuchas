@@ -65,12 +65,27 @@ function dll.scheduler()
 		if coroutine.status(p[2]) == "dead" then
 			table.remove(processes, k)
 		else
-			coroutine.resume(p[2])
+			local a
+			if p[3] then
+				a = coroutine.resume(p[2], p[3])
+				p[3] = nil
+			else
+				a = coroutine.resume(p[2])
+			end
+			if a then
+				if type(a) == "function" then
+					local cont, val = true, nil
+					while cont do
+						cont, val = a(val)
+					end
+					p[3] = val
+				end
+			end
 		end
 		--print("resoume")
 	end
-	require("event").pull() -- event yield
-	--coroutine.yield()
+	--require("event").pull() -- event yield
+	coroutine.yield()
 end
 
 function dll.getActiveProcesses()

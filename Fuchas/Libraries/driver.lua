@@ -1,6 +1,6 @@
 local driver = {}
 
-driver.path = "/Shindows/Drivers/?.lua;/Users/Shared/Drivers/?.lua;./?.lua;/?.lua"
+driver.path = "/Fuchas/Drivers/?.lua;/Users/Shared/Drivers/?.lua;./?.lua;/?.lua"
 
 local loading = {}
 

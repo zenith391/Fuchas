@@ -1,8 +1,10 @@
+-- Bootstrap for Fuchas interface.
+
 local c = require("OCX/ConsoleUI")
 local fs = require("filesystem")
 local drv = require("driver")
 c.clear(0x000000)
-local pu = c.label("Loading Shindows..")
+local pu = c.label("Loading Fuchas..")
 local p = c.progressBar(6)
 p.x = 55
 p.y = 45
@@ -21,6 +23,7 @@ function updatebar()
 end
 -- Preload libraries
 _G.shin32 = require("shin32")
+dofile("Fuchas/autorun.lua") -- system variables autorun
 updatebar()
 require("shinamp")
 updatebar()
@@ -68,20 +71,39 @@ if fs.exists("/installing") then
 	if drv.isDriverAvailable("internet") or true then
 		drv.changeDriver("internet", "internet")
 		local int = drv.getDriver("internet")
-		httpDownload("https://raw.githubusercontent.com/zenith391/Shindows_OC/master/Shindows/Libraries/filesystem.lua", "/test.lua")
+		httpDownload("https://raw.githubusercontent.com/zenith391/Shindows_OC/master/Fuchas/Libraries/filesystem.lua", "/test.lua")
 	end
 	print(tostring(drv.isDriverAvailable("internet")))
 	return
 end
 y = 1
-local f, err = xpcall(function()
-	local l = loadfile("/Shindows/DOS/sh.lua")()
-	return l()
-end, function(err)
-	print(err)
-	print(debug.traceback(" ", 1))
+shin32.newProcess("System", function()
+	local f, err = xpcall(function()
+		local l, err = loadfile("/Fuchas/DOE/sh.lua")
+		if l == nil then
+			error(err)
+		end
+		c.clear(0xFFFFFF)
+		os.sleep(.1)
+		c.clear(0xAAAAAA)
+		os.sleep(.1)
+		c.clear(0x2D2D2D)
+		os.sleep(.1)
+		c.clear(0x000000)
+		os.sleep(.1)
+		return l()
+	end, function(err)
+		print(err)
+		print(debug.traceback(" ", 1))
+	end)
+	if f == false then
+		print("Error:", 0xFF0000)
+		print(err, 0xFF0000)
+	else
+		computer.shutdown() -- main interface exit
+	end
 end)
-if f == false then
-	print("Error:", 0xFF0000)
-	print(err, 0xFF0000)
+
+while true do
+	shin32.scheduler()
 end

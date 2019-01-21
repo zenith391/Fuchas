@@ -1,6 +1,6 @@
 _G.OSDATA = {}
-_G.OSDATA.NAME = "Shindows"
-_G.OSDATA.VERSION = "1.01"
+_G.OSDATA.NAME = "Fuchas"
+_G.OSDATA.VERSION = "ALPHA 0.2"
 if _VERSION == "Lua 5.3" then -- lua 5.3 haves higher number precision
 	_G.OSDATA.ARCH = "x86_64"
 else
@@ -41,8 +41,8 @@ function dofile(file)
 end
 
 y = 1
-function print(msg, fore)
-	local x = 1
+x = 1
+function write(msg, fore)
 	msg = tostring(msg)
 	if fore == nil then fore = 0xFFFFFF end
 	if gpu and screen then
@@ -57,6 +57,7 @@ function print(msg, fore)
 					y = y - 1
 				end
 				gpu.set(x, y, line)
+				x = 1
 				y = y + 1
 			end
 		else
@@ -66,9 +67,13 @@ function print(msg, fore)
 				y = y - 1
 			end
 			gpu.set(x, y, msg)
-			y = y + 1
+			x = x + msg:len()
 		end
 	end
+end
+
+function print(msg, fore)
+	write(msg .. "\n", fore)
 end
 
 function os.sleep(n)  -- seconds
@@ -80,19 +85,18 @@ end
 
 local c = coroutine.create(function()
 	print("Loading packages..")
-	local package = dofile("/Shindows/Libraries/package.lua")
+	local package = dofile("/Fuchas/Libraries/package.lua")
 	_G.package = package
 	_G.package.loaded.component = component
 	_G.package.loaded.computer = computer
-	_G.package.loaded.filesystem = assert(loadfile("/Shindows/Libraries/filesystem.lua"))()
+	_G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 	_G.io = {} -- software-defined by shin32
 	print("Done!")
-	require("filesystem").mount(computer.getBootAddress(), "/")
-	require("filesystem").mount(computer.getBootAddress(), "C:/")
+	require("filesystem").mount(computer.getBootAddress(), "/")    -- TODO: Remove
+	require("filesystem").mount(computer.getBootAddress(), "A:/")
 	print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " running on " .. _VERSION)
 	print(math.ceil(computer.freeMemory() / 1024) .. "KiB FREE")
 	print("OS Architecture: " .. OSDATA.ARCH)
-	y = 45
 	print("Made by zenith391 (Zen1th on OC forum)")
 	print("Credits:")
 	print("3D powered by OCGL made by MineOS") -- not yet implemented
@@ -101,10 +105,10 @@ local c = coroutine.create(function()
 	os.sleep(0.25)
 	local f, err = pcall(function()
 		-- number in names is for execution order
-		for k, v in require("filesystem").list("C:/Shindows/NT/Boot/") do
-			dofile("/Shindows/NT/Boot/" .. k)
+		for k, v in require("filesystem").list("C:/Fuchas/NT/Boot/") do
+			dofile("/Fuchas/NT/Boot/" .. k)
 		end
-		dofile("/Shindows/load.lua")
+		dofile("/Fuchas/load.lua")
 	end)
 	if err ~= nil then
 		gpu.setBackground(0x4444DD)

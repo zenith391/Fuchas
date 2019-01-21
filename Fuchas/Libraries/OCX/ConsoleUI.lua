@@ -7,6 +7,16 @@ function lib.clear(color)
 	gpu.fill(1, 1, width, height, " ")
 end
 
+function lib.getWidth()
+	local w = gpu.getResolution()
+	return w
+end
+
+function lib.getHeight()
+	local _, h = gpu.getResolution()
+	return h
+end
+
 function lib.component()
 	local comp = {}
 	comp.render = function() end

@@ -43,7 +43,7 @@ if component.type(bootAddr) == "drive" then -- should never happen, unless loade
 	end
 	local bootCode = driveRead(bootAddr, proxy.getCapacity() - 8192, 4096)
 else
-	loadfile("Shindows/NT/boot.lua")(loadfile)
+	loadfile("Fuchas/NT/boot.lua")(loadfile)
 end
 
 while true do
