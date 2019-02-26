@@ -1,5 +1,6 @@
 local sh = require("shell")
 local cui = require("OCX/ConsoleUI")
+local fs = require("filesystem")
 local run = true
 x = 1
 y = 1
@@ -15,8 +16,21 @@ while run do
 	write(">")
 	local l = sh.read()
 	write(" \n")
-	print("execcmd: " .. l)
 	if l == "exit" then -- special case: exit cmd
 		run = false
+	end
+	if fs.exists(l) then
+		local f, err = xpcall(function()
+			local l, err = loadfile(l)
+			if l == nil then
+				print(err)
+			end
+			return l()
+		end, function(err)
+			print(err)
+			print(debug.traceback(" ", 1))
+		end)
+	else
+		print("file " .. l .. " does not exists")
 	end
 end

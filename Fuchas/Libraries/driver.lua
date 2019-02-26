@@ -1,9 +1,5 @@
 local driver = {}
-
-driver.path = "/Fuchas/Drivers/?.lua;/Users/Shared/Drivers/?.lua;./?.lua;/?.lua"
-
 local loading = {}
-
 local loaded = {}
 
 function driver.searchpath(name, path, sep, rep)
@@ -58,7 +54,7 @@ function loadDriver(path)
   if not loading[path] then
     local available, library, status, step
 
-    step, library, status = "not found", driver.searchpath(path, driver.path)
+    step, library, status = "not found", driver.searchpath(path, shin32.getSystemVar("DRV_PATH"))
 
     if library then
       step, library, status = "loadfile failed", loadfile(library)

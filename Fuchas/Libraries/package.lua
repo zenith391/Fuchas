@@ -1,6 +1,6 @@
 local package = {}
 
-package.path = "/Fuchas/Libraries/?.lua;/Users/Shared/Libraries/?.lua;./?.lua;/?.lua"
+package.path = "A:/Fuchas/Libraries/?.lua;./?.lua;A:/?.lua"
 
 local loading = {}
 
@@ -48,7 +48,12 @@ function require(module)
     return loaded[module]
   elseif not loading[module] then
     local library, status, step
-
+	
+	if shin32 then -- compatible before and after launching
+		if shin32.getSystemVar("LIB_PATH") then
+			package.path = shin32.getSystemVar("LIB_PATH")
+		end
+	end
     step, library, status = "not found", package.searchpath(module, package.path)
 
     if library then

@@ -2,12 +2,14 @@
 
 local c = require("OCX/ConsoleUI")
 local fs = require("filesystem")
-local drv = require("driver")
 c.clear(0x000000)
 
 -- Bootstrap routine
 _G.shin32 = require("shin32")
 dofile("Fuchas/autorun.lua") -- system variables autorun
+
+
+local drv = require("driver")
 
 local function httpDownload(url, dest)
 	local h = component.getPrimary("internet").request(url)

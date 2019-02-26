@@ -92,8 +92,11 @@ local c = coroutine.create(function()
 	_G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 	_G.io = {} -- software-defined by shin32
 	print("Done!")
-	require("filesystem").mount(computer.getBootAddress(), "/")    -- TODO: Remove
-	require("filesystem").mount(computer.getBootAddress(), "A:/")
+	--require("filesystem").mount(computer.getBootAddress(), "/")    -- TODO: Remove
+	local g, h = require("filesystem").mountDrive(computer.getBootAddress(), "A")
+	if not g then
+		print("error: " .. h)
+	end
 	print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " running on " .. _VERSION)
 	print(math.ceil(computer.freeMemory() / 1024) .. "KiB FREE")
 	print("OS Architecture: " .. OSDATA.ARCH)
@@ -103,12 +106,33 @@ local c = coroutine.create(function()
 	print("2D (GUI + Console) powered by OCX.")
 	print("GERT api layer 2, 3, 4 and 5 made by GlobalEmpire")	  -- not yet implemented
 	os.sleep(0.25)
-	local f, err = pcall(function()
-		-- number in names is for execution order
-		for k, v in require("filesystem").list("C:/Fuchas/NT/Boot/") do
-			dofile("/Fuchas/NT/Boot/" .. k)
+	
+	-- loadfile
+	_G.loadfile = function(path)
+		local file, reason = require("filesystem").open(path, "r")
+		if not file then
+			error(reason)
 		end
-		dofile("/Fuchas/load.lua")
+		local buffer = ""
+		local data, reason = "", ""
+		while data do
+			data, reason = file:read(math.huge)
+			buffer = buffer .. (data or "")
+		end
+		file:close()
+		return load(buffer, "=" .. path, "bt", _G)
+	end
+	
+	local f, err = xpcall(function()
+		-- number in names is for execution order
+		for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
+			dofile("A:/Fuchas/NT/Boot/" .. k)
+		end
+		dofile("A:/Fuchas/load.lua")
+	end, function(err)
+			gpu.setBackground(0x4444DD)
+			print("Error while loading: " .. err, 0x00FF00)
+			print(debug.traceback(), 0x00FF00)
 	end)
 	if err ~= nil then
 		gpu.setBackground(0x4444DD)
@@ -120,6 +144,6 @@ local c = coroutine.create(function()
 	end
 end)
 while true do
-	coroutine.yield()
 	coroutine.resume(c)
+	coroutine.yield()
 end
