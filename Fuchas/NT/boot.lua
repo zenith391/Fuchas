@@ -27,17 +27,17 @@ if screen and gpu then
 	gpu.fill(1, 1, w, h, " ")
 end
 function dofile(file)
-  local program, reason = loadfile(file)
-  if program then
-	local result = table.pack(pcall(program))
-	if result[1] then
-	  return table.unpack(result, 2, result.n)
+	local program, reason = loadfile(file)
+	if program then
+		local result = table.pack(pcall(program))
+		if result[1] then
+			return table.unpack(result, 2, result.n)
+		else
+			error(result[2])
+		end
 	else
-	  error(result[2])
+		error(reason)
 	end
-  else
-	error(reason)
-  end
 end
 
 y = 1
@@ -104,7 +104,7 @@ local c = coroutine.create(function()
 	print("Credits:")
 	print("3D powered by OCGL made by MineOS") -- not yet implemented
 	print("2D (GUI + Console) powered by OCX.")
-	print("GERT api layer 2, 3, 4 and 5 made by GlobalEmpire")	  -- not yet implemented
+	print("GERT api layer 2, 3, 4 and 5 made by GlobalEmpire")	-- not yet implemented
 	os.sleep(0.25)
 	
 	-- loadfile
@@ -125,7 +125,10 @@ local c = coroutine.create(function()
 	
 	local f, err = xpcall(function()
 		-- number in names is for execution order
+		print("Loading shin32..")
+		_G.shin32 = require("shin32")
 		for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
+			print("Loading " .. k .. "..")
 			dofile("A:/Fuchas/NT/Boot/" .. k)
 		end
 		dofile("A:/Fuchas/load.lua")
@@ -145,5 +148,5 @@ local c = coroutine.create(function()
 end)
 while true do
 	coroutine.resume(c)
-	coroutine.yield()
+	coroutine.yield(1)
 end

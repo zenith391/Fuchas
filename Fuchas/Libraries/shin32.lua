@@ -50,6 +50,10 @@ function dll.getSystemVar(var)
 	return sysvars[var]
 end
 
+function dll.setSystemVar(var, value)
+	sysvars[var] = value
+end
+
 function dll.newProcess(name, func)
 	local pid = table.getn(processes) + 1
 	local proc = coroutine.create(function(pid, name)

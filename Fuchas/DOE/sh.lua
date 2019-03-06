@@ -11,7 +11,7 @@ print(OSDATA.NAME .. " " .. OSDATA.VERSION)
 print("Disk Operation Environment")
 print(string.rep("-=", 15))
 
-
+shin32.getSystemVars()["PWD"] = "A:/"
 while run do
 	write(">")
 	local l = sh.read()
@@ -19,7 +19,7 @@ while run do
 	if l == "exit" then -- special case: exit cmd
 		run = false
 	end
-	if fs.exists(l) then
+	if fs.exists(shin32.getSystemVar("PWD") .. l) then
 		local f, err = xpcall(function()
 			local l, err = loadfile(l)
 			if l == nil then

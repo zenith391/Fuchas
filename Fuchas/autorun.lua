@@ -1,4 +1,4 @@
--- WARNING! Fuchas/autorun.lua is different from autorun.lua and should only be used for system variables
+-- WARNING! Fuchas/autorun.lua is different from autorun.lua and should be used for system variables
 -- because it is executed when shin32 library is first loaded (when fuchas is loading).
 local sys = require("shin32").getSystemVars()
 

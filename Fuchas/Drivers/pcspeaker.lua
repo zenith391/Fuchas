@@ -1,6 +1,8 @@
 local drv = {}
 local buffer = {}
 
+-- Possible: driver-specific "voice-emulation" mode, allowing up to 3 "voices"
+
 function drv.appendFrequency(channel, time, freq)
 	table.insert(buffer, {time, freq})
 	return true

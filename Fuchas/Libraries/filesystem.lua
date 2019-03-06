@@ -22,7 +22,7 @@ local function findNode(path)
 	if #seg > 0 then
 		local let = seg[1]:sub(1, 1)
 		if seg[1]:sub(2, 2) ~= ":" then
-			error("no drive identifier: \":\"")
+			error("no drive separator found (missing \":\", " .. seg[1] .. ")")
 		end
 		if not drives[let] then
 			error("Invalid drive letter: " .. let)
@@ -149,23 +149,23 @@ function filesystem.list(path)
 		local localPath = table.concat(segs, "/")
 		result = node.list(localPath)
 	end
-  local set = {}
-  for _,name in ipairs(result) do
-	set[filesystem.canonical(name)] = name
-  end
-  return function()
-	local key, value = next(set)
-	set[key or false] = nil
-	return value
-  end
+	local set = {}
+	for _,name in ipairs(result) do
+		set[filesystem.canonical(name)] = name
+	end
+	return function()
+		local key, value = next(set)
+		set[key or false] = nil
+		return value
+	end
 end
 
 function filesystem.remove(path)
-  return require("tools/fsmod").remove(path, findNode)
+	--return require("tools/fsmod").remove(path, findNode)
 end
 
 function filesystem.rename(oldPath, newPath)
-  return require("tools/fsmod").rename(oldPath, newPath, findNode)
+	--return require("tools/fsmod").rename(oldPath, newPath, findNode)
 end
 
 function filesystem.open(path, mode)
@@ -191,12 +191,12 @@ function filesystem.open(path, mode)
 		return nil, reason
 	end
 
-	local function create_handle_method(self, key)
-		return function(...)
+	local function create_handle_method(key)
+		return function(self, ...)
 			if not self.handle then
 				return nil, "file is closed"
 			end
-			return self[key](self.handle, ...)
+			return self.fs[key](self.handle, ...)
 		end
 	end
 
@@ -205,21 +205,20 @@ function filesystem.open(path, mode)
 		fs = node,
 		handle = handle,
 		close = function(self)
-		if self.handle then
-			self.close(self.handle)
-			self.handle = nil
-		end
+			if self.handle then
+				self.fs.close(self.handle)
+				self.handle = nil
+			end
 		end
 	}
-	stream.read = create_handle_method(stream, "read")
-	stream.seek = create_handle_method(stream, "seek")
-	stream.write = create_handle_method(stream, "write")
+	stream.read = create_handle_method("read")
+	stream.seek = create_handle_method("seek")
+	stream.write = create_handle_method("write")
 	return stream
 end
 
 filesystem.findNode = findNode
 filesystem.segments = segments
-filesystem.fstab = fstab
 
 -------------------------------------------------------------------------------
 

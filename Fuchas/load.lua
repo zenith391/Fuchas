@@ -5,8 +5,7 @@ local fs = require("filesystem")
 c.clear(0x000000)
 
 -- Bootstrap routine
-_G.shin32 = require("shin32")
-dofile("Fuchas/autorun.lua") -- system variables autorun
+dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 
 
 local drv = require("driver")
@@ -43,18 +42,18 @@ if fs.exists("/installing") then
 	pu.render()
 	p.dirty = true
 	p.render()
-	if drv.isDriverAvailable("internet") or true then
-		drv.changeDriver("internet", "internet")
-		local int = drv.getDriver("internet")
-		httpDownload("https://raw.githubusercontent.com/zenith391/Shindows_OC/master/Fuchas/Libraries/filesystem.lua", "/test.lua")
-	end
-	print(tostring(drv.isDriverAvailable("internet")))
+	--if drv.isDriverAvailable("internet") or true then
+	--	drv.changeDriver("internet", "internet")
+	--	local int = drv.getDriver("internet")
+	--	httpDownload("https://raw.githubusercontent.com/zenith391/Shindows_OC/master/Fuchas/Libraries/filesystem.lua", "/test.lua")
+	--end
+	--print(tostring(drv.isDriverAvailable("internet")))
 	return
 end
 y = 1
 shin32.newProcess("System", function()
 	local f, err = xpcall(function()
-		local l, err = loadfile("/Fuchas/DOE/sh.lua")
+		local l, err = loadfile("A:/Fuchas/DOE/sh.lua")
 		if l == nil then
 			error(err)
 		end
