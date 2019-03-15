@@ -27,7 +27,9 @@ local function findNode(path)
 		if not drives[let] then
 			error("Invalid drive letter: " .. let)
 		end
-		return drives[let]
+		local d = drives[let]
+		d.letter = let
+		return d
 	end
 end
 
@@ -69,15 +71,8 @@ function filesystem.get(path)
 end
 
 function filesystem.realPath(path)
-  checkArg(1, path, "string")
-  local node, rest = findNode(path, false, true)
-  if not node then return nil, rest end
-  local parts = {rest or nil}
-  repeat
-	table.insert(parts, 1, node.name)
-	node = node.parent
-  until not node
-  return table.concat(parts, "/")
+	local p = filesystem.path(path)
+	p = node.letter .. ":/" .. p
 end
 
 function filesystem.mountDrive(fs, letter)
@@ -114,16 +109,11 @@ function filesystem.proxy(filter, options)
 end
 
 function filesystem.exists(path)
-  if not filesystem.realPath(filesystem.path(path)) then
+	local node = findNode(path)
+	if node then
+		return node.exists(rest)
+	end
 	return false
-  end 
-  local node, rest, vnode, vrest = findNode(path)
-  if not vrest or vnode.links[vrest] then -- virtual directory or symbolic link
-	return true
-  elseif node and node.fs then
-	return node.fs.exists(rest)
-  end
-  return false
 end
 
 function filesystem.isDirectory(path)

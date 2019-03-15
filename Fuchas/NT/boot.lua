@@ -1,11 +1,6 @@
 _G.OSDATA = {}
 _G.OSDATA.NAME = "Fuchas"
-_G.OSDATA.VERSION = "ALPHA 0.2"
-if _VERSION == "Lua 5.3" then -- lua 5.3 haves higher number precision
-	_G.OSDATA.ARCH = "x86_64"
-else
-	_G.OSDATA.ARCH = "x86"
-end
+_G.OSDATA.VERSION = "0.1"
 
 local screen = nil
 for address in component.list("screen", true) do
@@ -91,20 +86,14 @@ local c = coroutine.create(function()
 	_G.package.loaded.computer = computer
 	_G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 	_G.io = {} -- software-defined by shin32
-	print("Done!")
-	--require("filesystem").mount(computer.getBootAddress(), "/")    -- TODO: Remove
 	local g, h = require("filesystem").mountDrive(computer.getBootAddress(), "A")
 	if not g then
 		print("error: " .. h)
 	end
-	print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " running on " .. _VERSION)
-	print(math.ceil(computer.freeMemory() / 1024) .. "KiB FREE")
-	print("OS Architecture: " .. OSDATA.ARCH)
-	print("Made by zenith391 (Zen1th on OC forum)")
-	print("Credits:")
-	print("3D powered by OCGL made by MineOS") -- not yet implemented
+	print(_VERSION .. " running " .. OSDATA.NAME .. " " .. OSDATA.VERSION .. ",")
+	print("        " .. math.ceil(computer.freeMemory() / 1024) .. "KiB FREE")
+	print("        made by zenith391 (Zen1th on OC forum).")
 	print("2D (GUI + Console) powered by OCX.")
-	print("GERT api layer 2, 3, 4 and 5 made by GlobalEmpire")	-- not yet implemented
 	os.sleep(0.25)
 	
 	-- loadfile

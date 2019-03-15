@@ -29,7 +29,7 @@ function lib.read()
 			if d ~= 0 then
 				c = string.char(d)
 				if c ~= '\r' then
-					if d == 8 then
+					if d == 8 then -- backspace
 						if s:len() > 0 then
 							s = s:sub(1, s:len() - 1)
 							x = x - 1

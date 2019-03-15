@@ -22,7 +22,7 @@ local function httpDownload(url, dest)
 	h:close()
 end
 
-if fs.exists("/installing") then
+if fs.exists("A:/installing") then
 	c.clear(0xAAAAAA)
 	p = c.progressBar(100)
 	pu.background = 0xAAAAAA

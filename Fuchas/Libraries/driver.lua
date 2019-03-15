@@ -36,12 +36,12 @@ function driver.changeDriver(type, path)
 end
 
 function driver.getDriver(type)
-	y = 1
-	for k, v in pairs(loaded) do
-		print(k, 0xFFFFFF)
-		print(v, 0xFFFFFF)
-	end
-    return loaded[type];
+	--y = 1
+	--for k, v in pairs(loaded) do
+	--	print(k, 0xFFFFFF)
+	--	print(v, 0xFFFFFF)
+	--end
+	return loaded[type];
 end
 
 function driver.isDriverAvailable(path)

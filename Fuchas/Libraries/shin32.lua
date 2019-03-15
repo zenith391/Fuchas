@@ -16,6 +16,17 @@ function table.getn(table)
   return i
 end
 
+table.maxn = table.getn
+
+function string.split(str, sep)
+	if not sep then sep = "%s" end
+	local t = {}
+	for part in string.gmatch(str, "([^" .. sep .. "]+)") do
+		table.insert(t, part)
+	end
+	return t
+end
+
 function io.fromu16(x)
 	local b2=string.char(x%256) x=(x-x%256)/256
     local b1=string.char(x%256) x=(x-x%256)/256
