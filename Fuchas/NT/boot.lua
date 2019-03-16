@@ -1,6 +1,6 @@
 _G.OSDATA = {}
 _G.OSDATA.NAME = "Fuchas"
-_G.OSDATA.VERSION = "0.1"
+_G.OSDATA.VERSION = "0.1.1"
 
 local screen = nil
 for address in component.list("screen", true) do
@@ -8,6 +8,9 @@ for address in component.list("screen", true) do
 		screen = address
 		break
 	end
+end
+if screen == nil then
+	screen = component.list("screen", true)()
 end
 
 local gpu = component.list("gpu", true)()
@@ -77,65 +80,50 @@ function os.sleep(n)  -- seconds
 	coroutine.yield()
   end
 end
+print("Loading packages..")
+local package = dofile("/Fuchas/Libraries/package.lua")
+_G.package = package
+_G.package.loaded.component = component
+_G.package.loaded.computer = computer
+_G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
+_G.io = {} -- software-defined by shin32
+local g, h = require("filesystem").mountDrive(computer.getBootAddress(), "A")
+if not g then
+	print("Error while mounting A drive: " .. h)
+end
 
-local c = coroutine.create(function()
-	print("Loading packages..")
-	local package = dofile("/Fuchas/Libraries/package.lua")
-	_G.package = package
-	_G.package.loaded.component = component
-	_G.package.loaded.computer = computer
-	_G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
-	_G.io = {} -- software-defined by shin32
-	local g, h = require("filesystem").mountDrive(computer.getBootAddress(), "A")
-	if not g then
-		print("error: " .. h)
+_G.loadfile = function(path)
+	local file, reason = require("filesystem").open(path, "r")
+	if not file then
+		error(reason)
 	end
-	print(_VERSION .. " running " .. OSDATA.NAME .. " " .. OSDATA.VERSION .. ",")
-	print("        " .. math.ceil(computer.freeMemory() / 1024) .. "KiB FREE")
-	print("        made by zenith391 (Zen1th on OC forum).")
-	print("2D (GUI + Console) powered by OCX.")
-	os.sleep(0.25)
-	
-	-- loadfile
-	_G.loadfile = function(path)
-		local file, reason = require("filesystem").open(path, "r")
-		if not file then
-			error(reason)
-		end
-		local buffer = ""
-		local data, reason = "", ""
-		while data do
-			data, reason = file:read(math.huge)
-			buffer = buffer .. (data or "")
-		end
-		file:close()
-		return load(buffer, "=" .. path, "bt", _G)
+	local buffer = ""
+	local data, reason = "", ""
+	while data do
+		data, reason = file:read(math.huge)
+		buffer = buffer .. (data or "")
 	end
-	
-	local f, err = xpcall(function()
-		-- number in names is for execution order
-		print("Loading shin32..")
-		_G.shin32 = require("shin32")
-		for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
-			print("Loading " .. k .. "..")
-			dofile("A:/Fuchas/NT/Boot/" .. k)
-		end
-		dofile("A:/Fuchas/load.lua")
-	end, function(err)
-			gpu.setBackground(0x4444DD)
-			print("Error while loading: " .. err, 0x00FF00)
-			print(debug.traceback(), 0x00FF00)
-	end)
-	if err ~= nil then
+	file:close()
+	return load(buffer, "=" .. path, "bt", _G)
+end
+
+local f, err = xpcall(function()
+	_G.shin32 = require("shin32")
+	for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
+		print("Loading " .. k .. "..")
+		dofile("A:/Fuchas/NT/Boot/" .. k)
+	end
+	dofile("A:/Fuchas/load.lua")
+end, function(err)
 		gpu.setBackground(0x4444DD)
-		--gpu.setForeground(0x00FF00)
-		--gpu.fill(1, 1, w, h, " ")
-		y = 20
-		print("Error while loading:", 0x00FF00)
-		print(err, 0x00FF00)
-	end
+		print("Error while loading: " .. err, 0x00FF00)
+		print(debug.traceback(), 0x00FF00)
 end)
-while true do
-	coroutine.resume(c)
-	coroutine.yield(1)
+if err ~= nil then
+	gpu.setBackground(0x4444DD)
+	--gpu.setForeground(0x00FF00)
+	--gpu.fill(1, 1, w, h, " ")
+	y = 20
+	print("Error while loading:", 0x00FF00)
+	print(err, 0x00FF00)
 end

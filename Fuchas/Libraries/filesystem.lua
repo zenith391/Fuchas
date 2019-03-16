@@ -22,14 +22,14 @@ local function findNode(path)
 	if #seg > 0 then
 		local let = seg[1]:sub(1, 1)
 		if seg[1]:sub(2, 2) ~= ":" then
-			error("no drive separator found (missing \":\", " .. seg[1] .. ")")
+			error("no drive separator found (missing \":\", " .. seg[1] .. ") in " .. path)
 		end
 		if not drives[let] then
 			error("Invalid drive letter: " .. let)
 		end
 		local d = drives[let]
 		d.letter = let
-		return d
+		return d, path:sub(3, path:len())
 	end
 end
 
@@ -109,7 +109,14 @@ function filesystem.proxy(filter, options)
 end
 
 function filesystem.exists(path)
-	local node = findNode(path)
+	if path:len() < 2 then
+		return false
+	else
+		if path:sub(2, 2) ~= ":" then
+			return false
+		end
+	end
+	local node, rest = findNode(path)
 	if node then
 		return node.exists(rest)
 	end

@@ -20,24 +20,39 @@ while run do
 	if l == "exit" then -- special case: exit cmd
 		run = false
 	end
-	if l == "drv" then
+	if l == "pwd" then
 		print("Drive: " .. drive .. ", pwd = " .. shin32.getSystemVar("PWD"))
 	end
 	if l:len() == 2 then
-		drive = l:sub(1, 1)
+		if l:sub(2, 2) == ":" then
+			drive = l:sub(1, 1)
+		end
 	end
-	local path = drive .. ":/" .. shin32.getSystemVar("PWD") .. l
+	local path = shin32.getSystemVar("PWD") .. l
 	local exists = false
 	local tpath = path
+	local pathv = string.split(shin32.getSystemVar("PATH"), ";")
 	local exts = string.split(shin32.getSystemVar("PATHEXT"), ";")
 	local tpi = 1
 	while not fs.exists(tpath) do
 		if tpi > table.getn(exts) then
 			break
 		end
-		tpath = path .. exts[tpi]
-		if fs.exists(tpath) then
-			exists = true
+		local org = tpath
+		for i, sp in pairs(pathv) do
+			tpath = sp .. path .. exts[tpi]
+			if fs.exists(tpath) then
+				exists = true
+			end
+			if not exists then
+				tpath = org
+			else
+				break
+			end
+		end
+		if not exists then
+			tpath = drive .. ":/" .. org .. exts[tpi]
+			exists = fs.exists(tpath)
 		end
 		tpi = tpi + 1
 	end

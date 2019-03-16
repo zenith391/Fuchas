@@ -27,11 +27,7 @@ function package.searchpath(name, path, sep, rep)
   local errorFiles = {}
   for subPath in string.gmatch(path, "([^;]+)") do
     subPath = string.gsub(subPath, "?", name)
-    --if subPath:sub(1, 1) ~= "/" and os.getenv then
-    --  subPath = fs.concat(os.getenv("PWD") or "/", subPath)
-    --end
-	--print(subPath)
-    if fs.exists(subPath) then -- fs.exists(subPath)
+    if fs.exists(subPath) then
       local file = fs.open(subPath, "r")
       if file then
         file:close()

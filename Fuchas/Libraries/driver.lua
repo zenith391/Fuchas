@@ -13,10 +13,7 @@ function driver.searchpath(name, path, sep, rep)
   local errorFiles = {}
   for subPath in string.gmatch(path, "([^;]+)") do
     subPath = string.gsub(subPath, "?", name)
-    if subPath:sub(1, 1) ~= "/" and os.getenv then
-      subPath = fs.concat(os.getenv("PWD") or "/", subPath)
-    end
-    if fs.exists(subPath) then -- fs.exists(subPath)
+    if fs.exists(subPath) then
       local file = fs.open(subPath, "r")
       if file then
         file:close()
@@ -36,11 +33,6 @@ function driver.changeDriver(type, path)
 end
 
 function driver.getDriver(type)
-	--y = 1
-	--for k, v in pairs(loaded) do
-	--	print(k, 0xFFFFFF)
-	--	print(v, 0xFFFFFF)
-	--end
 	return loaded[type];
 end
 
