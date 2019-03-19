@@ -85,6 +85,9 @@ local package = dofile("/Fuchas/Libraries/package.lua")
 _G.package = package
 _G.package.loaded.component = component
 _G.package.loaded.computer = computer
+if computer.supportsOEFI() then
+	_G.package.loaded.oefi = ...
+end
 _G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 _G.io = {} -- software-defined by shin32
 local g, h = require("filesystem").mountDrive(computer.getBootAddress(), "A")
@@ -121,8 +124,6 @@ end, function(err)
 end)
 if err ~= nil then
 	gpu.setBackground(0x4444DD)
-	--gpu.setForeground(0x00FF00)
-	--gpu.fill(1, 1, w, h, " ")
 	y = 20
 	print("Error while loading:", 0x00FF00)
 	print(err, 0x00FF00)

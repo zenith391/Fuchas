@@ -58,10 +58,10 @@ end
 
 function lib.newContext(x, y, width, height)
   local ctx = {}
-  ctx.x = x
-  ctx.y = y
-  ctx.width = width
-  ctx.height = height
+  ctx.x = x or 1
+  ctx.y = y or 1
+  ctx.width = width or 160
+  ctx.height = height or 50
   ctx.drawBuffer = {}
   dca = dca + 1
   if dca > 1000 then -- Limiting Draw Context Array index
