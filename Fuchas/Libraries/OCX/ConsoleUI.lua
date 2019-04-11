@@ -17,6 +17,17 @@ function lib.getHeight()
 	return h
 end
 
+function lib.drawBorder(x, y, width, height)
+	gpu.set(x, y, "╔")
+	gpu.set(x + width, y, "╗")
+	gpu.fill(x + 1, y, width - 1, 1, "═")
+	gpu.fill(x + 1, y + height, width - 1, 1, "═")
+	gpu.set(x, y + height, "╚")
+	gpu.set(x + width, y + height, "╝")
+	gpu.fill(x, y + 1, 1, height - 1, "║")
+	gpu.fill(x + width, y + 1, 1, height - 1, "║")
+end
+
 function lib.component()
 	local comp = {}
 	comp.render = function() end
@@ -27,14 +38,7 @@ function lib.component()
 	comp.renderBorder = function()
 		gpu.setBackground(comp.background)
 		gpu.setForeground(0xFFFFFF)
-		gpu.set(comp.x, comp.y, "╔")
-		gpu.set(comp.x + comp.width, comp.y, "╗")
-		gpu.fill(comp.x + 1, comp.y, comp.width - 1, 1, "═")
-		gpu.fill(comp.x + 1, comp.y + comp.height, comp.width - 1, 1, "═")
-		gpu.set(comp.x, comp.y + comp.height, "╚")
-		gpu.set(comp.x + comp.width, comp.y + comp.height, "╝")
-		gpu.fill(comp.x, comp.y + 1, 1, comp.height - 1, "║")
-		gpu.fill(comp.x + comp.width, comp.y + 1, 1, comp.height - 1, "║")
+		lib.drawBorder(comp.x, comp.y, comp.width, comp.height)
 	end
 	comp.background = 0x000000
 	comp.foreground = 0xFFFFFF
