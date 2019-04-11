@@ -116,8 +116,9 @@ local f, err = xpcall(function()
 		print("Loading " .. k .. "..")
 		dofile("A:/Fuchas/NT/Boot/" .. k)
 	end
-	dofile("A:/Fuchas/load.lua")
+	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
+		y = 1
 		gpu.setBackground(0x4444DD)
 		print("Error while loading: " .. err, 0x00FF00)
 		print(debug.traceback(), 0x00FF00)

@@ -1,6 +1,23 @@
 local filesystem = {}
 local drives = {}
 
+local function readAll(node, path)
+	local handle = node.open(path)
+	local buf = ""
+	local data = ""
+	while data ~= nil do
+		buf = buf .. data
+		data = node.read(handle, math.huge)
+	end
+	node.close(handle)
+end
+
+local function writeAllTo(node, path, content)
+	local handle = node.open(path)
+	node.write(handle, content)
+	node.close(handle)
+end
+
 local function segments(path)
   local parts = {}
   for part in path:gmatch("[^\\/]+") do
@@ -137,14 +154,10 @@ function filesystem.isDirectory(path)
 end
 
 function filesystem.list(path)
-	local node = findNode(path)
+	local node, rest = findNode(path)
 	local result = {}
 	if node then
-		result = {}
-		local segs = filesystem.segments(path)
-		table.remove(segs, 1)
-		local localPath = table.concat(segs, "/")
-		result = node.list(localPath)
+		result = node.list(rest)
 	end
 	local set = {}
 	for _,name in ipairs(result) do
@@ -158,11 +171,25 @@ function filesystem.list(path)
 end
 
 function filesystem.remove(path)
-	--return require("tools/fsmod").remove(path, findNode)
+	local node, rest = findNode(path)
+	if not node then
+		return false
+	end
+	return node.remove(rest)
 end
 
 function filesystem.rename(oldPath, newPath)
-	--return require("tools/fsmod").rename(oldPath, newPath, findNode)
+	local oldNode, oldRest = findNode(oldPath)
+	local newNode, newRest = findNode(newPath)
+	if oldNode == newNode then
+		return oldNode.rename(oldRest, newRest)
+	else
+		if not oldNode.exists(oldRest) then
+			return false
+		end
+		local content = readAll(oldNode, oldRest)
+		writeAllTo(newNode, newRest, content)
+	end
 end
 
 function filesystem.open(path, mode)
