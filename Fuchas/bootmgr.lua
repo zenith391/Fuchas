@@ -13,7 +13,7 @@ if fs.exists("A:/installing") then
 	computer.shutdown(true)
 end
 
-y = 1
+require("shell").setCursor(1, 1)
 shin32.newProcess("System", function()
 	local f, err = xpcall(function()
 		local l, err = loadfile("A:/Fuchas/DOE/sh.lua")

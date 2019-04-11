@@ -118,14 +118,10 @@ local f, err = xpcall(function()
 	end
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
-		y = 1
-		gpu.setBackground(0x4444DD)
-		print("Error while loading: " .. err, 0x00FF00)
-		print(debug.traceback(), 0x00FF00)
+		require("shell").setCursor(1, 1)
+		gpu.setBackground(0x0000FF)
+		require("OCX/ConsoleUI").clear(0x0000FF)
+		io.stderr:write("SYSTEM ERROR: " .. err .. "\n")
+		local traceback = debug.traceback()
+		io.stderr:write(traceback)
 end)
-if err ~= nil then
-	gpu.setBackground(0x4444DD)
-	y = 20
-	print("Error while loading:", 0x00FF00)
-	print(err, 0x00FF00)
-end

@@ -1,10 +1,24 @@
 local lib = {}
-local cui = require("OCX/ConsoleUI")
-local event = require("event")
 local cursor = {
 	x = 1,
 	y = 1
 }
+
+function lib.getX()
+	return cursor.x
+end
+
+function lib.getY()
+	return cursor.y
+end
+
+function lib.setY(y)
+	cursor.y = y
+end
+
+function lib.setX(x)
+	cursor.x = x
+end
 
 function lib.getCursor()
 	return cursor.x, cursor.y
@@ -16,13 +30,14 @@ function lib.setCursor(col, row)
 end
 
 function lib.clear()
-	cui.clear(0x000000)
+	require("OCX/ConsoleUI").clear(0x000000)
 	lib.setCursor(1, 1)
 end
 
 function lib.read()
 	local c = ""
 	local s = ""
+	local event = require("event")
 	while c ~= '\r' do -- '\r' == Enter
 		local a, b, d = event.pull()
 		if a == "key_down" then
@@ -32,9 +47,9 @@ function lib.read()
 					if d == 8 then -- backspace
 						if s:len() > 0 then
 							s = s:sub(1, s:len() - 1)
-							x = x - 1
+							cursor.x = cursor.x - 1
 							write(" ")
-							x = x - 1
+							cursor.x = cursor.x - 1
 						end
 					else
 						s = s .. c

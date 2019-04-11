@@ -2,9 +2,7 @@ local sh = require("shell")
 local cui = require("OCX/ConsoleUI")
 local fs = require("filesystem")
 local run = true
-x = 1
-y = 1
-
+sh.clear()
 -- splash
 print(string.rep("=-", 15))
 print(OSDATA.NAME .. " " .. OSDATA.VERSION)
