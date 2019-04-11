@@ -68,13 +68,13 @@ end
 function dll.newProcess(name, func)
 	local pid = table.getn(processes) + 1
 	local proc = coroutine.create(function(pid, name)
-		proc.status = "running"
+		--proc.status = "running"
 		activeProcesses = activeProcesses + 1
 		func(pid, name)
 		activeProcesses = activeProcesses - 1
-		proc.status = "ready"
+		--proc.status = "ready"
 	end, pid, name)
-	proc.status = "ready"
+	--proc.status = "ready"
 	processes[pid] = {name, proc}
 	coroutine.resume(proc, pid, name)
 end

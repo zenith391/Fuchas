@@ -10,7 +10,7 @@ local drv = require("driver")
 -- Is 2nd installation step?
 if fs.exists("A:/installing") then
 	dofile("A:/Fuchas/Binaries/installer.lua") -- Run 2nd step installer
-	return
+	computer.shutdown(true)
 end
 
 y = 1

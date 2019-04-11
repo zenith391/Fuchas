@@ -25,7 +25,7 @@ function drv.readFully(url)
 		data = h:read()
 	end
 	h:close()
-	return data
+	return buf
 end
 
 return component.isAvailable("internet"), drv

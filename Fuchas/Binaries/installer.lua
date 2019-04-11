@@ -3,7 +3,7 @@ local c = require("OCX/ConsoleUI")
 local REPO_URL = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local BACKGROUND = 0x000000
 
-local p = c.progressBar(5)
+local p = c.progressBar(2)
 local det = c.label("...")
 
 local function render()
@@ -33,6 +33,15 @@ status("Loading internet driver..")
 drv.changeDriver("internet", "internet")
 
 local int = drv.getDriver("internet")
-status("Getting filelist..")
+status("Preparing installation..")
+local listCode = "return {" .. int.readFully(REPO_URL .. "INSTALL2.LST") .. "}"
+local list = load(listCode, "=list", "bt", _G)()
+p.progress = 0
+p.maxProgress = #list
+render()
+for k, v in pairs(list) do
+	status("Downloading " .. v)
+	int.httpDownload(REPO_URL .. v, "A:/" .. v)
+end
 
-local list = load("return {" .. int.readFully(REPO_URL .. "INSTALL1.LST") .. "}", "=list", "bt", _G)()
+require("filesystem").remove("A:/installing")

@@ -60,6 +60,7 @@ end
 function lib.progressBar(maxProgress)
 	local pb = lib.component()
 	pb.progress = 0
+	pb.maxProgress = maxProgress
 	pb.foreground = 0x00FF00
 	pb.render = function()
 		gpu.setBackground(pb.background)
@@ -73,7 +74,7 @@ function lib.progressBar(maxProgress)
 		end
 		
 		gpu.setForeground(pb.foreground)
-		gpu.fill(pb.x + 1, pb.y + 1, (pb.progress / maxProgress) * pb.width - 1, pb.height - 1, "█")
+		gpu.fill(pb.x + 1, pb.y + 1, (pb.progress / pb.maxProgress) * pb.width - 1, pb.height - 1, "█")
 	end
 	return pb
 end
