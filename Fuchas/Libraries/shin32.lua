@@ -4,6 +4,7 @@ local windows = {}
 local processes = {}
 local sysvars = {}
 local nextWinID = 2
+local currentProc = nil
 local activeProcesses = 0
 
 function table.getn(table)
@@ -29,15 +30,15 @@ end
 
 function io.fromu16(x)
 	local b2=string.char(x%256) x=(x-x%256)/256
-    local b1=string.char(x%256) x=(x-x%256)/256
+	local b1=string.char(x%256) x=(x-x%256)/256
 	return {b1, b2}
 end
 
 function io.fromu32(x)
 	local b4=string.char(x%256) x=(x-x%256)/256
-    local b3=string.char(x%256) x=(x-x%256)/256
+	local b3=string.char(x%256) x=(x-x%256)/256
 	local b2=string.char(x%256) x=(x-x%256)/256
-    local b1=string.char(x%256) x=(x-x%256)/256
+	local b1=string.char(x%256) x=(x-x%256)/256
 	return {b1, b2, b3, b4}
 end
 
@@ -48,8 +49,8 @@ function io.tou16(arr, off)
 end
 
 function io.tou32(arr, off)
-	local v1 = readu16(off)
-	local v2 = readu16(off + 2)
+	local v1 = io.tou16(off)
+	local v2 = io.tou16(off + 2)
 	return v1 + (v2*65536)
 end
 
@@ -67,44 +68,51 @@ end
 
 function dll.newProcess(name, func)
 	local pid = table.getn(processes) + 1
-	local proc = coroutine.create(function(pid, name)
-		--proc.status = "running"
-		activeProcesses = activeProcesses + 1
-		func(pid, name)
-		activeProcesses = activeProcesses - 1
-		--proc.status = "ready"
-	end, pid, name)
-	--proc.status = "ready"
-	processes[pid] = {name, proc}
-	coroutine.resume(proc, pid, name)
+	local proc = {}
+	proc.name = name
+	proc.func = func
+	proc.pid = pid
+	proc.status = "created"
+	processes[pid] = proc
 end
 
 function dll.scheduler()
 	for k, p in pairs(processes) do
-		if coroutine.status(p[2]) == "dead" then
+		if p.status == "created" then
+			p.thread = coroutine.create(p.func)
+			activeProcesses = activeProcesses + 1
+		end
+		if coroutine.status(p.thread) == "dead" then
+			p.status = "dead"
 			table.remove(processes, k)
 		else
-			local a
-			if p[3] then
-				a = coroutine.resume(p[2], p[3])
-				p[3] = nil
+			p.status = "running"
+			local ret
+			currentProc = p
+			if p.result then
+				ret = coroutine.resume(p.thread, p.result)
+				p.result = nil
 			else
-				a = coroutine.resume(p[2])
+				ret = coroutine.resume(p.thread)
 			end
-			if a then
-				if type(a) == "function" then
+			currentProc = nil
+			p.status = "ready"
+			if ret then
+				if type(ret) == "function" then
 					local cont, val = true, nil
 					while cont do
 						cont, val = a(val)
 					end
-					p[3] = val
+					p.result = val
 				end
 			end
 		end
-		--print("resoume")
 	end
-	--require("event").pull() -- event yield
 	coroutine.yield()
+end
+
+function dll.getCurrentProcess()
+	return currentProc
 end
 
 function dll.getActiveProcesses()

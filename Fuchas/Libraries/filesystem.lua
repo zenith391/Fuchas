@@ -90,6 +90,7 @@ end
 function filesystem.realPath(path)
 	local p = filesystem.path(path)
 	p = node.letter .. ":/" .. p
+	return p
 end
 
 function filesystem.mountDrive(fs, letter)
@@ -141,16 +142,10 @@ function filesystem.exists(path)
 end
 
 function filesystem.isDirectory(path)
-  local real, reason = filesystem.realPath(path)
-  if not real then return nil, reason end
-  local node, rest, vnode, vrest = findNode(real)
-  if not vnode.fs and not vrest then
-	return true -- virtual directory (mount point)
-  end
-  if node.fs then
-	return not rest or node.fs.isDirectory(rest)
-  end
-  return false
+	if not filesystem.exists(path) then return false end
+	local node, rest = findNode(path)
+	if node == nil then return false end
+	return node.isDirectory(rest)
 end
 
 function filesystem.list(path)

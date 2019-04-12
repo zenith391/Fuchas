@@ -62,8 +62,7 @@ while run do
 			end
 			return l()
 		end, function(err)
-			print(err)
-			print(debug.traceback(" ", 1))
+			print(debug.traceback(err))
 		end)
 	else
 		print("file " .. l .. " does not exists")

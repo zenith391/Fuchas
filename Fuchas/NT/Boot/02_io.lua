@@ -11,8 +11,7 @@ local function createStdOut()
 	end
 	stream.write = function(self, val)
 		if val:find("\t") then
-			--val = val:gsub("\t", "    ")
-			return true
+			val = val:gsub("\t", "    ")
 		end
 		if val:find("\n") then
 			for line in val:gmatch("([^\n]+)") do
@@ -46,8 +45,9 @@ local function createStdErr()
 	local stream = {}
 	stream.write = function(self, val)
 		gpu.setForeground(0xFF0000)
-		io.stdout.write(io.stdout, val)
+		local b = io.stdout.write(io.stdout, val)
 		gpu.setForeground(0xFFFFFF)
+		return b
 	end
 	stream.write = io.stdout.write
 	stream.read = io.stdout.read
@@ -57,7 +57,6 @@ end
 
 io.stdout = createStdOut()
 io.stderr = createStdErr()
---print("Stdout inited!")
 
 -- Redefine NT's stdio functions
 function write(msg)
@@ -69,16 +68,22 @@ function print(msg)
 end
 
 function io.open(filename, mode)
-	if not mode then
-		mode = "r"
-	end
-	if fs.exists(filename) and not fs.isDirectory(filename) then
+	if not fs.isDirectory(filename) then
 		local file = {}
-		file.h = fs.open(filename, mode)
-		file.close = file.h.close
-		file.write = file.h.write
-		file.read = function(f)
-			return coroutine.yield(function(val)
+		local h, err = fs.open(filename, mode)
+		if not h then
+			error(err)
+		else
+			file.h = h
+		end
+		file.close = function(self)
+			self.h.close(self.h)
+		end
+		file.write = function (self, val)
+			return self.h.write(self.h, val)
+		end
+		file.read = function(self, f)
+			return coroutine.yield(function(val) -- task for later
 				if not f then
 					f = "a"
 				end
@@ -111,6 +116,7 @@ function io.open(filename, mode)
 				return false, nil
 			end)
 		end
+		return file
 	end
 	return nil
 end

@@ -1,7 +1,8 @@
+-- Extension library, being in Users/Shared
 -- Implementation details:
 -- over 64-bits precisions ALIs are not supported!
 local lib = {}
-local bit32 = require("bit32")
+--local bit32 = require("bit32")
 
 -- Little-Endian bytes operations
 --local function fromu16(x)
@@ -10,32 +11,12 @@ local bit32 = require("bit32")
 --	return {b1, b2}
 --end
 
-local function fromu32(x)
-	local b4=string.char(x%256) x=(x-x%256)/256
-    local b3=string.char(x%256) x=(x-x%256)/256
-	local b2=string.char(x%256) x=(x-x%256)/256
-    local b1=string.char(x%256) x=(x-x%256)/256
-	return {b1, b2, b3, b4}
-end
-
 local function u32tostr(x)
 	local b4=string.char(x%256) x=(x-x%256)/256
-    local b3=string.char(x%256) x=(x-x%256)/256
+	local b3=string.char(x%256) x=(x-x%256)/256
 	local b2=string.char(x%256) x=(x-x%256)/256
-    local b1=string.char(x%256) x=(x-x%256)/256
+	local b1=string.char(x%256) x=(x-x%256)/256
 	return b1 .. b2 .. b3 .. b4
-end
-
-local function tou16(arr, off)
-	local v1 = arr[off]
-	local v2 = arr[off + 1]
-	return v1 + (v2*256)
-end
-
-local function tou32(arr, off)
-	local v1 = tou16(off)
-	local v2 = tou16(off + 2)
-	return v1 + (v2*65536)
 end
 
 local function readALI(bytes)
@@ -71,20 +52,30 @@ function lib.newEntry(parent, name, isdir)
 	checkArg(2, name, "string")
 	checkArg(3, isdir, "boolean")
 	local entry = {}
-	entry.id = getArchive(parent).freeID
-	getArchive(parent).freeID = getArchive(parent).freeID + 1
+	if parent == 0 then
+		entry.id = 0
+	else
+		entry.id = getArchive(parent).freeID
+		getArchive(parent).freeID = getArchive(parent).freeID + 1
+	end
 	entry.parent = parent
+	if not isdir then
+		entry.content = ""
+	end
 	entry.isDirectory = function()
 		return isdir
 	end
-	entry.newChildrenEntry = function (n, d)
+	entry.childEntry = function (n, d)
 		return lib.newEntry(entry.id, n, d)
 	end
+	return entry
 end
 
-function lib.writeArchive(arc, s ) -- arc = archive, s = (buffered) stream
+function lib.writeArchive(arc, s) -- arc = archive, s = stream
 	s:write("URF")
 	s:write(string.char(0x11)) -- DC1
+	s:write(string.char(arc.version.major)) -- version major
+	s:write(string.char(arc.version.minor)) -- version minor
 	s:write(string.char(0x12)) -- DC2
 	s:write(string.char(0x0)) -- NULL
 end
@@ -93,16 +84,16 @@ function lib.newArchive()
 	local arc = {}
 	
 	-- Root
-	arc.root = {}
-	arc.root.id = 0
-	arc.root.childrens = {}
-	arc.root.parent = arc
+	arc.freeID = 1
+	arc.version = {
+		major=1,
+		minor=0
+	}
+	arc.root = lib.newEntry(0, "", true)
 	
 	arc.isArchive = function()
 		return true
 	end
-	arc.freeID = 1
-	
 	
 	return arc
 end
