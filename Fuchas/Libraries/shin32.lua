@@ -29,28 +29,28 @@ function string.split(str, sep)
 end
 
 function io.fromu16(x)
-	local b2=string.char(x%256) x=(x-x%256)/256
 	local b1=string.char(x%256) x=(x-x%256)/256
+	local b2=string.char(x%256)
 	return {b1, b2}
 end
 
 function io.fromu32(x)
-	local b4=string.char(x%256) x=(x-x%256)/256
-	local b3=string.char(x%256) x=(x-x%256)/256
-	local b2=string.char(x%256) x=(x-x%256)/256
 	local b1=string.char(x%256) x=(x-x%256)/256
+	local b2=string.char(x%256) x=(x-x%256)/256
+	local b3=string.char(x%256) x=(x-x%256)/256
+	local b4=string.char(x%256)
 	return {b1, b2, b3, b4}
 end
 
 function io.tou16(arr, off)
-	local v1 = arr[off]
-	local v2 = arr[off + 1]
+	local v1 = arr[off + 1]
+	local v2 = arr[off]
 	return v1 + (v2*256)
 end
 
 function io.tou32(arr, off)
-	local v1 = io.tou16(off)
-	local v2 = io.tou16(off + 2)
+	local v1 = io.tou16(arr, off + 2)
+	local v2 = io.tou16(arr, off)
 	return v1 + (v2*65536)
 end
 
