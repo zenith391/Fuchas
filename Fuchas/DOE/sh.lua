@@ -14,19 +14,21 @@ local drive = "A"
 while run do
 	write(">")
 	local l = sh.read()
+	local args = sh.parseCL(l)
+	
 	write(" \n")
-	if l == "exit" then -- special case: exit cmd
+	if args[1] == "exit" then -- special case: exit cmd
 		run = false
 	end
-	if l == "pwd" then
+	if args[1] == "pwd" then
 		print("Drive: " .. drive .. ", pwd = " .. shin32.getSystemVar("PWD"))
 	end
-	if l:len() == 2 then
-		if l:sub(2, 2) == ":" then
-			drive = l:sub(1, 1)
+	if args[1]:len() == 2 then
+		if args[0]:sub(2, 2) == ":" then
+			drive = args[0]:sub(1, 1)
 		end
 	end
-	local path = shin32.getSystemVar("PWD") .. l
+	local path = shin32.getSystemVar("PWD") .. args[1]
 	local exists = false
 	local tpath = path
 	local pathv = string.split(shin32.getSystemVar("PATH"), ";")
@@ -56,15 +58,15 @@ while run do
 	end
 	if exists then
 		local f, err = xpcall(function()
-			local l, err = loadfile(tpath)
-			if l == nil then
+			local f, err = loadfile(tpath)
+			if f == nil then
 				print(err)
 			end
-			return l()
+			return f()
 		end, function(err)
 			print(debug.traceback(err))
 		end)
 	else
-		print("file " .. l .. " does not exists")
+		print("file " .. args[1] .. " does not exists")
 	end
 end

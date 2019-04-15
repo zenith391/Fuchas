@@ -38,8 +38,8 @@ function dofile(file)
 	end
 end
 
-y = 1
-x = 1
+local y = 1
+local x = 1
 function write(msg, fore)
 	msg = tostring(msg)
 	if fore == nil then fore = 0xFFFFFF end

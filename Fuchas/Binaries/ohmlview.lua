@@ -12,20 +12,20 @@ local parsed = xml.parse([[
 </ohml>
 ]])
 
-local function exploreTab(tab, level)
-	for k, v in pairs(tab) do
-		write(string.rep("\t", level))
-		if type(v) == "table" then
-			print(k .. ":")
-			if k == "parent" then
-				print(string.rep("\t", level) .. "upper-level")
-			else
-				exploreTab(v, level + 1)
-			end
-		else
-			print(k .. " = " .. tostring(v))
-		end
-	end
-end
+-- local function exploreTab(tab, level)
+	-- for k, v in pairs(tab) do
+		-- write(string.rep("\t", level))
+		-- if type(v) == "table" then
+			-- print(k .. ":")
+			-- if k == "parent" then
+				-- print(string.rep("\t", level) .. "upper-level")
+			-- else
+				-- exploreTab(v, level + 1)
+			-- end
+		-- else
+			-- print(k .. " = " .. tostring(v))
+		-- end
+	-- end
+-- end
 
-exploreTab(parsed, 0)
+--exploreTab(parsed, 0)

@@ -34,7 +34,42 @@ function lib.clear()
 	lib.setCursor(1, 1)
 end
 
-function lib.parseCL()
+function lib.parseCL(cl)
+	local args = {}
+	local ca = string.toCharArray(cl)
+	
+	local istr = false
+	local arg = ""
+	for i = 1, #ca do
+		local c = ca[i]
+		if not istr then
+			if c == '"' then
+				arg = ""
+				istr = true
+			elseif c == " " then
+				table.insert(args, arg)
+				arg = ""
+			else
+				arg = arg .. c
+			end
+		else
+			if c == '"' then
+				istr = false
+				table.insert(args, arg)
+				arg = ""
+			else
+				arg = arg .. c
+			end
+		end
+	end
+	if arg ~= "" then
+		if istr then
+			error("parse error: long-argument not ended with \"")
+		end
+		table.insert(args, arg)
+	end
+	
+	return args
 end
 
 function lib.read()
