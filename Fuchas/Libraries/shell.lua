@@ -34,6 +34,9 @@ function lib.clear()
 	lib.setCursor(1, 1)
 end
 
+function lib.parseCL()
+end
+
 function lib.read()
 	local c = ""
 	local s = ""
