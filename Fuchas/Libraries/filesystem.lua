@@ -93,11 +93,19 @@ function filesystem.realPath(path)
 	return p
 end
 
-function filesystem.mountDrive(fs, letter)
+function filesystem.unmountDrive(letter)
 	if letter:len() ~= 1 then
 		return false, "invalid length"
 	end
-	drives[letter:upper()] = component.proxy(fs)
+	drives[letter:upper()] = nil
+	return true
+end
+
+function filesystem.mountDrive(proxy, letter)
+	if letter:len() ~= 1 then
+		return false, "invalid length"
+	end
+	drives[letter:upper()] = proxy
 	return true
 end
 

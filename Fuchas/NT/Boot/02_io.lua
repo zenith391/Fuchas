@@ -58,6 +58,9 @@ end
 io.stdout = createStdOut()
 io.stderr = createStdErr()
 
+require("shell").setCursor(1, gy())
+_G.gy = nil
+
 -- Redefine NT's stdio functions
 function write(msg)
 	io.stdout:write(msg)

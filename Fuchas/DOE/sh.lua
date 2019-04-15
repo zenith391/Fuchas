@@ -12,11 +12,13 @@ print(string.rep("-=", 15))
 shin32.setSystemVar("PWD", "")
 local drive = "A"
 while run do
-	write(">")
+	write(drive .. ":/" .. shin32.getSystemVar("PWD") .. ">")
 	local l = sh.read()
 	local args = sh.parseCL(l)
-	
 	write(" \n")
+	if #args == 0 then
+		args[1] = ""
+	end
 	if args[1] == "exit" then -- special case: exit cmd
 		run = false
 	end
@@ -24,8 +26,8 @@ while run do
 		print("Drive: " .. drive .. ", pwd = " .. shin32.getSystemVar("PWD"))
 	end
 	if args[1]:len() == 2 then
-		if args[0]:sub(2, 2) == ":" then
-			drive = args[0]:sub(1, 1)
+		if args[1]:sub(2, 2) == ":" then
+			drive = args[1]:sub(1, 1)
 		end
 	end
 	local path = shin32.getSystemVar("PWD") .. args[1]
@@ -33,6 +35,7 @@ while run do
 	local tpath = path
 	local pathv = string.split(shin32.getSystemVar("PATH"), ";")
 	local exts = string.split(shin32.getSystemVar("PATHEXT"), ";")
+	table.insert(exts, "")
 	local tpi = 1
 	while not fs.exists(tpath) do
 		if tpi > table.getn(exts) then
@@ -56,13 +59,21 @@ while run do
 		end
 		tpi = tpi + 1
 	end
-	if exists then
+	if exists and args[1] ~= "" then
 		local f, err = xpcall(function()
+			local programArgs = {}
+			if #args > 1 then
+				for k, v in pairs(args) do
+					if k > 1 then
+						table.insert(programArgs, v)
+					end
+				end
+			end
 			local f, err = loadfile(tpath)
 			if f == nil then
 				print(err)
 			end
-			return f()
+			return f(programArgs)
 		end, function(err)
 			print(debug.traceback(err))
 		end)

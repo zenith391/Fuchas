@@ -1,2 +1,3 @@
--- test command
-print("hello world")
+local args = ...
+local user = args[1] or "World"
+print("Hello " .. user .. "!")

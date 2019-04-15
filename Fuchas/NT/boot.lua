@@ -40,6 +40,10 @@ end
 
 local y = 1
 local x = 1
+
+function gy() -- temporary cursor Y accessor
+	return y
+end
 function write(msg, fore)
 	msg = tostring(msg)
 	if fore == nil then fore = 0xFFFFFF end
@@ -90,7 +94,7 @@ if computer.supportsOEFI() then
 end
 _G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 _G.io = {} -- software-defined by shin32
-local g, h = require("filesystem").mountDrive(computer.getBootAddress(), "A")
+local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
 if not g then
 	print("Error while mounting A drive: " .. h)
 end
