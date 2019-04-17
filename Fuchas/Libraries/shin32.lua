@@ -74,6 +74,7 @@ function dll.newProcess(name, func)
 	proc.pid = pid
 	proc.status = "created"
 	processes[pid] = proc
+	return proc
 end
 
 function dll.scheduler()
@@ -87,7 +88,7 @@ function dll.scheduler()
 		if coroutine.status(p.thread) == "dead" then
 			p.status = "dead"
 			activeProcesses = activeProcesses - 1
-			table.remove(processes, k)
+			processes[k] = nil
 		else
 			if p.status == "wait_event" then
 				if lastEvent ~= nil then
@@ -132,6 +133,39 @@ end
 
 function dll.getCurrentProcess()
 	return currentProc
+end
+
+function dll.getProcess(pid)
+	return processes[pid]
+end
+
+function dll.waitFor(proc)
+	while proc.status ~= "dead" do
+		coroutine.yield()
+	end
+end
+
+function dll.safeKill(proc)
+	if proc.safeKillHandler then
+		local doKill = proc.safeKillHandler()
+		if doKill then
+			dll.kill(proc, true) -- bypass because having program agreement over killing
+		end
+	else
+		dll.kill(proc, false)
+	end
+end
+
+--- bypass = Bypasses the current process protection
+function dll.kill(proc, bypass)
+	-- Protection due to expected behavior being "instant" kill of the process. But if it is running it needs to
+	-- finish its process tick.
+	if currentProc == proc and not bypass then -- only current process is in state "running"
+		error("cannot kill current process")
+	end
+	proc.status = "dead"
+	activeProcesses = activeProcesses - 1
+	processes[proc.pid] = nil
 end
 
 function dll.getActiveProcesses()

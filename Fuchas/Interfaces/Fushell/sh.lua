@@ -1,3 +1,9 @@
+-- Avoid killing (safely) system process with a custom quit handler
+shin32.getCurrentProcess().safeKillHandler = function()
+	print("cannot kill system process!")
+	return false
+end
+
 local sh = require("shell")
 local cui = require("OCX/ConsoleUI")
 local fs = require("filesystem")
@@ -74,7 +80,11 @@ while run do
 			if f == nil then
 				print(err)
 			end
-			return f(programArgs)
+			
+			local proc = shin32.newProcess("shell child program", function()
+				f(programArgs)
+			end)
+			shin32.waitFor(proc)
 		end, function(err)
 			print(debug.traceback(err))
 		end)
