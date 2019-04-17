@@ -1,10 +1,10 @@
-local interrupt = {}
+local event = {}
 local handlers = {}
-interrupt.handlers = handlers
+event.handlers = handlers
 local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
 
-function interrupt.register(key, callback, interval, times, opt_handlers)
+function event.register(key, callback, interval, times, opt_handlers)
   local handler =
   {
     key = key,
@@ -26,7 +26,12 @@ function interrupt.register(key, callback, interval, times, opt_handlers)
 end
 
 computer.pullSignal = function(...)
-	local event_data = table.pack(handlers(...))
+	local event_data
+	if shin32.getCurrentProcess() == nil then
+		event_data = table.pack(handlers(...))
+	else
+		event_data = coroutine.yield("pull event", _pullSignal, ...)
+	end
 	local signal = event_data[1]
 	local copy = {}
 	for id,handler in pairs(handlers) do
@@ -47,7 +52,7 @@ computer.pullSignal = function(...)
 		-- call
 		local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
 		if not result then
-			--pcall(interrupt.onError, message)
+			--pcall(event.onError, message)
 		elseif message == false and handlers[id] == handler then
 			handlers[id] = nil
 		end
@@ -76,7 +81,7 @@ local function createPlainFilter(name, ...)
   end
 end
 
-function interrupt.pullFiltered(...)
+function event.pullFiltered(...)
   local args = table.pack(...)
   local seconds, filter
 
@@ -104,18 +109,18 @@ function interrupt.pullFiltered(...)
   until computer.uptime() >= deadline
 end
 
-function interrupt.pull(...)
+function event.pull(...)
   local args = table.pack(...)
   if type(args[1]) == "string" then
-    return interrupt.pullFiltered(createPlainFilter(...))
+    return event.pullFiltered(createPlainFilter(...))
   else
     checkArg(1, args[1], "number", "nil")
     checkArg(2, args[2], "string", "nil")
-    return interrupt.pullFiltered(args[1], createPlainFilter(select(2, ...)))
+    return event.pullFiltered(args[1], createPlainFilter(select(2, ...)))
   end
 end
 
-function interrupt.listen(name, callback)
+function event.listen(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
   for _, handler in pairs(handlers) do
@@ -123,28 +128,28 @@ function interrupt.listen(name, callback)
       return false
     end
   end
-  return interrupt.register(name, callback, math.huge, math.huge)
+  return event.register(name, callback, math.huge, math.huge)
 end
 
-function interrupt.cancel(timerId)
+function event.cancel(timerId)
   checkArg(1, timerId, "number")
-  if interrupt.handlers[timerId] then
-    interrupt.handlers[timerId] = nil
+  if event.handlers[timerId] then
+    event.handlers[timerId] = nil
     return true
   end
   return false
 end
 
-function interrupt.ignore(name, callback)
+function event.ignore(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  for id, handler in pairs(interrupt.handlers) do
+  for id, handler in pairs(event.handlers) do
     if handler.key == name and handler.callback == callback then
-      interrupt.handlers[id] = nil
+      event.handlers[id] = nil
       return true
     end
   end
   return false
 end
 
-return interrupt
+return event

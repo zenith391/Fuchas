@@ -77,38 +77,55 @@ function dll.newProcess(name, func)
 end
 
 function dll.scheduler()
+	local lastEvent = table.pack(require("event").handlers(0.05)) -- call for a tick
 	for k, p in pairs(processes) do
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
 			activeProcesses = activeProcesses + 1
+			p.status = "ready"
 		end
 		if coroutine.status(p.thread) == "dead" then
 			p.status = "dead"
 			table.remove(processes, k)
 		else
-			p.status = "running"
-			local ret
-			currentProc = p
-			if p.result then
-				ret = coroutine.resume(p.thread, p.result)
-				p.result = nil
-			else
-				ret = coroutine.resume(p.thread)
-			end
-			currentProc = nil
-			p.status = "ready"
-			if ret then
-				if type(ret) == "function" then
-					local cont, val = true, nil
-					while cont do
-						cont, val = a(val)
+			if p.status == "ready" then
+				p.status = "running"
+				local ret, a1, a2, a3
+				currentProc = p
+				if p.result then
+					_, ret, a1, a2, a3 = coroutine.resume(p.thread, p.result)
+					p.result = nil
+				else
+					_, ret, a1, a2, a3 = coroutine.resume(p.thread)
+				end
+				currentProc = nil
+				p.status = "ready"
+				if ret then
+					if type(ret) == "function" then
+						local cont, val = true, nil
+						while cont do
+							cont, val = a(val)
+						end
+						p.result = val
 					end
-					p.result = val
+					if type(ret) == "string" then
+						if ret == "pull event" then
+							_pullSignal = a1
+							p.arg1 = a2
+							p.status = "wait_event"
+						end
+					end
+				end
+			elseif p.status == "wait_event" then
+				if lastEvent ~= nil then
+					if lastEvent[1] ~= nil then
+						p.result = lastEvent
+						p.status = "ready"
+					end
 				end
 			end
 		end
 	end
-	coroutine.yield()
 end
 
 function dll.getCurrentProcess()
