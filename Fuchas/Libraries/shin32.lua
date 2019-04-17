@@ -86,8 +86,17 @@ function dll.scheduler()
 		end
 		if coroutine.status(p.thread) == "dead" then
 			p.status = "dead"
+			activeProcesses = activeProcesses - 1
 			table.remove(processes, k)
 		else
+			if p.status == "wait_event" then
+				if lastEvent ~= nil then
+					if lastEvent[1] ~= nil then
+						p.result = lastEvent
+						p.status = "ready"
+					end
+				end
+			end
 			if p.status == "ready" then
 				p.status = "running"
 				local ret, a1, a2, a3
@@ -116,13 +125,6 @@ function dll.scheduler()
 						end
 					end
 				end
-			elseif p.status == "wait_event" then
-				if lastEvent ~= nil then
-					if lastEvent[1] ~= nil then
-						p.result = lastEvent
-						p.status = "ready"
-					end
-				end
 			end
 		end
 	end
@@ -134,6 +136,10 @@ end
 
 function dll.getActiveProcesses()
 	return activeProcesses
+end
+
+function dll.getProcesses()
+	return processes
 end
 
 function dll.newWindow()

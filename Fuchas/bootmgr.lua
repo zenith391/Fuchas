@@ -14,9 +14,9 @@ if fs.exists("A:/installing") then
 end
 
 require("shell").setCursor(1, 1)
-shin32.newProcess("System", function()
+shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()
-		local l, err = loadfile("A:/Fuchas/DOE/sh.lua")
+		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/sh.lua")
 		if l == nil then
 			error(err)
 		end
@@ -25,10 +25,7 @@ shin32.newProcess("System", function()
 		print(err)
 		print(debug.traceback(" ", 1))
 	end)
-	if f == false then
-		print("Error:", 0xFF0000)
-		print(err, 0xFF0000)
-	else
+	if f == true then
 		computer.shutdown() -- main interface exit
 	end
 end)

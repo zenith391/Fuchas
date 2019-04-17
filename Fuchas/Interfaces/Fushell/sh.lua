@@ -5,8 +5,9 @@ local run = true
 sh.clear()
 -- splash
 print(string.rep("=-", 15))
-print(OSDATA.NAME .. " " .. OSDATA.VERSION)
-print("Disk Operation Environment")
+print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " - Fushell")
+print("I'm sure you'll only use it")
+print("when Concert doesn't work!")
 print(string.rep("-=", 15))
 
 shin32.setSystemVar("PWD", "")
