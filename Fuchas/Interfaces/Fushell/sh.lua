@@ -19,6 +19,7 @@ print(string.rep("-=", 15))
 shin32.setSystemVar("PWD", "")
 local drive = "A"
 while run do
+	shin32.setSystemVar("PWD_DRIVE", drive)
 	write(drive .. ":/" .. shin32.getSystemVar("PWD") .. ">")
 	local l = sh.read()
 	local args = sh.parseCL(l)
@@ -37,10 +38,11 @@ while run do
 			drive = args[1]:sub(1, 1)
 		end
 	end
-	local path = shin32.getSystemVar("PWD") .. args[1]
+	local path = args[1]
 	local exists = false
 	local tpath = path
 	local pathv = string.split(shin32.getSystemVar("PATH"), ";")
+	table.insert(pathv, shin32.getSystemVar("PWD"))
 	local exts = string.split(shin32.getSystemVar("PATHEXT"), ";")
 	table.insert(exts, "")
 	local tpi = 1
