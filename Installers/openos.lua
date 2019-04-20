@@ -133,7 +133,11 @@ local function process()
 		drawStage()
 		
 		-- fetch
-		fileList = load("return {" .. download(repoURL .. "INSTALL1.LST") .. "}")()
+		local f, err = load("return {" .. download(repoURL .. "INSTALL1.LST") .. "}")
+		if err ~= nil then
+			error(err)
+		end
+		fileList = f()
 		install()
 	end
 end
