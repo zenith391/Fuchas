@@ -75,7 +75,7 @@ function io.open(filename, mode)
 		local file = {}
 		local h, err = fs.open(filename, mode)
 		if not h then
-			error(err)
+			return nil, err
 		else
 			file.h = h
 		end
