@@ -1,7 +1,7 @@
-"init.lua",
 "Fuchas/autorun.lua",
-"Fuchas/load.lua",
+"Fuchas/bootmgr.lua",
 "Fuchas/NT/boot.lua",
+"Fuchas/NT/Boot/00_luaapi.lua")
 "Fuchas/NT/Boot/01_component.lua",
 "Fuchas/NT/Boot/02_io.lua",
 "Fuchas/NT/Boot/03_os.lua",
