@@ -71,11 +71,17 @@ function dll.newProcess(name, func)
 	proc.func = func
 	proc.pid = pid
 	proc.status = "created"
+	if dll.getCurrentProcess() ~= nil then
+		proc.parent = dll.getCurrentProcess()
+	end
 	processes[pid] = proc
 	return proc
 end
 
 function dll.scheduler()
+	if dll.getCurrentProcess() ~= nil then
+		error("only system can use shin32.scheduler()")
+	end
 	local lastEvent = table.pack(require("event").handlers(0.05)) -- call for a tick
 	for k, p in pairs(processes) do
 		if p.status == "created" then
@@ -98,16 +104,25 @@ function dll.scheduler()
 			end
 			if p.status == "ready" then
 				p.status = "running"
-				local ret, a1, a2, a3
+				local ok, ret, a1, a2, a3
 				currentProc = p
 				if p.result then
-					_, ret, a1, a2, a3 = coroutine.resume(p.thread, p.result)
+					ok, ret, a1, a2, a3 = coroutine.resume(p.thread, p.result)
 					p.result = nil
 				else
-					_, ret, a1, a2, a3 = coroutine.resume(p.thread)
+					ok, ret, a1, a2, a3 = coroutine.resume(p.thread)
 				end
 				currentProc = nil
 				p.status = "ready"
+				if not ok then
+					if p.parent ~= nil then
+						if p.parent.childErrorHandler ~= nil then
+							p.parent.childErrorHandler(p, ret)
+						end
+					else
+						error(ret) -- just panic if it's system process
+					end
+				end
 				if ret then
 					if type(ret) == "function" then
 						local cont, val = true, nil

@@ -1,11 +1,6 @@
 local component = require("component")
-local pcspeaker = component.computer
-local dll = {}
+local lib = {}
 local sounds = {}
-
-local apS1 = {}
-local apS2 = {}
-local nSound = 17
 
 -- PS (PC Speaker), PCM
 function dll.createSoundContext(type)
@@ -23,10 +18,9 @@ end
 
 -- internal api
 function dll.initSoundSystem()
-	local WinLua = libdll("WinLua")
 	-- Pro: Buffer, Audio (from API side) is asynchronous
 	-- Con: Freeze other programs if using PC Speaker instdead of Computronics Sound Card..
-	local pid1 = WinLua.newProcess("voiceprocess", function()
+	local pid1 = shin32.newProcess("voiceprocess", function()
 		while true do
 			local i = 1
 			local i0 = 1

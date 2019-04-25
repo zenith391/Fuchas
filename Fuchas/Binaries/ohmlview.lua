@@ -1,5 +1,18 @@
 package.loaded["xml"] = nil
 local xml = require("xml")
+print("liblon test:")
+package.loaded["liblon"] = nil
+local lon = require("liblon")
+local tab = {
+	username = "Zen1th",
+	protection = "sha256",
+	pwhash = "yozenith",
+	usernames = {
+		"admin", "zen1th", "shared", "guest"
+	}
+}
+print("table:")
+print(tostring(lon.sertable(tab)))
 
 local parsed = xml.parse([[
 <ohml lang="fr" version=1.1>
@@ -28,4 +41,4 @@ local function exploreTab(tab, level)
 	end
 end
 
-exploreTab(parsed, 0)
+--exploreTab(parsed, 0)
