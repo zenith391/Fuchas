@@ -5,14 +5,14 @@ package.path = "A:/Fuchas/Libraries/?.lua;./?.lua;A:/?.lua"
 local loading = {}
 
 local loaded = {
-  ["_G"] = _G,
-  ["bit32"] = bit32,
-  ["coroutine"] = coroutine,
-  ["math"] = math,
-  ["os"] = os,
-  ["package"] = package,
-  ["string"] = string,
-  ["table"] = table
+	["_G"] = _G,
+	["bit32"] = bit32,
+	["coroutine"] = coroutine,
+	["math"] = math,
+	["os"] = os,
+	["package"] = package,
+	["string"] = string,
+	["table"] = table
 }
 package.loaded = loaded
 
@@ -40,50 +40,48 @@ function package.searchpath(name, path, sep, rep)
 end
 
 function require(module)
-  checkArg(1, module, "string")
-  if loaded[module] ~= nil then
-    return loaded[module]
-  elseif not loading[module] then
-    local library, status, step
-	
-	if shin32 then -- compatible before and after launching
-		if shin32.getSystemVar("LIB_PATH") then
-			package.path = shin32.getSystemVar("LIB_PATH")
+	checkArg(1, module, "string")
+	if loaded[module] ~= nil then
+		return loaded[module]
+	elseif not loading[module] then
+		local library, status, step
+		if shin32 then -- compatible before and after launching
+			if shin32.getSystemVar("LIB_PATH") then
+				package.path = shin32.getSystemVar("LIB_PATH")
+			end
 		end
+		step, library, status = "not found", package.searchpath(module, package.path)
+		if library then
+			step, library, status = "loadfile failed", loadfile(library)
+		end
+
+		if library then
+			loading[module] = true
+			step, library, status = "load failed", pcall(library, module)
+			loading[module] = false
+		end
+
+		assert(library, string.format("module '%s' %s:\n%s", module, step, status))
+		loaded[module] = status
+		return status
+	else
+		error("already loading: " .. module .. "\n" .. debug.traceback(), 2)
 	end
-    step, library, status = "not found", package.searchpath(module, package.path)
-
-    if library then
-      step, library, status = "loadfile failed", loadfile(library)
-    end
-
-    if library then
-      loading[module] = true
-      step, library, status = "load failed", pcall(library, module)
-      loading[module] = false
-    end
-
-    assert(library, string.format("module '%s' %s:\n%s", module, step, status))
-    loaded[module] = status
-    return status
-  else
-    error("already loading: " .. module .. "\n" .. debug.traceback(), 2)
-  end
 end
 
 function package.delay(lib, file)
-  local mt = {
-    __index = function(tbl, key)
-      setmetatable(lib, nil)
-      setmetatable(lib.internal or {}, nil)
-      dofile(file)
-      return tbl[key]
-    end
-  }
-  if lib.internal then
-    setmetatable(lib.internal, mt)
-  end
-  setmetatable(lib, mt)
+	local mt = {
+		__index = function(tbl, key)
+			setmetatable(lib, nil)
+			setmetatable(lib.internal or {}, nil)
+			dofile(file)
+			return tbl[key]
+		end
+	}
+	if lib.internal then
+		setmetatable(lib.internal, mt)
+	end
+	setmetatable(lib, mt)
 end
 
 -------------------------------------------------------------------------------

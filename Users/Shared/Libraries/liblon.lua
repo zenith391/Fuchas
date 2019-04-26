@@ -22,7 +22,7 @@ function lib.sertable(tab, depth)
 		else
 			str = str .. "\n" .. string.rep("\t", depth) .. k .. " = " .. v
 		end
-		if i < #tab then
+		if i < table.getn(tab) then
 			str = str .. ","
 		end
 		i = i + 1

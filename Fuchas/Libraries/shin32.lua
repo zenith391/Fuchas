@@ -8,8 +8,10 @@ local activeProcesses = 0
 function table.getn(table)
 	local i = 0
 	for k, v in pairs(table) do
-		if k > i then
-			i = k
+		if type(k) == "number" then
+			i = math.max(i, k)
+		else
+			i = i + 1
 		end
 	end
 	return i

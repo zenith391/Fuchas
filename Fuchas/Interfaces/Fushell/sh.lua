@@ -5,7 +5,7 @@ shin32.getCurrentProcess().safeKillHandler = function()
 end
 
 shin32.getCurrentProcess().childErrorHandler = function(proc, err)
-	io.stderr:write(err .. "\n")
+	io.stderr:write(tostring(err) .. "\n")
 end
 
 local sh = require("shell")
@@ -23,6 +23,7 @@ print(string.rep("-=", 15))
 shin32.setSystemVar("PWD", "")
 local drive = "A"
 while run do
+	while true do -- used for break (to act as "continue" in other other languages)
 	shin32.setSystemVar("PWD_DRIVE", drive)
 	write(drive .. ":/" .. shin32.getSystemVar("PWD") .. ">")
 	local l = sh.read()
@@ -33,13 +34,16 @@ while run do
 	end
 	if args[1] == "exit" then -- special case: exit cmd
 		run = false
+		break
 	end
 	if args[1] == "pwd" then
 		print("Drive: " .. drive .. ", pwd = " .. shin32.getSystemVar("PWD"))
+		break
 	end
 	if args[1]:len() == 2 then
 		if args[1]:sub(2, 2) == ":" then
 			drive = args[1]:sub(1, 1)
+			break
 		end
 	end
 	local path = args[1]
@@ -97,4 +101,5 @@ while run do
 	else
 		print("file " .. args[1] .. " does not exists")
 	end
+	end -- end of "continue" while
 end

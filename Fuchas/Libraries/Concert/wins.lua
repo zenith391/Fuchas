@@ -71,9 +71,10 @@ function lib.windowingSystem()
 			end
 		end
 	end
-	sys.moveWindow = function(v, tx, ty, c)
+	sys.moveWindow = function(winID, tx, ty, c)
 		--c.copy(v.x, v.y, v.width, v.height, v.x, v.y)
-		sys.renderWindow(v.id, c)
+		local v = windows[winID]
+		sys.renderWindow(winID, c)
 		if tx-1 > v.x then
 			c.fillRect(v.x, v.y, tx - v.x, v.height, 0xEFEFEF)
 		end
