@@ -3,6 +3,7 @@ local component     = require("component")
 local internet      = component.getPrimary("internet")
 local gpu           = require("term").gpu()
 local event         = require("event")
+local filesystem = require("filesystem")
 local width, height = gpu.getResolution()
 local stage         = 1
 local selected      = 2
@@ -116,6 +117,13 @@ local function install()
 		downloading = v
 		drawStage()
 		local content = download(repoURL .. v)
+		local path = filesystem.path(content)
+		if not filesystem.exists("/" .. path) then
+			filesystem.makeDirectory("/" .. path)
+		end
+		local buf = io.open(path, "w")
+		buf:write(content)
+		buf:close()
 	end
 	stage = 5
 	drawStage()
