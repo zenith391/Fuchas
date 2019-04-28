@@ -11,4 +11,5 @@
 "Fuchas/Libraries/driver.lua",
 "Fuchas/Libraries/event.lua",
 "Fuchas/Libraries/OCX/ConsoleUI.lua",
-"Fuchas/Drivers/internet.lua"
+"Fuchas/Drivers/internet.lua",
+"init.lua"
