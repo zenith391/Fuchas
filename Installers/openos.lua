@@ -62,7 +62,7 @@ local function download(url)
 	local buf = ""
 	local data = ""
 	while data ~= nil do
-		data = con:read(math.huge)
+		data = con.read(math.huge)
 		if data ~= nil then
 			buf = buf .. data
 		end
@@ -117,11 +117,14 @@ local function install()
 		downloading = v
 		drawStage()
 		local content = download(repoURL .. v)
-		local path = filesystem.path(content)
+		local path = filesystem.path(v)
 		if not filesystem.exists("/" .. path) then
 			filesystem.makeDirectory("/" .. path)
 		end
-		local buf = io.open(path, "w")
+		local buf, err = io.open("/" .. v, "w")
+		if buf == nil then
+			error(err)
+		end
 		buf:write(content)
 		buf:close()
 	end
