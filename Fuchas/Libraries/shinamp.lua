@@ -1,3 +1,6 @@
+-- Old library for audio. To be reconsidered.
+-- Do NOT use for now.
+
 local component = require("component")
 local lib = {}
 local sounds = {}

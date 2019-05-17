@@ -1,5 +1,6 @@
 -- Original from IgorTimofeev's MineOS
 -- (i'm don't want to re-invent everything that has been done, mostly when my math knowledge is limited)
+-- (so of course, IgorTimofeev will have credits for this library)
 --  
 --  Adaptation of the Secure Hashing Algorithm (SHA-244/256)
 --  Found Here: http://lua-users.org/wiki/SecureHashAlgorithm
