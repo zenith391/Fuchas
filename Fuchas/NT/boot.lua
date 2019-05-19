@@ -117,7 +117,7 @@ _G.loadfile = function(path)
 	return load(buffer, "=" .e. path, "bt", _G)
 end
 
-local f, err = xpcall(function()
+local f, err = pcall(function()
 	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
 		print("(5/5) Loading " .. k .. "..")
@@ -132,3 +132,5 @@ end, function(err)
 		local traceback = debug.traceback()
 		io.stderr:write(traceback)
 end)
+
+coroutine.yield() -- temporary fixes, more to be worked on
