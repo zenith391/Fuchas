@@ -114,7 +114,7 @@ _G.loadfile = function(path)
 		buffer = buffer .. (data or "")
 	end
 	file:close()
-	return load(buffer, "=" .e. path, "bt", _G)
+	return load(buffer, "=" .. path, "bt", _G)
 end
 
 xpcall(function()
