@@ -117,7 +117,7 @@ _G.loadfile = function(path)
 	return load(buffer, "=" .e. path, "bt", _G)
 end
 
-local f, err = pcall(function()
+xpcall(function()
 	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
 		print("(5/5) Loading " .. k .. "..")
@@ -125,12 +125,13 @@ local f, err = pcall(function()
 	end
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
-		require("shell").setCursor(1, 1)
+		if io.stderr then
+			require("shell").setCursor(1, 1)
+			require("OCX/ConsoleUI").clear(0x0000FF)
+		end
 		gpu.setBackground(0x0000FF)
-		require("OCX/ConsoleUI").clear(0x0000FF)
-		io.stderr:write("SYSTEM ERROR: " .. err .. "\n")
+		write("SYSTEM ERROR: " .. err .. "\n")
 		local traceback = debug.traceback()
-		io.stderr:write(traceback)
+		write(traceback)
+		coroutine.yield() -- let the user see the error
 end)
-
-coroutine.yield() -- temporary fixes, more to be worked on
