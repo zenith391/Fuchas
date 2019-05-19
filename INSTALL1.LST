@@ -13,5 +13,5 @@
 "Fuchas/Libraries/shell.lua",
 "Fuchas/Libraries/OCX/ConsoleUI.lua",
 "Fuchas/Drivers/internet.lua",
-"Fuchas/Binaries/installer.lua"
+"Fuchas/Binaries/installer.lua",
 "init.lua"
