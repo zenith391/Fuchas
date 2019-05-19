@@ -84,16 +84,19 @@ function os.sleep(n)  -- seconds
 	coroutine.yield()
   end
 end
-print("Loading packages..")
+print("(1/5) Loading 'package' library..")
 local package = dofile("/Fuchas/Libraries/package.lua")
 _G.package = package
 _G.package.loaded.component = component
 _G.package.loaded.computer = computer
+print("(2/5) Checking OEFI compatibility..")
 if computer.supportsOEFI() then
 	_G.package.loaded.oefi = ...
 end
+print("(3/5) Loading 'filesystem' library..")
 _G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 _G.io = {} -- software-defined by shin32
+print("(4/5) Mounting A: filesystem.")
 local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
 if not g then
 	print("Error while mounting A drive: " .. h)
@@ -111,13 +114,13 @@ _G.loadfile = function(path)
 		buffer = buffer .. (data or "")
 	end
 	file:close()
-	return load(buffer, "=" .. path, "bt", _G)
+	return load(buffer, "=" .e. path, "bt", _G)
 end
 
 local f, err = xpcall(function()
 	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
-		print("Loading " .. k .. "..")
+		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/NT/Boot/" .. k)
 	end
 	dofile("A:/Fuchas/bootmgr.lua")

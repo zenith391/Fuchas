@@ -10,6 +10,8 @@
 "Fuchas/Libraries/package.lua",
 "Fuchas/Libraries/driver.lua",
 "Fuchas/Libraries/event.lua",
+"Fuchas/Libraries/shell.lua",
 "Fuchas/Libraries/OCX/ConsoleUI.lua",
 "Fuchas/Drivers/internet.lua",
+"Fuchas/Binaries/installer.lua"
 "init.lua"

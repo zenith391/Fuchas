@@ -149,11 +149,12 @@ function dll.newProcess(name, func)
 	return proc
 end
 
+local eventlib = require("event")
 function dll.scheduler()
 	if dll.getCurrentProcess() ~= nil then
 		error("only system can use shin32.scheduler()")
 	end
-	local lastEvent = table.pack(require("event").handlers(0.05)) -- call for a tick
+	local lastEvent = table.pack(eventlib.handlers(0.05)) -- call for a tick
 	for k, p in pairs(processes) do
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
@@ -204,8 +205,7 @@ function dll.scheduler()
 					end
 					if type(ret) == "string" then
 						if ret == "pull event" then
-							_pullSignal = a1
-							p.arg1 = a2
+							p.arg1 = a1
 							p.status = "wait_event"
 						end
 					end

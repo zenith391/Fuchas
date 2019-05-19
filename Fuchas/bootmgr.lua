@@ -16,7 +16,7 @@ end
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()
-		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/sh.lua")
+		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
 		if l == nil then
 			error(err)
 		end

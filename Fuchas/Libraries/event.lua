@@ -30,7 +30,7 @@ computer.pullSignal = function(...)
 	if shin32.getCurrentProcess() == nil then
 		event_data = table.pack(handlers(...))
 	else
-		event_data = coroutine.yield("pull event", _pullSignal, ...)
+		event_data = coroutine.yield("pull event", ...)
 	end
 	local signal = event_data[1]
 	local copy = {}
