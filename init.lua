@@ -1,6 +1,6 @@
 -- Fuchas Boot Manager
 computer.supportsOEFI = function()
-	return true
+	return false
 end
 loadfile = load([[return function(file)
 	local pc,cp = computer, component

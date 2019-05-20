@@ -1,6 +1,6 @@
 _G.OSDATA = {}
 _G.OSDATA.NAME = "Fuchas"
-_G.OSDATA.VERSION = "0.2.0"
+_G.OSDATA.VERSION = "0.3.0"
 
 local screen = nil
 for address in component.list("screen", true) do
