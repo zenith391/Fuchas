@@ -110,28 +110,24 @@ function filesystem.mountDrive(proxy, letter)
 end
 
 function filesystem.path(path)
-  local parts = segments(path)
-  local result = table.concat(parts, "/", 1, #parts - 1) .. "/"
-  if unicode.sub(path, 1, 1) == "/" and unicode.sub(result, 1, 1) ~= "/" then
-	return "/" .. result
-  else
+	local parts = segments(path)
+	local result = table.concat(parts, "/", 1, #parts - 1) .. "/"
 	return result
-  end
 end
 
 function filesystem.name(path)
-  checkArg(1, path, "string")
-  local parts = segments(path)
-  return parts[#parts]
+	checkArg(1, path, "string")
+	local parts = segments(path)
+	return parts[#parts]
 end
 
 function filesystem.proxy(filter, options)
-  checkArg(1, filter, "string")
-  if not component.list("filesystem")[filter] or next(options or {}) then
-	-- if not, load fs full library, it has a smarter proxy that also supports options
-	return filesystem.internal.proxy(filter, options)
-  end
-  return component.proxy(filter) -- it might be a perfect match
+	checkArg(1, filter, "string")
+	if not component.list("filesystem")[filter] or next(options or {}) then
+		-- if not, load fs full library, it has a smarter proxy that also supports options
+		return filesystem.internal.proxy(filter, options)
+	end
+	return component.proxy(filter) -- it might be a perfect match
 end
 
 function filesystem.exists(path)

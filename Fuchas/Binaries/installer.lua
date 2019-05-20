@@ -1,5 +1,6 @@
 local drv = require("driver")
 local c = require("OCX/ConsoleUI")
+local filesystem = require("filesystem")
 local REPO_URL = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local BACKGROUND = 0x000000
 
@@ -41,6 +42,10 @@ p.maxProgress = #list
 render()
 for k, v in pairs(list) do
 	status("Downloading " .. v)
+	local path = filesystem.path("A:/" .. v)
+	if not filesystem.exists(path) then
+		filesystem.makeDirectory(path)
+	end
 	int.httpDownload(REPO_URL .. v, "A:/" .. v)
 end
 
