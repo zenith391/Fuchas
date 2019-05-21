@@ -134,6 +134,12 @@ local function install()
 	end
 	buf:write(download(repoURL .. "dualboot_init.lua"))
 	buf:close()
+	-- write installing file
+	buf, err = io.open("/installing", "w")
+	if buf == nil then
+		error(err)
+	end
+	buf:close()
 	stage = 5
 	drawStage()
 end

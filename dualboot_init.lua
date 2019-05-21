@@ -24,18 +24,17 @@ local screena = cp.list("screen")()
 local gpu = cp.proxy(gpua)
 gpu.bind(screena)
 gpu.setResolution(40, 16)
-gpu.set(1, 1, "Press 1 for Fuchas")
-gpu.set(1, 2, "Press 2 for OpenOS")
+gpu.set(1, 1, "Press ENTER for Fuchas")
+gpu.set(1, 2, "Press O     for OpenOS")
 
 while true do
-	local id, _, ch = computer.pullSignal()
+	local id, _, _, ch = computer.pullSignal()
 	if id == "key_down" then
-		ch = string.char(ch)
-		if ch == '1' then
+		if ch == 28 then
 			_G.loadfile = loadfile
-			loadfile("Fuchas/NT/boot.lua")
+			loadfile("Fuchas/NT/boot.lua")()
 			break
-		elseif ch == '2' then
+		elseif ch == 24 then
 			loadfile("/lib/core/boot.lua")(loadfile)
 			-- OpenOS's shell behavior
 			while true do
