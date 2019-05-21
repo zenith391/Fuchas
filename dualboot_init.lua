@@ -19,8 +19,10 @@ local cp = component
 if cp.list("gpu")() == nil or cp.list("screen")() == nil then
 	error("Graphics Card and Screen required.")
 end
-local gpu = cp.proxy(cp.list("gpu")())
-gpu.bind(cp.list("screen")())
+local gpua = cp.list("gpu")()
+local screena = cp.list("screen")()
+local gpu = cp.proxy(gpua)
+gpu.bind(screena)
 gpu.setResolution(40, 16)
 gpu.set(1, 1, "Press 1 for Fuchas")
 gpu.set(1, 2, "Press 2 for OpenOS")
