@@ -2,7 +2,7 @@ computer.supportsOEFI = function()
 	return false
 end
 local loadfile = load([[return function(file)
-	local pc,cp = computer, component
+	local pc,cp = computer or package.loaded.computer, component or package.loaded.component
 	local addr, invoke = pc.getBootAddress(), cp.invoke
 	local handle, reason = invoke(addr, "open", file)
 	assert(handle, reason)
@@ -30,9 +30,11 @@ gpu.set(1, 2, "Press 2 for OpenOS")
 while true do
 	local id, _, ch = computer.pullSignal()
 	if id == "key_down" then
+		ch = string.char(ch)
 		if ch == '1' then
 			_G.loadfile = loadfile
 			loadfile("Fuchas/NT/boot.lua")
+			break
 		elseif ch == '2' then
 			loadfile("/lib/core/boot.lua")(loadfile)
 			-- OpenOS's shell behavior
