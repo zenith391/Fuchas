@@ -28,7 +28,7 @@ gpu.set(1, 1, "Press 1 for Fuchas")
 gpu.set(1, 2, "Press 2 for OpenOS")
 
 while true do
-	local id, _, ch = computer.pullEvent()
+	local id, _, ch = computer.pullSignal()
 	if id == "key_down" then
 		if ch == '1' then
 			_G.loadfile = loadfile
