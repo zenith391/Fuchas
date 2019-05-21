@@ -135,3 +135,4 @@ end, function(err)
 		write(traceback)
 		coroutine.yield() -- let the user see the error
 end)
+coroutine.yield()

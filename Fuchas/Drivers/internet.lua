@@ -8,7 +8,7 @@ function drv.httpDownload(url, dest)
 	local file = fs.open(dest, "w")
 	local data = ""
 	while data ~= nil do
-		file.write(data)
+		file:write(data)
 		local data = h.read()
 	end
 	file.close()

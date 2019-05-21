@@ -169,6 +169,17 @@ function filesystem.list(path)
 	end
 end
 
+function filesystem.makeDirectory(path)
+	local node, rest = findNode(path)
+	if node then
+		if not node.makeDirectory(rest) then
+			error("could not create directory")
+		end
+	else
+		error("no drive")
+	end
+end
+
 function filesystem.remove(path)
 	local node, rest = findNode(path)
 	if not node then
