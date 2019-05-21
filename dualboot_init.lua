@@ -16,7 +16,7 @@ local loadfile = load([[return function(file)
 	return load(buffer, "=" .. file, "bt", _G)
 end]], "=loadfile", "bt", _G)()
 local cp = component
-if cp.list("gpu")() == nil or cp.list("screen")() then
+if cp.list("gpu")() == nil or cp.list("screen")() == nil then
 	error("Graphics Card and Screen required.")
 end
 local gpu = cp.proxy(cp.list("gpu")())
