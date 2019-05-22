@@ -105,8 +105,10 @@ local function drawStage()
 		gpu.set(5, 6, downloading)
 	end
 	if stage == 5 then
-		gpu.set(5, 5, "Done.")
-		gpu.set(5, 6, "Please restart computer to finish installation.")
+		gpu.set(5, 5, "Done!")
+		gpu.set(5, 6, "Now restarting the computer..")
+		os.sleep(0.5)
+		require("computer").shutdown(true)
 		run = false
 	end
 end
