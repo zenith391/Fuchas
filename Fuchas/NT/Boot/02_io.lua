@@ -70,6 +70,10 @@ function print(msg)
 	write(msg .. "\n")
 end
 
+function io.write(msg)
+	io.stdout:write(msg)
+end
+
 function io.open(filename, mode)
 	if not fs.isDirectory(filename) then
 		local file = {}
@@ -86,7 +90,7 @@ function io.open(filename, mode)
 			return self.h.write(self.h, val)
 		end
 		file.read = function(self, f)
-			return coroutine.yield(function(val) -- task for later
+			--return coroutine.yield(function(val) -- task for later
 				if not f then
 					f = "a"
 				end
@@ -110,14 +114,24 @@ function io.open(filename, mode)
 						if r == nil then
 							return false, nil
 						elseif r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
-							return false,s
+							return false, s
 						end
 						s = s .. r
 					end
 					return false, s
 				end
-				return false, nil
-			end)
+				return false, "invalid mode"
+			--end)
+		end
+		file.lines = function(self, f)
+			local tab = {}
+			while true do
+				local ok, result = self.read(self, "l")
+				if result ~= nil then
+					table.insert(tab, result)
+				end
+			end
+			return tab
 		end
 		return file
 	end

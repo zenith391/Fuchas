@@ -34,6 +34,39 @@ function lib.clear()
 	lib.setCursor(1, 1)
 end
 
+function lib.getKeyboard()
+	return component.getPrimary("screen").getKeyboards()[0]
+end
+
+function lib.getScreen()
+	return component.getPrimary("screen").address
+end
+
+function lib.parse(tab)
+	local ntab = {}
+	local options = {}
+	for _, v in pairs(tab) do
+		if v:len() > 0 then
+			if v:sub(1, 2) == "--" then
+				options[v:sub(3, v:len())] = true
+			elseif v:sub(1, 1) == "-" then
+				options[v:sub(2, 2)] = true
+			else
+				table.insert(ntab, v)
+			end
+		end
+	end
+	return ntab, options
+end
+
+function lib.resolve(path)
+	return path
+end
+
+function lib.write(obj)
+	write(tostring(obj))
+end
+
 function lib.parseCL(cl)
 	local args = {}
 	local ca = string.toCharArray(cl)

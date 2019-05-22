@@ -1,6 +1,7 @@
 _G.OSDATA = {}
 _G.OSDATA.NAME = "Fuchas"
 _G.OSDATA.VERSION = "0.3.0"
+_G.OSDATA.DEBUG = false
 
 local screen = nil
 for address in component.list("screen", true) do
@@ -105,7 +106,11 @@ end
 _G.loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
-		error(reason)
+		if _G.OSDATA.DEBUG then
+			error(reason)
+		else
+			return nil, reason
+		end
 	end
 	local buffer = ""
 	local data, reason = "", ""

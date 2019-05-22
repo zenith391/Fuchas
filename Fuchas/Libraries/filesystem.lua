@@ -70,21 +70,12 @@ function filesystem.concat(...)
 end
 
 function filesystem.get(path)
-  local node = findNode(path)
-  if node.fs then
-	local proxy = node.fs
-	path = ""
-	while node and node.parent do
-	  path = filesystem.concat(node.name, path)
-	  node = node.parent
+	local node, rest = findNode(path)
+	if node then
+		path = filesystem.canonical(path)
+		return node, rest
 	end
-	path = filesystem.canonical(path)
-	if path ~= "/" then
-	  path = "/" .. path
-	end
-	return proxy, path
-  end
-  return nil, "no such file system"
+	return nil, "no such file system"
 end
 
 function filesystem.realPath(path)

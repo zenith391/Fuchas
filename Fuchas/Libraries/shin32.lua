@@ -190,6 +190,8 @@ function dll.scheduler()
 					if p.parent ~= nil then
 						if p.parent.childErrorHandler ~= nil then
 							p.parent.childErrorHandler(p, ret)
+						else
+							error(ret)
 						end
 					else
 						error(ret) -- just panic if it's system process
@@ -199,7 +201,7 @@ function dll.scheduler()
 					if type(ret) == "function" then
 						local cont, val = true, nil
 						while cont do
-							cont, val = a(val)
+							cont, val = ret(val)
 						end
 						p.result = val
 					end

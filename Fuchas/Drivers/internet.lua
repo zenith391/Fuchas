@@ -9,7 +9,7 @@ function drv.httpDownload(url, dest)
 	local data = ""
 	while data ~= nil do
 		file:write(data)
-		local data = h.read()
+		data = h.read()
 	end
 	file.close()
 	h.close()
