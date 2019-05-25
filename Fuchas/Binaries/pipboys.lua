@@ -1,27 +1,9 @@
 -- PIPBOYS (Package Installation & Packeter for Beautiful and Ordered Young Software)
 
-local args = ...
+local shell = require("shell")
+local args, options = shell.parse(...)
 
-local parseArgs = {}
-
-local i = 1
-while i < #args+1 do
-	local v = args[i]
-	if v == "h" or v == "help" then
-		parseArgs.h = true
-	end
-	if v == "i" or v == "install" then
-		i = i + 1
-		if not args[i] then
-			io.stderr:write("missing package name after 'install'\n")
-			return
-		end
-		parseArgs.i = args[i]
-	end
-	i = i + 1
-end
-
-if parseArgs.h then
+if options.h then
 	print("PIPBOYS Help:")
 	print("\thelp: Shows this help message")
 	print("\tinstall [package name]: Install the following package. Throws an error if non-existent")
@@ -32,12 +14,12 @@ if parseArgs.h then
 	return
 end
 
-if parseArgs.i then
+if options.i then
 	if not component.isAvailable("internet") then
 		io.stderr:write("Internet card required!")
 		return
 	end
-	print("Searching package '" .. parseArgs.i .. "'")
+	print("Searching package '" .. args[1] .. "'")
 	local master = [[
 		{
 			repos = {
