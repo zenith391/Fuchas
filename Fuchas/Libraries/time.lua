@@ -1,4 +1,5 @@
 local lib = {}
+local _time = os.time
 
 lib.TIMEUNITS = {
 	"MILLISECONDS" = {
@@ -52,8 +53,12 @@ function lib.convertDuration(src, dstUnit)
 	return src.time / dstUnit.ms
 end
 
-function lib.currentTime()
-	
+function lib.currentTime(unit)
+	if unit == nil then
+		unit = lib.TIMEUNITS.SECONDS
+	end
+	local sec = _time()
+	return sec / 1000 * unit.ms
 end
 
 return lib

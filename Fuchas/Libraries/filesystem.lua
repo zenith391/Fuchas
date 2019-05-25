@@ -19,18 +19,18 @@ local function writeAllTo(node, path, content)
 end
 
 local function segments(path)
-  local parts = {}
-  for part in path:gmatch("[^\\/]+") do
-	local current, up = part:find("^%.?%.$")
-	if current then
-	  if up == 2 then
-		table.remove(parts)
-	  end
-	else
-	  table.insert(parts, part)
+	local parts = {}
+	for part in path:gmatch("[^\\/]+") do
+		local current, up = part:find("^%.?%.$")
+		if current then
+			if up == 2 then
+				table.remove(parts)
+			end
+		else
+			table.insert(parts, part)
+		end
 	end
-  end
-  return parts
+	return parts
 end
 
 local function findNode(path)
@@ -53,20 +53,15 @@ end
 -------------------------------------------------------------------------------
 
 function filesystem.canonical(path)
-  local result = table.concat(segments(path), "/")
-  if unicode.sub(path, 1, 1) == "/" then
-	return "/" .. result
-  else
-	return result
-  end
+	return table.concat(segments(path), "/")
 end
 
 function filesystem.concat(...)
-  local set = table.pack(...)
-  for index, value in ipairs(set) do
-	checkArg(index, value, "string")
-  end
-  return filesystem.canonical(table.concat(set, "/"))
+	local set = table.pack(...)
+	for index, value in ipairs(set) do
+		checkArg(index, value, "string")
+	end
+	return filesystem.canonical(table.concat(set, "/"))
 end
 
 function filesystem.get(path)
@@ -110,15 +105,6 @@ function filesystem.name(path)
 	checkArg(1, path, "string")
 	local parts = segments(path)
 	return parts[#parts]
-end
-
-function filesystem.proxy(filter, options)
-	checkArg(1, filter, "string")
-	if not component.list("filesystem")[filter] or next(options or {}) then
-		-- if not, load fs full library, it has a smarter proxy that also supports options
-		return filesystem.internal.proxy(filter, options)
-	end
-	return component.proxy(filter) -- it might be a perfect match
 end
 
 function filesystem.exists(path)
@@ -197,14 +183,11 @@ function filesystem.open(path, mode)
 	checkArg(1, path, "string")
 	mode = tostring(mode or "r")
 	checkArg(2, mode, "string")
-
 	assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
 		"bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
-
-	local node = findNode(path)
+	local node, rest = findNode(path)
 	local segs = segments(path)
 	table.remove(segs, 1)
-	local rest = table.concat(segs, "/")
 	if not node then
 		return nil, "drive not found"
 	end

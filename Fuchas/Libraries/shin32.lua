@@ -149,12 +149,33 @@ function dll.newProcess(name, func)
 	return proc
 end
 
+local function systemEvent(pack)
+	local id = pack[1]
+	if id == "component_added" then
+		if pack[3] == "filesystem" then
+			require("filesystem").mountDrive(component.proxy(pack[2]), "B")
+		end
+	end
+	if id == "component_removed" then
+		if pack[3] == "filesystem" then
+			require("filesystem").unmountDrive("B")
+		end
+	end
+	return true
+end
+
 local eventlib = require("event")
 function dll.scheduler()
 	if dll.getCurrentProcess() ~= nil then
 		error("only system can use shin32.scheduler()")
 	end
+	
+	-- System Event Handling
 	local lastEvent = table.pack(eventlib.handlers(0.05)) -- call for a tick
+	if not systemEvent(lastEvent) then
+		lastEvent = nil -- if not propagating
+	end
+	
 	for k, p in pairs(processes) do
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)

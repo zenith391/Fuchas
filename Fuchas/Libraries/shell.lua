@@ -110,7 +110,7 @@ function lib.read()
 	local s = ""
 	local event = require("event")
 	while c ~= '\r' do -- '\r' == Enter
-		local a, b, d = event.pull()
+		local a, b, d = event.pull("key_down")
 		if a == "key_down" then
 			if d ~= 0 then
 				c = string.char(d)

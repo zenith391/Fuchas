@@ -23,8 +23,8 @@ if canon:sub(1, 1) == '/' then
 	print(canon)
 end
 local newPath = canon .. args[1]
-if filesystem.exists(drive .. ":" .. newPath) then
-	shin32.setSystemVar("PWD", newPath)
+if filesystem.exists(drive .. ":" .. filesystem.canonical(newPath)) then
+	shin32.setSystemVar("PWD", filesystem.canonical(newPath))
 else
 	print(drive .. ":" .. newPath .. " doesn't exists.")
 end
