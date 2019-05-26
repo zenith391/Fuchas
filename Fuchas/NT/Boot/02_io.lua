@@ -98,7 +98,7 @@ function io.open(filename, mode)
 				if f == "a" then
 					local s = ""
 					while true do
-						local r = file.h:read()
+						local r = file.h:read(math.huge)
 						if r == nil then
 							break
 						end
@@ -110,7 +110,7 @@ function io.open(filename, mode)
 				if f == "l" then
 					local s = ""
 					while true do
-						local r = file.h:read()
+						local r = file.h:read(1)
 						if r == nil then
 							return false, nil
 						elseif r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
@@ -131,7 +131,11 @@ function io.open(filename, mode)
 					table.insert(tab, result)
 				end
 			end
-			return tab
+			local i = 0
+			return function()
+				i = i + 1
+				if i <= n then return tab[i] end
+			end
 		end
 		return file
 	end

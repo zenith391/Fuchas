@@ -38,6 +38,16 @@ computer.pullSignal = function(...)
 		copy[id] = handler
 	end
 	local current_time = os.clock()
+	local keyboard = require("keyboard")
+	if keyboard.isCtrlPressed() then
+		if keyboard.isPressed(string.byte('c')) then
+			if keyboard.isAltPressed() then
+				error("interrupted", 2)
+			else
+				return "interrupt"
+			end
+		end
+	end
 	for id,handler in pairs(copy) do
 		-- timers have false keys
 		-- nil keys match anything
