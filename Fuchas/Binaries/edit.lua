@@ -1,6 +1,7 @@
 local shell = require("shell")
 local filesystem = require("filesystem")
 local event = require("event")
+local keyboard = require("keyboard")
 local gpu = component.getPrimary("gpu")
 local rw, rh = gpu.getResolution()
 
@@ -40,15 +41,18 @@ drawBottomBar()
 while true do
 	local evt = table.pack(event.pull())
 	local name = evt[1]
-	
+	gpu.set(1, 1, tostring(keyboard.isShiftPressed()))
+	gpu.set(1, 2, tostring(keyboard.isCtrlPressed()))
+	gpu.set(1, 3, tostring(keyboard.isAltPressed()))
 	if name == "key_down" then
 		local ch = evt[3]
 		ch = string.char(ch)
-		gpu.set(1, 1, tostring(evt[4]))
-		if ch == "§" then
+		--gpu.set(1, 1, tostring(evt[4]))
+		if ch == "e" then
 			break
 		end
 	end
+	coroutine.yield()
 end
 
 shell.clear()

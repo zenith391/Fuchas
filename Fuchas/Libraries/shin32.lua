@@ -272,6 +272,9 @@ function dll.kill(proc, bypass)
 	end
 	proc.status = "dead"
 	activeProcesses = activeProcesses - 1
+	if require("security").isRegistered(proc.pid) then
+		require("security").revoke(proc.pid)
+	end
 	processes[proc.pid] = nil
 end
 

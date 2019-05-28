@@ -173,22 +173,22 @@ end
 
 require("event").listen("key_down", function(_, _,  ch, code, player)
 	pressedKeys[ch] = true
-	if code == 29 or code == 157 then -- ctrl left/right
+	if code == 29 then -- ctrl left/right
 		isCtrl = true
-	elseif code == 42 or code == 54 then -- shift left/right
+	elseif code == 42 then -- shift left/right
 		isShift = true
-	elseif code == 56 or code == 184 then -- alt left/right
+	elseif code == 56 then -- alt left/right
 		isAlt = true
 	end
 end)
 
 require("event").listen("key_up", function(_, _,  ch, code, player)
 	pressedKeys[ch] = false
-	if code == 29 or code == 157 then -- ctrl left/right
+	if code == 29 then -- ctrl left/right
 		isCtrl = false
-	elseif code == 42 or code == 54 then -- shift left/right
+	elseif code == 42 then -- shift left/right
 		isShift = false
-	elseif code == 56 or code == 184 then -- alt left/right
+	elseif code == 56 then -- alt left/right
 		isAlt = false
 	end
 end)
