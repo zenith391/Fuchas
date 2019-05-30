@@ -13,7 +13,7 @@ if fs.exists("A:/installing") then
 	computer.shutdown(true)
 end
 
-for k, v in pairs(filesystem.unmanagedFilesystems()) do
+for k, v in pairs(fs.unmanagedFilesystems()) do
 	for addr, _ in component.list("drive") do
 		if fs.isValid(addr) then
 			fs.mountDrive(fs.asFilesystem(addr), "U")

@@ -180,7 +180,7 @@ function filesystem.rename(oldPath, newPath)
 end
 
 function filesystem.unmanagedFilesystems()
-	
+	return {}
 end
 
 function filesystem.open(path, mode)
