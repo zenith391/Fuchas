@@ -16,8 +16,8 @@ sh.clear()
 -- splash
 print(string.rep("=-", 15))
 print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " - Fushell")
-print("I'm sure you'll only use it")
-print("when Concert doesn't work!")
+print("Awesome Shell for Awesome OS")
+print("Welcome to Fuchas!")
 print(string.rep("-=", 15))
 
 shin32.setSystemVar("PWD", "")
@@ -43,6 +43,7 @@ while run do
 	if args[1]:len() == 2 then
 		if args[1]:sub(2, 2) == ":" then
 			drive = args[1]:sub(1, 1)
+			shin32.setSystemVar("PWD", "")
 			break
 		end
 	end
@@ -59,6 +60,11 @@ while run do
 			break
 		end
 		local org = tpath
+		if not exists then
+			tpath = drive .. ":/" .. org .. exts[tpi]
+			exists = fs.exists(tpath)
+			if exists then break end
+		end
 		for i, sp in pairs(pathv) do
 			tpath = sp .. path .. exts[tpi]
 			if fs.exists(tpath) then

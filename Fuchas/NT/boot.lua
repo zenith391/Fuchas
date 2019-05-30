@@ -103,6 +103,22 @@ if not g then
 	print("Error while mounting A drive: " .. h)
 end
 
+print("(4/5) Mounting all drives..")
+local letter = string.byte('A')
+for k, v in component.list() do -- TODO: check if letter is over Z
+	if k ~= computer.getBootAddress() then
+		if v == "drive" then
+			letter = letter + 1
+			print("    Mouting " .. string.char(letter) .. " (unmanaged)")
+		end
+		if v == "filesystem" then
+			letter = letter + 1
+			print("    Mouting " .. string.char(letter) .. " (managed)")
+			require("filesystem").mountDrive(component.proxy(k), string.char(letter))
+		end
+	end
+end
+
 _G.loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
