@@ -179,6 +179,10 @@ function filesystem.rename(oldPath, newPath)
 	end
 end
 
+function filesystem.unmanagedFilesystems()
+	
+end
+
 function filesystem.open(path, mode)
 	checkArg(1, path, "string")
 	mode = tostring(mode or "r")

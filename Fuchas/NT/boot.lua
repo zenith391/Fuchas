@@ -106,11 +106,7 @@ end
 print("(4/5) Mounting all drives..")
 local letter = string.byte('A')
 for k, v in component.list() do -- TODO: check if letter is over Z
-	if k ~= computer.getBootAddress() then
-		if v == "drive" then
-			letter = letter + 1
-			print("    Mouting " .. string.char(letter) .. " (unmanaged)")
-		end
+	if k ~= computer.getBootAddress() then -- drive are initialized later
 		if v == "filesystem" then
 			letter = letter + 1
 			print("    Mouting " .. string.char(letter) .. " (managed)")

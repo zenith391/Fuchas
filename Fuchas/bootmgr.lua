@@ -13,6 +13,14 @@ if fs.exists("A:/installing") then
 	computer.shutdown(true)
 end
 
+for k, v in pairs(filesystem.unmanagedFilesystems()) do
+	for addr, _ in component.list("drive") do
+		if fs.isValid(addr) then
+			fs.mountDrive(fs.asFilesystem(addr), "U")
+		end
+	end
+end
+
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()

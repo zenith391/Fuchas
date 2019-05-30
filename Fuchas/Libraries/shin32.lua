@@ -84,12 +84,14 @@ function io.tounum(number, count, littleEndian)
 end
 
 -- From unsigned number (max 32-bit)
-function io.fromunum(data, littleEndian)
-	local count = 0
-	if type(data) == "string" then
-		count = data:len()
-	else
-		count = #data
+function io.fromunum(data, littleEndian, count)
+	count = count or 0
+	if count == 0 then
+		if type(data) == "string" then
+			count = data:len()
+		else
+			count = #data
+		end
 	end
 	
 	if count > 4 then
@@ -108,7 +110,7 @@ function io.fromunum(data, littleEndian)
 		local bytes, result = {string.byte(data or "\x00", 1, 4)}, 0
 		if littleEndian then
 			local i = #bytes -- just do it in inverse order
-			while i < 1 do
+			while i > 1 do
 				result = bit32.bor(bit32.lshift(result, 8), bytes[i])
 				i = i - 1
 			end
