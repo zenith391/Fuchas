@@ -14,4 +14,5 @@
 "Fuchas/Libraries/OCX/ConsoleUI.lua",
 "Fuchas/Drivers/internet.lua",
 "Fuchas/Binaries/installer.lua",
-".efi/fuchas.efi"
+".efi/fuchas.efi",
+"zorya-modules/03_fuchasboot.lua"
