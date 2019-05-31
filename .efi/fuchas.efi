@@ -19,4 +19,5 @@ loadfile = load([[return function(file)
 	invoke(addr, "close", handle)
 	return load(buffer, "=" .. file, "bt", _G)
 end]], "=loadfile", "bt", _G)()
-loadfile("Fuchas/NT/boot.lua")(...)
+local oefiapi = oefi or table.pack(...)[1]
+loadfile("Fuchas/NT/boot.lua")(oefiapi)

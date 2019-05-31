@@ -101,6 +101,8 @@ while run do
 				f(programArgs)
 			end)
 			shin32.waitFor(proc)
+			component.gpu.setForeground(0xFFFFFF)
+			component.gpu.setBackground(0x000000)
 		end, function(err)
 			print(debug.traceback(err))
 		end)

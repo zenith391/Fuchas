@@ -171,8 +171,14 @@ function keyboard.isShiftPressed()
 	return isShift
 end
 
+function keyboard.resetInterrupted()
+	isAlt = false
+	isShift = false
+	isCtrl = false
+end
+
 require("event").listen("key_down", function(_, _,  ch, code, player)
-	pressedKeys[ch] = true
+	pressedKeys[code] = true
 	if code == 29 then -- ctrl left/right
 		isCtrl = true
 	elseif code == 42 then -- shift left/right
@@ -183,7 +189,7 @@ require("event").listen("key_down", function(_, _,  ch, code, player)
 end)
 
 require("event").listen("key_up", function(_, _,  ch, code, player)
-	pressedKeys[ch] = false
+	pressedKeys[code] = false
 	if code == 29 then -- ctrl left/right
 		isCtrl = false
 	elseif code == 42 then -- shift left/right

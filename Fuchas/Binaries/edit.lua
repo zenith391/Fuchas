@@ -47,12 +47,12 @@ while true do
 	if name == "key_down" then
 		local ch = evt[3]
 		ch = string.char(ch)
-		--gpu.set(1, 1, tostring(evt[4]))
+		gpu.set(1, 4, tostring(evt[4]))
 		if ch == "e" then
 			break
 		end
 	end
-	coroutine.yield()
+	--coroutine.yield()
 end
 
 shell.clear()
