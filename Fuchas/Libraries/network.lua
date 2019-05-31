@@ -13,7 +13,8 @@ end
 
 function net.open(addr, port, protocol)
 	local pname = protocol or net.detectProtocol(addr)
-	
+	local p = net.protocolList()[pname]
+	return p.open(addr, port)
 end
 
 function net.listen(port, protocol)
@@ -27,7 +28,6 @@ end
 
 function net.protocolList()
 	if protocols == nil then
-		print("Searching protocols..")
 		protocols = {}
 		for k, v in fs.list("A:/Fuchas/Drivers/Network/") do
 			local id, lib = dofile("A:/Fuchas/Drivers/Network/" .. k)
