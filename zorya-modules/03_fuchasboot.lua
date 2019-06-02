@@ -3,7 +3,7 @@
 local comp = component or require("component")
 local args = {...}
 local envs = args[1]
-local function scan(envs)
+local function scan()
 	for fs in comp.list("filesystem") do
 		if (comp.invoke(fs, "exists", "Fuchas/NT/boot.lua")) then
 			envs.boot[#envs.boot+1] = {"Fuchas NT on "..fs:sub(1, 3), "fuchas", fs, {}}
@@ -14,7 +14,7 @@ end
 if (_ZVER > 0.2) then
 	envs.scan[#envs.scan+1] = scan
 else
-	scan(envs)
+	scan()
 end
 
 envs.hand["fuchas"] = function(fs, args)
