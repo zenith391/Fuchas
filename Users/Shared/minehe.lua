@@ -2,6 +2,7 @@
 package.loaded["network"] = nil
 local net = require("network")
 local fs = require("filesystem")
+local sec = require("security")
 
 local config = {
 	transport = "modem", -- Implementation of OSI 4 layer
@@ -9,7 +10,10 @@ local config = {
 }
 
 print("Very Basic 1.0 OHTP Server")
-
+if not sec.hasPermission("network.listen") then
+	sec.requestPermission("network.listen")
+	sec.requestPermission("network.open")
+end
 print("Listening..")
 
 while true do

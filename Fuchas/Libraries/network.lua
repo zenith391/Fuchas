@@ -1,5 +1,6 @@
 local net = {}
 local fs = require("filesystem")
+local sec = require("security")
 
 local protocols = nil
 
@@ -12,12 +13,18 @@ function net.detectProtocol(addr)
 end
 
 function net.open(addr, port, protocol)
+	if not sec.hasPermission("network.open") then
+		error("no permission: network.open")
+	end
 	local pname = protocol or net.detectProtocol(addr)
 	local p = net.protocolList()[pname]
 	return p.open(addr, port)
 end
 
 function net.listen(port, protocol)
+	if not sec.hasPermission("network.listen") then
+		error("no permission: network.listen")
+	end
 	for k, v in pairs(net.protocolList()) do
 		if k == protocol then
 			return v.listen(port)

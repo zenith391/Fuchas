@@ -92,7 +92,18 @@ _G.package.loaded.component = component
 _G.package.loaded.computer = computer
 print("(2/5) Checking OEFI compatibility..")
 if computer.supportsOEFI() then
-	_G.package.loaded.oefi = ...
+	local oefiLib = oefi or ...
+	if oefiLib.getAPIVersion() > 1 then
+		oefi = nil
+		function computer.getBootAddress()
+			return oefiLib.getBootAddress()
+		end
+	end
+	package.loaded.oefi = oefiLib
+	if oefiLib.getImplementationName() == "Zorya BIOS" then
+		package.loaded.oefi.vendor = zorya
+		zorya = nil
+	end
 end
 print("(3/5) Loading 'filesystem' library..")
 _G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
@@ -142,14 +153,31 @@ xpcall(function()
 	end
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
-		if io.stderr then
-			require("shell").setCursor(1, 1)
+		gpu.setResolution(40, 16) -- fit to all screens/gpus
+		if io.stderr then -- if it happens during runtime
+			require("shell").setCursor(1, 2)
 			require("OCX/ConsoleUI").clear(0x0000FF)
 		end
 		gpu.setBackground(0x0000FF)
-		write("SYSTEM ERROR: " .. err .. "\n")
+		gpu.fill(1, 1, 40, 16, " ")
+		write([[
+A problem has been detected and Fuchas
+has been shutdown to prevent damage
+to your computer.
+ 
+]] .. err .. [[
+If this is the first time you've seen
+this BSOD screen, restart your
+computer.
+ 
+If the problem persists,
+ask for help on the OC forum
+(https://oc.cil.li), search for
+Fuchas topic and speak about your
+computer problem as a reply.]])
 		local traceback = debug.traceback()
 		write(traceback)
 		coroutine.yield() -- let the user see the error
 end)
-coroutine.yield()
+--coroutine.yield()
+os.sleep(1)

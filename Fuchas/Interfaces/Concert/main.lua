@@ -20,17 +20,16 @@ canvas.fillRect(0, 0, 160, 50, 0xAAAAAA)
 function w(name, addr, x, y, button, player)
 	local wx, wy = windows.getPosition(test)
 	local ww, wh = windows.getSize(test)
+	windows.setTitle(test, "Test Window")
 	canvas.fillRect(wx, wy, ww, wh, 0xAAAAAA)
-	windows.setPosition(test, x, y)
+	windows.setPosition(test, x-1, y-1)
 	windows.renderWindow(test, canvas)
 	windows.renderWindow(taskBar, canvas)
-	canvas.drawText(1, 1, "ram: " .. math.floor((computer.totalMemory() - computer.freeMemory()) / computer.totalMemory() * 100) .. "%, free: " .. (computer.freeMemory() / 1024) .. "K", 0xFFFFFF)
+	canvas.drawText(1, 10, "ram: " .. math.floor((computer.totalMemory() - computer.freeMemory()) / computer.totalMemory() * 100) .. "%, free: " .. (computer.freeMemory() / 1024) .. "K", 0xFFFFFF, 0)
 	draw.drawContext(ctx)
 end
 
 function run()
-	local draw = require("OCX/OCDraw")
-	windows.setTitle(test, "Test Window")
 	coroutine.yield()
 end
 

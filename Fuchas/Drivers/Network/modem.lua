@@ -1,9 +1,10 @@
--- Modem network lib, trying to be most compatible with 
+-- Modem network lib, trying to be most compatible with legacy app using direct "modem" network and
+-- the new socket object aspect used by network library
 local protocol = {}
 local event = require("event")
 
 function protocol.isProtocolAddress(addr)
-	return addr:len() == 36
+	return addr:len() == 36 -- todo: more checks
 end
 
 function protocol.listen(port)
@@ -13,7 +14,7 @@ function protocol.listen(port)
 	while true do
 		local sig = table.pack(event.pull())
 		local name, sender, p = sig[1], sig[3], sig[4]
-		if name == "modem_message" then
+		if name == "modem_message" and p == port then
 			sock = protocol.open(sender, p)
 			sock.rbuf = sig[5]
 			break
@@ -30,7 +31,7 @@ function protocol.open(addr, dport)
 		dest = addr,
 		port = dport,
 		close = function(self)
-			modem.close(dport)
+			modem.close(self.port)
 		end,
 		write = function(self, ...)
 			if dest == "ffffffff-ffff-ffff-ffff-ffffffffffff" then  -- broadcast address
@@ -51,7 +52,7 @@ function protocol.open(addr, dport)
 					return sig[5]
 				end
 			end
-		end,
+		end
 	}
 end
 
