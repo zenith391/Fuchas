@@ -22,6 +22,18 @@ function lib.revoke(pid)
 	return false
 end
 
+function lib.requestPermission(perm)
+	local proc = currentProcess().parent
+	if proc.permissionGrant then
+		if proc.permissionGrant(perm, currentProcess().pid) then
+			permtable[currentProcess().pid][perm] = true
+			return true
+		else
+			return false, "permission not granted"
+		end
+	end
+end
+
 function lib.isRegistered(pid)
 	return permtable[pid] ~= nil
 end

@@ -136,13 +136,19 @@ function filesystem.list(path)
 		result = node.list(rest)
 	end
 	local set = {}
+	local keys = {}
 	for _,name in ipairs(result) do
-		set[filesystem.canonical(name)] = name
+		local key = filesystem.canonical(name)
+		set[key] = name
+		table.insert(keys, key)
 	end
+	local i = 1
 	return function()
-		local key, value = next(set)
-		set[key or false] = nil
-		return value
+		if i == #keys+1 then
+			return nil
+		end
+		i = i + 1
+		return keys[i-1], set[keys[i-1]]
 	end
 end
 

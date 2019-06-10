@@ -8,6 +8,7 @@
 "Fuchas/Libraries/OCX/Image.lua",
 "Fuchas/Libraries/OCX/OCDraw.lua",
 "Fuchas/Libraries/OCX/OCUI.lua",
+"Fuchas/Libraries/network.lua",
 "Fuchas/Binaries/cd.lua",
 "Fuchas/Binaries/dir.lua",
 "Fuchas/Binaries/hello.lua",
@@ -19,4 +20,6 @@
 "Fuchas/Interfaces/Concert/main.lua",
 "Fuchas/Filesystems/ocfs.lua",
 "Fuchas/Drivers/compsound.lua",
-"Fuchas/Drivers/pcspeaker.lua"
+"Fuchas/Drivers/pcspeaker.lua",
+"Fuchas/Drivers/Network/modem.lua",
+"Fuchas/Drivers/Network/internet.lua"

@@ -177,6 +177,9 @@ function dll.scheduler()
 	if not systemEvent(lastEvent) then
 		lastEvent = nil -- if not propagating
 	end
+	if lastEvent[1] ~= nil then
+		eventlib.exechandlers(lastEvent)
+	end
 	
 	for k, p in pairs(processes) do
 		if p.status == "created" then

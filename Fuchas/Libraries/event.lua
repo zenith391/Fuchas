@@ -1,4 +1,5 @@
 local event = {}
+local kbd = nil
 local handlers = {}
 event.handlers = handlers
 local _pullSignal = computer.pullSignal
@@ -25,47 +26,54 @@ function event.register(key, callback, interval, times, opt_handlers)
   return id
 end
 
-computer.pullSignal = function(...)
-	local event_data
-	if shin32.getCurrentProcess() == nil then
-		event_data = table.pack(handlers(...))
-	else
-		event_data = coroutine.yield("pull event", ...)
-	end
+function event.exechandlers(event_data)
 	local signal = event_data[1]
 	local copy = {}
 	for id,handler in pairs(handlers) do
 		copy[id] = handler
 	end
 	local current_time = os.clock()
-	local keyboard = require("keyboard")
-	if keyboard.isCtrlPressed() then
-		if keyboard.isPressed(string.byte('c')) then
-			if keyboard.isAltPressed() then
-				error("interrupted", 2)
-			else
-				return "interrupt"
-			end
-		end
-	end
 	for id,handler in pairs(copy) do
 		-- timers have false keys
 		-- nil keys match anything
 		if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
-		handler.times = handler.times - 1
-		handler.timeout = current_time + handler.interval
-		-- we have to remove handlers before making the callback in case of timers that pull
-		-- and we have to check handlers[id] == handler because callbacks may have unregistered things
-		if handler.times <= 0 and handlers[id] == handler then
-			handlers[id] = nil
+			handler.times = handler.times - 1
+			handler.timeout = current_time + handler.interval
+			-- we have to remove handlers before making the callback in case of timers that pull
+			-- and we have to check handlers[id] == handler because callbacks may have unregistered things
+			if handler.times <= 0 and handlers[id] == handler then
+				handlers[id] = nil
+			end
+			-- call
+			local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
+			if not result then
+				--pcall(event.onError, message)
+				error(message)
+			elseif message == false and handlers[id] == handler then
+				handlers[id] = nil
+			end
 		end
-		-- call
-		local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
-		if not result then
-			--pcall(event.onError, message)
-		elseif message == false and handlers[id] == handler then
-			handlers[id] = nil
-		end
+	end
+end
+
+computer.pullSignal = function(...)
+	if kbd == nil then kbd = require("keyboard") end
+	local event_data
+	if shin32.getCurrentProcess() == nil then
+		event_data = table.pack(handlers(...))
+		event.exechandlers(event_data)
+	else
+		event_data = coroutine.yield("pull event", ...)
+	end
+	if kbd.isCtrlPressed() then
+		if kbd.isPressed(46) then
+			if kbd.isAltPressed() then
+				kbd.resetInterrupted()
+				error("interrupted", 2)
+			else
+				event.exechandlers({"interrupt"})
+				return "interrupt"
+			end
 		end
 	end
 	return table.unpack(event_data, 1, event_data.n)

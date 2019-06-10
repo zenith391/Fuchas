@@ -3,7 +3,7 @@ local gpu = component.getPrimary("gpu")
 local lib = {}
 local dc = {}
 
-local doDebug = false -- warning costs a lost of GPU call budget
+local doDebug = true -- warning costs a lost of GPU call budget
 
 function lib.closeContext(ctx)
 	lib.drawContext(ctx)
@@ -15,10 +15,10 @@ function lib.drawContext(ctxn)
 	if doDebug then
 		gpu.setForeground(0x000000)
 		gpu.setBackground(0xFFFFFF)
-		gpu.set(1, 2, "OCDraw Debug:")
-		gpu.set(1, 3, "OCDraw Requests : " .. #ctx.drawBuffer)
-		gpu.set(1, 4, "Active Draw Contexts: " .. #dc)
-		gpu.set(1, 5, "Active Processes: " .. shin32.getActiveProcesses())
+		gpu.set(1, 1, "OCDraw Debug:")
+		gpu.set(1, 2, "OCDraw Requests : " .. #ctx.drawBuffer)
+		gpu.set(1, 3, "Active Draw Contexts: " .. #dc)
+		gpu.set(1, 4, "Active Processes: " .. shin32.getActiveProcesses())
 	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
@@ -29,17 +29,18 @@ function lib.drawContext(ctxn)
 		local color = v.color
 		if t == "fillRect" then
 			gpu.setBackground(color)
-			gpu.fill(x, y, width, height, " ")
+			gpu.fill(x+1, y+1, width, height, " ")
 		end
 		if t == "drawText" then
-			local _, _, back = gpu.get(x, y)
+			local back = v.color2
+			if not back then _, _, back = gpu.get(x+1, y+1) end
 			gpu.setForeground(color)
 			gpu.setBackground(back)
-			gpu.set(x, y, v.text)
+			gpu.set(x+1, y+1, v.text)
 		end
 		if t == "copy" then
-			local x2, y2 = i.x2, i.y2
-			gpu.copy(x, y, width, height, x2 - x, y2 - y)
+			local x2, y2 = i.x2+1, i.y2+1
+			gpu.copy(x+1, y+1, width, height, x2 - x, y2 - y)
 		end
 	end
 	ctx.drawBuffer = {}
@@ -104,7 +105,7 @@ function lib.canvas(ctxn)
 		draw.y2 = y2
 		table.insert(ctx.drawBuffer, draw)
 	end
-	cnv.drawText = function(x, y, text, fore)
+	cnv.drawText = function(x, y, text, fore, back)
 		if x > 160 or y > 50 then
 			return
 		end
@@ -121,6 +122,9 @@ function lib.canvas(ctxn)
 		draw.x = x
 		draw.y = y
 		draw.color = fore
+		if back then
+			draw.color2 = back
+		end
 		draw.width = -1
 		draw.height = -1
 		draw.type = "drawText"

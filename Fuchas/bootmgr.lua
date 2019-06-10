@@ -20,7 +20,7 @@ for k, v in pairs(fs.unmanagedFilesystems()) do
 		end
 	end
 end
-
+error("test")
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()

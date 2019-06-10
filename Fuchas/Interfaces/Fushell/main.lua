@@ -1,3 +1,6 @@
+local sh = require("shell")
+local cui = require("OCX/ConsoleUI")
+local fs = require("filesystem")
 -- Avoid killing (safely) system process with a custom quit handler
 shin32.getCurrentProcess().safeKillHandler = function()
 	io.stderr:write("cannot kill system process!\n")
@@ -8,9 +11,19 @@ shin32.getCurrentProcess().childErrorHandler = function(proc, err)
 	io.stderr:write(tostring(err) .. "\n")
 end
 
-local sh = require("shell")
-local cui = require("OCX/ConsoleUI")
-local fs = require("filesystem")
+shin32.getCurrentProcess().permissionGrant = function(perm, pid)
+	local l = nil
+	while l ~= "N" and l ~= "Y" do
+		io.stdout:write("Grant permission \"" .. perm .. "\" to process? (Y/N) ")
+		l = sh.read():upper()
+		io.stdout:write(" \n")
+	end
+	if l == "Y" then
+		return true
+	else
+		return false
+	end
+end
 local run = true
 sh.clear()
 -- splash
@@ -101,6 +114,8 @@ while run do
 				f(programArgs)
 			end)
 			shin32.waitFor(proc)
+			component.gpu.setForeground(0xFFFFFF)
+			component.gpu.setBackground(0x000000)
 		end, function(err)
 			print(debug.traceback(err))
 		end)
