@@ -30,9 +30,6 @@ p.height = 2
 det.background = BACKGROUND
 det.y = 42
 
-status("Loading internet driver..")
-drv.changeDriver("internet", "internet")
-
 local int = drv.getDriver("internet")
 status("Preparing installation..")
 local listCode = "return {" .. int.readFully(REPO_URL .. "INSTALL2.LST") .. "}"

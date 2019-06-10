@@ -28,4 +28,8 @@ function drv.readFully(url)
 	return buf
 end
 
-return component.isAvailable("internet"), drv
+function drv.getRank()
+	return math.huge
+end
+
+return component.isAvailable("internet"), "internet", drv

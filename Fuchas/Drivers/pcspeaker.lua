@@ -8,6 +8,14 @@ function drv.appendFrequency(channel, time, freq)
 	return true
 end
 
+function drv.setADSR(ch, attack, decay, sustain, release)
+	return false, "unsupported"
+end
+
+function drv.setWave(ch, type)
+	return false, "unsupported"
+end
+
 function drv.flush()
 	for k, v in pairs(buffer) do
 		computer.beep(v[0], v[1])
@@ -16,7 +24,7 @@ function drv.flush()
 end
 
 function drv.setSynchronous(sync)
-	return false -- failed
+	return false, "unsupported" -- failed
 end
 
 function drv.isSynchronous()
@@ -24,15 +32,19 @@ function drv.isSynchronous()
 end
 
 function drv.openChannel(channel)
-	return false
+	return false, "unsupported"
 end
 
 function drv.closeChannel(channel)
-	return false
+	return false, "unsupported"
 end
 
 function drv.getMaxChannels()
 	return 1
 end
 
-return true, drv
+function drv.getRank() -- used by "driver" library to choose best driver
+	return 1
+end
+
+return true, "sound", drv

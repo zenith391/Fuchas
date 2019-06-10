@@ -104,7 +104,7 @@ function io.open(filename, mode)
 						end
 						s = s .. r
 					end
-					return false, s
+					return s
 				end
 				
 				if f == "l" then
@@ -118,7 +118,7 @@ function io.open(filename, mode)
 						end
 						s = s .. r
 					end
-					return false, s
+					return s
 				end
 				return false, "invalid mode"
 			--end)
@@ -127,8 +127,8 @@ function io.open(filename, mode)
 			local tab = {}
 			while true do
 				local ok, result = self.read(self, "l")
-				if result ~= nil then
-					table.insert(tab, result)
+				if result == nil then
+					table.insert(tab, ok)
 				end
 			end
 			local i = 0

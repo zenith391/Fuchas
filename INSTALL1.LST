@@ -11,8 +11,10 @@
 "Fuchas/Libraries/driver.lua",
 "Fuchas/Libraries/event.lua",
 "Fuchas/Libraries/shell.lua",
+"Fuchas/Libraries/keyboard.lua"
 "Fuchas/Libraries/OCX/ConsoleUI.lua",
 "Fuchas/Drivers/internet.lua",
 "Fuchas/Binaries/installer.lua",
 ".efi/fuchas.efi",
+".efi/fuchas.efi2",
 "zorya-modules/03_fuchasboot.lua"

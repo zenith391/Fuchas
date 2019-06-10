@@ -144,11 +144,16 @@ function dll.newProcess(name, func)
 	proc.func = func
 	proc.pid = pid
 	proc.status = "created"
+	proc.streams = {} -- used for file streams
 	if dll.getCurrentProcess() ~= nil then
 		proc.parent = dll.getCurrentProcess()
 	end
 	processes[pid] = proc
 	return proc
+end
+
+function dll.getSharedUserPath()
+	return "A:/Users/Shared"
 end
 
 local function systemEvent(pack)
@@ -188,9 +193,7 @@ function dll.scheduler()
 			p.status = "ready"
 		end
 		if coroutine.status(p.thread) == "dead" then
-			p.status = "dead"
-			activeProcesses = activeProcesses - 1
-			processes[k] = nil
+			dll.kill(p, true)
 		else
 			if p.status == "wait_event" then
 				if lastEvent ~= nil then
@@ -279,6 +282,9 @@ function dll.kill(proc, bypass)
 	activeProcesses = activeProcesses - 1
 	if require("security").isRegistered(proc.pid) then
 		require("security").revoke(proc.pid)
+	end
+	for k, v in pairs(proc.streams) do
+		v:close()
 	end
 	processes[proc.pid] = nil
 end

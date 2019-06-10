@@ -217,21 +217,33 @@ function filesystem.open(path, mode)
 			return self.fs[key](self.handle, ...)
 		end
 	end
-
+	local cproc = nil
+	if shin32 then cproc = shin32.getCurrentProcess() end
 	local stream =
 	{
 		fs = node,
 		handle = handle,
+		proc = cproc,
 		close = function(self)
 			if self.handle then
 				self.fs.close(self.handle)
 				self.handle = nil
+				if self.proc ~= nil then
+					for k, v in pairs(self.proc.streams) do
+						if v == self then
+							table.remove(self.proc.streams, k)
+						end
+					end
+				end
 			end
 		end
 	}
 	stream.read = create_handle_method("read")
 	stream.seek = create_handle_method("seek")
 	stream.write = create_handle_method("write")
+	if stream.proc ~= nil then
+		table.insert(stream.proc.streams, stream)
+	end
 	return stream
 end
 
