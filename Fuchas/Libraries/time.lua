@@ -2,24 +2,24 @@ local lib = {}
 local _time = os.time
 
 lib.TIMEUNITS = {
-	"MILLISECONDS" = {
+	MILLISECONDS = {
 		type = "ms",
 		ms = 1, -- how much ms equals 1ms, used as arbitraty conversion point
 	},
-	"SECONDS" = {
+	SECONDS = {
 		type = "s",
 		ms = 1000
 	},
-	"MINUTES" = {
+	MINUTES = {
 		type = "m",
 		ms = 60000
 	},
-	"HOURS" = {
+	HOURS = {
 		type = "h",
 		ms = 3600000
 	},
-	"DAYS" = {
-		type = "h",
+	DAYS = {
+		type = "d",
 		ms = 86400000
 	}
 }
@@ -36,7 +36,7 @@ function lib.getShortName(unit)
 end
 
 function lib.duration(unit, value)
-	if not unit.msmul then
+	if not unit.ms then
 		error("invalid time unit")
 	end
 	return {

@@ -53,13 +53,7 @@ if args[1] == "install" then
 		return
 	end
 	print("Searching package '" .. args[2] .. "'")
-	local master = [[
-		{
-			repos = {
-				"zenith391/Pi-Repositories"
-			}
-		}
-	]]
+	
 	return
 end
 

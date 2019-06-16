@@ -1,4 +1,3 @@
--- Author: zenith391
 local dll = {}
 local processes = {}
 local sysvars = {}
@@ -128,32 +127,55 @@ end
 function dll.getSystemVars() 
 	return sysvars
 end
+dll.getenvs = dll.getSystemVars
 
 function dll.getSystemVar(var)
 	return sysvars[var]
 end
+dll.getenv = dll.getSystemVar
 
 function dll.setSystemVar(var, value)
 	sysvars[var] = value
 end
+dll.setenv = dll.setSystemVar
 
 function dll.newProcess(name, func)
 	local pid = table.getn(processes) + 1
-	local proc = {}
-	proc.name = name
-	proc.func = func
-	proc.pid = pid
-	proc.status = "created"
-	proc.streams = {} -- used for file streams
+	local proc = {
+		name = name,
+		func = func,
+		pid = pid,
+		status = "created",
+		streams = {}, -- used for file streams
+		detach = function(self)
+			self.parent = nil
+		end,
+		kill = function(self)
+			dll.safeKill(self)
+		end,
+		join = function(self)
+			dll.waitFor(self)
+		end
+	}
+	processes[pid] = proc
 	if dll.getCurrentProcess() ~= nil then
 		proc.parent = dll.getCurrentProcess()
+	else -- else it's launched by system, so it's a system process
+		require("security").requestPermission("*", pid)
 	end
-	processes[pid] = proc
 	return proc
 end
 
 function dll.getSharedUserPath()
 	return "A:/Users/Shared"
+end
+
+function dll.getUserPath()
+	if dll.getSystemVar("USER") == "GUEST" then
+		return dll.getSharedUserPath()
+	else
+		return "A:/Users/" .. dll.getSystemVar("USER")
+	end
 end
 
 local function systemEvent(pack)
@@ -223,16 +245,19 @@ function dll.scheduler()
 							error(ret)
 						end
 					else
+						print("PANIC!")
 						error(ret) -- just panic if it's system process
 					end
 				end
 				if ret then
 					if type(ret) == "function" then
+						currentProc = p -- make thinks it's during process execution
 						local cont, val = true, nil
 						while cont do
 							cont, val = ret(val)
 						end
 						p.result = val
+						currentProc = nil
 					end
 					if type(ret) == "string" then
 						if ret == "pull event" then

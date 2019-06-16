@@ -22,10 +22,17 @@ function lib.revoke(pid)
 	return false
 end
 
-function lib.requestPermission(perm)
+function lib.requestPermission(perm, pid)
+	if shin32.getCurrentProcess() == nil then -- system coroutine
+		-- only case where pid is used
+		permtable[pid] = {}
+		permtable[pid]["*"] = true
+		return
+	end
 	local proc = currentProcess().parent
 	if proc.permissionGrant then
-		if proc.permissionGrant(perm, currentProcess().pid) then
+		if not permtable[proc.pid] then permtable[proc.pid] = {} end
+		if proc.permissionGrant(perm, currentProcess().pid) and lib.hasPermission(perm, proc.pid) then
 			permtable[currentProcess().pid][perm] = true
 			return true
 		else

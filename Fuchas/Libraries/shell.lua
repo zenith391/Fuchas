@@ -1,4 +1,6 @@
 local lib = {}
+local fs = require("filesystem")
+
 local cursor = {
 	x = 1,
 	y = 1
@@ -103,6 +105,12 @@ function lib.parseCL(cl)
 	end
 	
 	return args
+end
+
+function lib.resolve()
+	if shin32.getSystemVar("PWD") then
+		
+	end
 end
 
 function lib.read()

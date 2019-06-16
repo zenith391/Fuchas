@@ -1,6 +1,6 @@
 -- Bootstrap for Fuchas interface.
 local fs = require("filesystem")
-require("OCX/ConsoleUI").clear(0x000000)
+--require("OCX/ConsoleUI").clear(0x000000)
 
 -- Bootstrap routine
 dofile("A:/Fuchas/autorun.lua") -- system variables autorun
@@ -12,7 +12,8 @@ if fs.exists("A:/installing") then
 	dofile("A:/Fuchas/Binaries/installer.lua") -- Run 2nd step installer
 	computer.shutdown(true)
 end
-
+-- Initialization
+-- Unmanaged drives
 for k, v in pairs(fs.unmanagedFilesystems()) do
 	for addr, _ in component.list("drive") do
 		if fs.isValid(addr) then
@@ -20,7 +21,12 @@ for k, v in pairs(fs.unmanagedFilesystems()) do
 		end
 	end
 end
---error("test")
+-- User
+if not fs.exists("A:/Users/Shared") then
+	fs.makeDirectory("A:/Users/Shared")
+end
+shin32.setenv("USER", "GUEST")
+error("test")
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()
@@ -37,7 +43,6 @@ shin32.newProcess("System Interface", function()
 		computer.shutdown() -- main interface exit
 	end
 end)
-
 while true do
 	shin32.scheduler()
 end

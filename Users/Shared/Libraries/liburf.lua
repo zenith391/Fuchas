@@ -23,24 +23,26 @@ local function u32fromstr(str)
 	return io.tou32(arr, 1)
 end
 
-local function readALI(bytes)
-	local i = 1
+local function readALI(s)
 	local num = 0
-	
-	while true do
-		local b = bytes[i]
-		local _b =  bit32.rshift(b, 1 + (7 * (i - 1)))
-		num = num + _b
-		if bit32.lshift(b, 7) == 0 then
-			break
-		end
+	local i = 0
+	local continue = true
+	while continue do
+		local byte = string.byte(s:read(1))
+		local inc = bit32.lshift(bit32.band(byte, 127), i)
+		num = num + inc
+		continue = (bit32.band(byte, 128) == 128) -- if 8th byte = 1
+		i = i + 1
 	end
-	
 	return num
 end
 
 local function writeALI(num)
-	
+	local bytes = {}
+	while num > 0 do
+		
+	end
+	return bytes
 end
 
 local function getArchive(obj)

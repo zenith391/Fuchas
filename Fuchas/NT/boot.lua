@@ -160,8 +160,7 @@ end, function(err)
 		end
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 40, 16, " ")
-		write([[
-A problem has been detected and Fuchas
+		write([[A problem has been detected and Fuchas
 has been shutdown to prevent damage
 to your computer.
  
@@ -169,15 +168,14 @@ to your computer.
 If this is the first time you've seen
 this BSOD screen, restart your
 computer.
- 
-If the problem persists,
+ If the problem persists,
 ask for help on the OC forum
 (https://oc.cil.li), search for
 Fuchas topic and speak about your
 computer problem as a reply.]])
 		local traceback = debug.traceback()
 		write(traceback)
-		coroutine.yield() -- let the user see the error
+		os.sleep(1) -- let the user see the error
+		return false
 end)
---coroutine.yield()
 os.sleep(1)
