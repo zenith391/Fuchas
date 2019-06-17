@@ -79,4 +79,23 @@ function lib.progressBar(maxProgress)
 	return pb
 end
 
+function lib.button(text)
+	local btn = lib.component()
+	btn.text = text
+	btn.foreground = 0xFFFFFF
+	btn.render = function()
+		gpu.set
+	end
+	btn.ontouch = nil
+	btn.event = function(pack)
+		local id = pack[1]
+		if id == "touch" then
+			if btn.ontouch then
+				btn.ontouch()
+			end
+		end
+	end
+	return btn
+end
+
 return lib

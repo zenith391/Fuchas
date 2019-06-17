@@ -18,6 +18,6 @@ cui.drawBorder(1, 1, 49, 15)
 
 while true do
 	local i = 1
-	
-	local id, a, b, c, d = require("event").pull()
+	local t = table.pack(require("event").pull())
+	local id = t[1]
 end

@@ -30,7 +30,7 @@ shin32.setenv("USER", "GUEST")
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()
-		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
+		local l, err = loadfile("A:/Fuchas/Interfaces/login.lua")
 		if l == nil then
 			error(err)
 		end

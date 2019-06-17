@@ -45,8 +45,7 @@ local function findNode(path)
 			error("Invalid drive letter: " .. let)
 		end
 		local d = drives[let]
-		d.letter = let
-		return d, path:sub(3, path:len())
+		return d.fs, path:sub(3, path:len()), d
 	end
 end
 
@@ -87,12 +86,35 @@ function filesystem.unmountDrive(letter)
 	return true
 end
 
+function filesystem.isDriveFormatted(letter)
+	local drive = drives[letter:upper()]
+	if drive == nil then
+		error("invalid drive: " .. letter .. ":/")
+	end
+	if drive.unmanaged then
+		return (drive.fs.readSector(0) == string.rep(string.char(0), drive.fs.getSectorSize()))
+	else
+		return true
+	end
+end
+
 function filesystem.mountDrive(proxy, letter)
 	if letter:len() ~= 1 then
 		return false, "invalid length"
 	end
-	drives[letter:upper()] = proxy
+	drives[letter:upper()] = {
+		fs = proxy,
+		unmanaged = (proxy.type == "drive"),
+		letter = letter
+	}
 	return true
+end
+
+function filesystem.getProxy(letter)
+	if letter:len() ~= 1 then
+		return false, "invalid length"
+	end
+	return drives[letter:upper()]
 end
 
 function filesystem.path(path)
