@@ -84,7 +84,7 @@ function lib.button(text)
 	btn.text = text
 	btn.foreground = 0xFFFFFF
 	btn.render = function()
-		gpu.set
+		
 	end
 	btn.ontouch = nil
 	btn.event = function(pack)
