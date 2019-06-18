@@ -15,7 +15,7 @@ local function readBytes(addr, off, len, asString) -- optimized function for rea
 	end
 	bytes = string.byte(sectorCache.text:sub(1, off % 512))
 	if asString then
-		return string.char(bytes)
+		return table.pack(string.char(bytes))
 	else
 		return bytes
 	end
@@ -23,11 +23,11 @@ end
 
 local function writeBytes(addr, off, data) -- optimized function for writing bytes
 	if type(data) == "string" then
-		data = string.byte(data)
+		data = table.pack(string.byte(data))
 	end
 	local len = table.getn(data)
 	for i=1, len do
-		component.invoke("writeByte", off+i-1, data[i])
+		component.invoke(addr, "writeByte", off+i-1, data[i])
 	end
 end
 
@@ -97,7 +97,7 @@ local function getId(addr, path)
 			end
 		end
 		if not foundChild then
-			return -1, "a segment of path " .. path .. " (" ..seg .. ") is unexisting")
+			return -1, "a segment of path " .. path .. " (" ..seg .. ") is unexisting"
 		end
 	end
 	-- Process last segment of path
