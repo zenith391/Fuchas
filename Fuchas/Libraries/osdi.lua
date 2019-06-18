@@ -15,9 +15,6 @@ function lib.wrap(addr)
 	if component.type(device) ~= "drive" then
 		return nil, "component must be an unmanaged drive"
 	end
-	if component.invoke(device, "getSectorSize") ~= 512 then
-		return nil, "OSDI is not compatible with drives with less or more than 512 as sector size"
-	end
 	return {
 		proxy = component.proxy(device),
 		isOSDI = function(self)
@@ -52,17 +49,17 @@ function lib.wrap(addr)
 		getPartitionDrive = function(self, id)
 			local _, offset, size = self:getPartitionInfo(id)
 			return {
-				type = "partition_drive",
+				type = "osdi_partition",
 				readByte = function(offset)
-					local sec = drv.readSector(offset // drv.getSectorSize())
-					return sec:byte(offset % drv.getSectorSize())
+					local sec = self.proxy.readSector(offset // self.proxy.getSectorSize())
+					return sec:byte(offset % self.proxy.getSectorSize())
 				end,
 				writeByte = function(offset, value)
-					local sec = drv.readSector(offset // drv.getSectorSize())
-					local pos = offset % drv.getSectorSize()
+					local sec = self.proxy.readSector(offset // self.proxy.getSectorSize())
+					local pos = offset % self.proxy.getSectorSize()
 					local before = sec:sub(1, pos-2)
 					local after = sec:sub(pos-1)
-					drv.writeSector(offset % drv.getSectorSize(), before..string.char(value)..after)
+					self.proxy.writeSector(offset % self.proxy.getSectorSize(), before..string.char(value)..after)
 				end,
 				getSectorSize = function()
 					return self.proxy.getSectorSize()
@@ -80,7 +77,7 @@ function lib.wrap(addr)
 					if (sector < 0) then
 						sector = 0
 					end
-					return self.drv.readSector(offset+sector)
+					return self.proxy.readSector(offset+sector)
 				end,
 				writeSector = function(sector, value)
 					if (sector > size-1) then
@@ -89,7 +86,7 @@ function lib.wrap(addr)
 					if (sector < 0) then
 						sector = 0
 					end
-					return self.drv.writeSector(offset+sector, value)
+					return self.proxy.writeSector(offset+sector, value)
 				end,
 				getPlatterCount = function()
 					return self.proxy.getPlatterCount()

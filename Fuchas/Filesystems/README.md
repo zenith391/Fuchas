@@ -12,6 +12,7 @@ The library must contains the following methods:
 - isFile(addr, path)
 - getMaxFileNameLength() - returns max length of a file name
 - exists(addr, path)
+- makeDirectory(addr, path)
 - isValid(addr) - returns `true` if the drive at addr is compatible with the formated filesystem (basically check signature)
 - open(addr, path, mode) - return a *file object* with the mode or nil + error message if error, if mode is "w" and file doesn't exists, then create it
 Note: if a file is arleady opened and not yet closed, open(mode) will return nil with error message "file arleady opened",
@@ -23,7 +24,7 @@ It can either be "r" for read-only or "w" for write-only (from start, not append
 They implement the following methods:
 - close(self)
 - read(self, length) (Only if in "r" mode)
-- write(self, str) (Only if in "w" mode) - Writes str at the start of the file
+- write(self, str) (Only if in "w" mode) - Appends str to the file
 
 Examples:
 ```lua

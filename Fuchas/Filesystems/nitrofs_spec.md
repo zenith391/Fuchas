@@ -1,11 +1,12 @@
 # NitroFS
 Numbers are ALWAYS little-endian
+
 Note that NitroFS requires OSDI and partition type is Nitro_FS
 
 ## Sizes and Computations
-Default Logical Sector Size (SS): 512
-Default Logical Sector Offset (SO): 8
-Content Address (CA) -> Physical Address: CA * SS + SO
+- Default Logical Sector Size (SS): 512
+- Default Logical Sector Offset (SO): 8
+- Content Address (CA) -> Physical Address: CA * SS + SO
 
 ## Head structure
 - NTRFS1 - 6 bytes
@@ -16,13 +17,13 @@ Content Address (CA) -> Physical Address: CA * SS + SO
 
 ### Directory Entry
 - D = Directory - 1 byte
-- SIZE - 2 bytes - size (in bytes) of this directory entry
+- PADDING - 2 bytes - used for easier integration with file entry
 - PARENT - 2 bytes (logical sector number of parent, from 0 to 65535)
 - NAME - 32 bytes, note: this is not the path, the path is calculated from PARENT, the string is terminated with \0
 - NUMBER OF CHILDRENS - unsigned short
 - CHILDRENS (TYPE + CA) - 3 bytes (1 for TYPE, 2 for CA) (TYPE = `D` for directory and TYPE = `F` for file)
 - Childrens entry max length: 474 (or 158 childrens per directory)
-Size of empty directory: 133
+Used space of empty directory: 133
 
 An equivalent as C structure would be:
 ```c
@@ -72,5 +73,5 @@ struct FragmentEntry {
 	unsigned char type = 'R'; // always ASCII 'R'
 	unsigned short next;
 	char* text; // of length 509
-}
+};
 ```
