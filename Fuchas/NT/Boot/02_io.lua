@@ -67,11 +67,11 @@ function write(msg)
 end
 
 function print(msg)
-	write(msg .. "\n")
+	write(tostring(msg) .. "\n")
 end
 
 function io.write(msg)
-	io.stdout:write(msg)
+	io.stdout:write(tostring(msg))
 end
 
 function io.open(filename, mode)
