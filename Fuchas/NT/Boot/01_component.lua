@@ -1,16 +1,68 @@
 local primaries = {}
+local vcomponents = {}
 
-function component.isAvailable(type)
-	return component.list(type)() ~= nil
+-- original component methods
+local _list = component.list
+local _type = component.type
+local _proxy = component.proxy
+local _doc = component.doc
+local _methods = component.methods
+local _slot = component.slot
+
+function component.list(filter)
+	local list = _list(filter)
+	for k, v in pairs(vcomponents) do
+		if not filter or v.type == filter then
+			list[k] = k.type
+		end
+	end
+	return list
+end
+
+function component.type(addr)
+	for k, v in pairs(vcomponents) do
+		if k == addr then
+			return v.type
+		end
+	end
+	return _type(addr)
+end
+
+function component.get(addr)
+	for k, v in component.list() do
+		if string.startsWith(k, addr) then
+			return k
+		end
+	end
+	return nil
 end
 
 function component.isConnected(addr)
-	for k, v in component.list() do
+	for k, v in pairs(component.list()) do
 		if k == addr then
 			return true
 		end
 	end
 	return false
+end
+
+function component.isVirtual(addr)
+	if component.isConnected(addr) then
+		return (component.proxy.isvirtual == true)
+	end
+end
+
+function component.addVComponent(addr, proxy)
+	proxy.isvirtual = true -- atleast know it's virtual
+	vcomponents[addr] = proxy
+end
+
+function component.removeVComponent(addr)
+	vcomponents[addr] = nil
+end
+
+function component.isAvailable(type)
+	return component.list(type)() ~= nil
 end
 
 function component.getPrimary(type)

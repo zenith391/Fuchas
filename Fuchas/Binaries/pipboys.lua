@@ -3,6 +3,7 @@
 
 local liblon = require("liblon")
 local fs = require("filesystem")
+local driver = require("driver")
 local shared = shin32.getSharedUserPath()
 local githubGet = "https://raw.githubusercontent.com/"
 local shell = require("shell")
@@ -53,7 +54,9 @@ if args[1] == "install" then
 		return
 	end
 	print("Searching package '" .. args[2] .. "'")
-	
+	for k, v in pairs(repoList.repos) do
+		
+	end
 	return
 end
 

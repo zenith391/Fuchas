@@ -61,7 +61,7 @@ end
 
 function driver.isDriverAvailable(path)
 	local ok, drv = loadDriver(path)
-	return not not ok
+	return (ok ~= nil)
 end
 
 function loadDriver(path)
@@ -103,6 +103,14 @@ function driver.delay(lib, file)
 	setmetatable(lib, mt)
 end
 
--------------------------------------------------------------------------------
+setmetatable(driver, {
+	__index = function(self, key)
+		if (key) ~= nil then
+			return self.getDriver(key)
+		else
+			return self[key]
+		end
+	end
+})
 
 return driver

@@ -6,6 +6,10 @@ function string.toCharArray(s)
 	return chars
 end
 
+function string.startsWith(src, s)
+	return (src:sub(1, s:len()) == s)
+end
+
 function string.split(str, sep)
 	if sep == nil then
 		sep = "%s"
