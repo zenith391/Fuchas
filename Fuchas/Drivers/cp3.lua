@@ -36,7 +36,7 @@ function drv.isSynchronous()
 end
 
 function drv.openChannel(channel)
-	if channel > drv.getMaxChannels()
+	if channel > drv.getMaxChannels() then
 		return false
 	end
 	sound.open(channel)
@@ -44,7 +44,7 @@ function drv.openChannel(channel)
 end
 
 function drv.closeChannel(channel)
-	if channel > drv.getMaxChannels()
+	if channel > drv.getMaxChannels() then
 		return false
 	end
 	sound.close(channel)

@@ -111,7 +111,12 @@ while run do
 			end
 
 			local proc = shin32.newProcess("shell child program", function()
-				f(programArgs)
+				if f ~= nil then
+					xpcall(f, function(err)
+						print(err)
+						print(debug.traceback())
+					end, programArgs)
+				end
 			end)
 			shin32.waitFor(proc)
 			component.gpu.setForeground(0xFFFFFF)

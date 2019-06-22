@@ -35,15 +35,19 @@ end
 
 local function findBestDriver(type)
 	local sel = nil
-	for _, v in pairs(string.split(shin32.getSystemVar("DRV_PATH"))) do
-		for path, _ in pairs(fs.list(v)) do
-			local av, cp, drv = dofile(path)
-			if cp == type and av then
-				if sel == nil then
-					sel = drv
-				else
-					if drv.getRank() > sel.getRank() then
-						sel = drv -- choose the highest rank
+	for _, v in pairs(string.split(shin32.getSystemVar("DRV_PATH"), ";")) do
+		if fs.exists(v) then
+			for path, _ in fs.list(v) do
+				if not fs.isDirectory(v .. path) then
+					local av, cp, drv = dofile(v .. path)
+					if cp == type and av then
+						if sel == nil then
+							sel = drv
+						else
+							if drv.getRank() > sel.getRank() then
+								sel = drv -- choose the highest rank
+							end
+						end
 					end
 				end
 			end

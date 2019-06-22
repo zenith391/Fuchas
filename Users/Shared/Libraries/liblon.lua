@@ -10,7 +10,7 @@ function lib.loadlon(obj)
 	if tab == nil then
 		error("parse error: " .. err)
 	end
-	return lcode
+	return tab()
 end
 
 local function formatVal(v)
