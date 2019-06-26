@@ -2,6 +2,10 @@ local lib = {}
 local _time = os.time
 
 lib.TIMEUNITS = {
+	NANOSECONDS = {
+		type = "ns",
+		ms = 0.001
+	},
 	MILLISECONDS = {
 		type = "ms",
 		ms = 1, -- how much ms equals 1ms, used as arbitraty conversion point
