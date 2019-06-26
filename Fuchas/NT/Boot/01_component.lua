@@ -8,6 +8,7 @@ local _proxy = component.proxy
 local _doc = component.doc
 local _methods = component.methods
 local _slot = component.slot
+local _proxy = component.proxy
 
 function component.list(filter)
 	local list = _list(filter)
@@ -26,6 +27,15 @@ function component.type(addr)
 		end
 	end
 	return _type(addr)
+end
+
+function component.proxy(addr)
+	for k, v in pairs(vcomponents) do
+		if k == addr then
+			return v
+		end
+	end
+	return _proxy(addr)
 end
 
 function component.get(addr)
