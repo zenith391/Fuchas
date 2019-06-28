@@ -1,7 +1,8 @@
-_G.OSDATA = {}
-_G.OSDATA.NAME = "Fuchas"
-_G.OSDATA.VERSION = "0.3.0"
-_G.OSDATA.DEBUG = false
+_G.OSDATA = {
+	NAME = "Fuchas",
+	VERSION = "0.4.0-alpha",
+	DEBUG = true
+}
 
 local screen = nil
 for address in component.list("screen", true) do
@@ -99,6 +100,9 @@ if computer.supportsOEFI() then
 			return oefiLib.getBootAddress()
 		end
 	end
+	if not oefiLib.vendor then
+		oefiLib.vendor = {}
+	end
 	package.loaded.oefi = oefiLib
 	if oefiLib.getImplementationName() == "Zorya BIOS" then
 		package.loaded.oefi.vendor = zorya
@@ -117,7 +121,7 @@ end
 print("(4/5) Mounting all drives..")
 local letter = string.byte('A')
 for k, v in component.list() do -- TODO: check if letter is over Z
-	if k ~= computer.getBootAddress() then -- drive are initialized later
+	if k ~= computer.getBootAddress() and k ~= computer.tmpAddress() then -- drive are initialized later
 		if v == "filesystem" then
 			letter = letter + 1
 			print("    Mouting " .. string.char(letter) .. " (managed)")
@@ -149,7 +153,7 @@ xpcall(function()
 	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
 		print("(5/5) Loading " .. k .. "..")
-		dofile("A:/Fuchas/NT/Boot/" .. k)
+		dofile("A:/Fuchas/Boot/Startup/" .. k)
 	end
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
