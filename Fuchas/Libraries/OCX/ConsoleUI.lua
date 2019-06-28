@@ -57,6 +57,49 @@ function lib.label(text)
 	return comp
 end
 
+function lib.container()
+	local comp = lib.component()
+	comp.childs = {}
+	comp.focus = nil
+	comp.add = function(cp)
+		table.insert(comp.childs, cp)
+		cp.parent = comp
+		comp.focus = cp
+	end
+	comp.remove = function(cp)
+		for k, v in pairs(comp.childs) do
+			if v == cp then
+				v.parent = nil
+				table.remove(comp.childs, k)
+			end
+		end
+	end
+	comp.render = function()
+		for _, v in pairs(comp.childs) do
+			v.render()
+		end
+	end
+	comp.event = function(t)
+		local id = t[1]
+		if id == "touch" then
+			comp.focus = nil
+		end
+		for _, v in pairs(comp.childs) do
+			if id == "touch" then
+				local x = t[3]
+				local y = t[4]
+				if x >= v.x and x < v.x + v.width then
+					if y >= v.y and y < v.y + v.height then
+						comp.focus = v
+					end
+				end
+			end
+			v.event(t)
+		end
+	end
+	return comp
+end
+
 function lib.progressBar(maxProgress)
 	local pb = lib.component()
 	pb.progress = 0
@@ -79,20 +122,69 @@ function lib.progressBar(maxProgress)
 	return pb
 end
 
+function lib.textField()
+	local comp = lib.component()
+	comp.text = ""
+	comp.height = 1
+	comp.render = function()
+		local focused = true
+		if comp.parent then
+			if comp ~= comp.parent.focus then
+				focused = false
+			end
+		end
+		gpu.setBackground(comp.background)
+		gpu.setForeground(comp.foreground)
+		if focused then
+			gpu.setBackground(0xEEEEEE)
+		end
+		gpu.fill(comp.x, comp.y, comp.width, 1, " ")
+		gpu.set(comp.x, comp.y, comp.text)
+	end
+	comp.event = function(pack)
+		gpu.setForeground(0xFFFFFF)
+		local focused = true
+		if comp.parent then
+			if comp ~= comp.parent.focus then
+				focused = false
+			end
+		end
+		local id = pack[1]
+		if focused then
+			if id == "key_down" then
+				local ch = pack[3]
+				if ch ~= 0 then
+					if ch == 8 then
+						if comp.text:len() > 0 then
+							comp.text = comp.text:sub(1, comp.text:len() - 1)
+						end
+					elseif comp.text:len() < comp.width then
+						comp.text = comp.text .. string.char(ch)
+					end
+				end
+			end
+		end
+	end
+	return comp
+end
+
 function lib.button(text)
 	local btn = lib.component()
 	btn.text = text
 	btn.foreground = 0xFFFFFF
+	btn.height = 1
 	btn.render = function()
-		
+		gpu.setBackground(btn.background)
+		gpu.setForeground(0xFFFFFF)
+		btn.width = string.len(btn.text)
+		gpu.fill(btn.x, btn.y, string.len(btn.text), 1, " ")
+		gpu.set(btn.x, btn.y, btn.text)
+		btn.dirty = false
 	end
 	btn.ontouch = nil
 	btn.event = function(pack)
-		local id = pack[1]
-		if id == "touch" then
-			if btn.ontouch then
-				btn.ontouch()
-			end
+		if btn.parent.focus == btn then
+			btn.ontouch()
 		end
 	end
 	return btn

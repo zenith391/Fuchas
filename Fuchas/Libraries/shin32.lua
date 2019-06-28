@@ -171,11 +171,21 @@ function dll.getSharedUserPath()
 end
 
 function dll.getUserPath()
-	if dll.getSystemVar("USER") == "GUEST" then
+	if dll.getSystemVar("USER") == "Guest" then
 		return dll.getSharedUserPath()
 	else
 		return "A:/Users/" .. dll.getSystemVar("USER")
 	end
+end
+
+function dll.getUser()
+	local configStream = io.open(dll.getUserPath() .. "/account.lon")
+	local config = require("liblon").loadlon(configStream)
+	configStream:close()
+	return {
+		name = config.name,
+		hasPassword = config.security ~= "none"
+	}
 end
 
 local function systemEvent(pack)

@@ -2,8 +2,10 @@
 local lib = {}
 
 function lib.loadlon(obj)
-	if obj.read then -- if is stream
-		obj = obj:read("a")
+	if type(obj) ~= "string" then
+		if obj.read then -- if is stream
+			obj = obj:read("a")
+		end
 	end
 	local lcode = "return " .. obj
 	local tab, err = load(lcode, "=(lonfile)", "bt", {}) -- no access to global environment

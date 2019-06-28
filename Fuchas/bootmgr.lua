@@ -25,12 +25,12 @@ end
 if not fs.exists("A:/Users/Shared") then
 	fs.makeDirectory("A:/Users/Shared")
 end
-shin32.setenv("USER", "GUEST")
+shin32.setenv("USER", "Guest")
 --error("test")
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()
-		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
+		local l, err = loadfile("A:/Fuchas/Interfaces/login.lua")
 		if l == nil then
 			error(err)
 		end
@@ -38,6 +38,7 @@ shin32.newProcess("System Interface", function()
 	end, function(err)
 		print(err)
 		print(debug.traceback(" ", 1))
+		error(err)
 	end)
 	if f == true then
 		computer.shutdown() -- main interface exit
