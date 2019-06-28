@@ -151,7 +151,7 @@ end
 
 xpcall(function()
 	_G.shin32 = require("shin32")
-	for k, v in require("filesystem").list("A:/Fuchas/NT/Boot/") do
+	for k, v in require("filesystem").list("A:/Fuchas/Boot/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/Boot/Startup/" .. k)
 	end

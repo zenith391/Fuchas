@@ -1,0 +1,10 @@
+{
+	name = "Fuchas",
+	version = 0.4,
+	oefiVersion = 2,
+	architecture = {
+		name = "Lua",
+		minimumVersion = 5.2,
+		maximumVersion = -1
+	}
+}
