@@ -13,6 +13,72 @@ local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local downloading   = ""
 
+-- AwesomeCat's uncpio
+local function extract(stream)
+	local dent = {
+		magic = 0,
+		dev = 0,
+		ino = 0,
+		mode = 0,
+		uid = 0,
+		gid = 0,
+		nlink = 0,
+		rdev = 0,
+		mtime = 0,
+		namesize = 0,
+		filesize = 0
+	}
+	local function readint(amt, rev)
+		local tmp = 0
+		for i=(rev and amt) or 1, (rev and 1) or amt, (rev and -1) or 1 do
+			tmp = tmp | (stream:read(1):byte() << ((i-1)*8))
+		end
+		return tmp
+	end
+	local function fwrite()
+		local dir = dent.name:match("(.+)/.*%.?.+")
+		if (dir) then
+			filesystem.makeDirectory("/" .. dir)
+		end
+		local hand = io.open("/" .. dent.name, "w")
+		hand:write(stream:read(dent.filesize))
+		hand:close()
+	end
+	while true do
+		dent.magic = readint(2)
+		local rev = false
+		if (dent.magic ~= tonumber("070707", 8)) then rev = true end
+		dent.dev = readint(2)
+		dent.ino = readint(2)
+		dent.mode = readint(2)
+		dent.uid = readint(2)
+		dent.gid = readint(2)
+		dent.nlink = readint(2)
+		dent.rdev = readint(2)
+		dent.mtime = (readint(2) << 16) | readint(2)
+		dent.namesize = readint(2)
+		dent.filesize = (readint(2) << 16) | readint(2)
+		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
+		if (name == "TRAILER!!!") then break end
+		dent.name = name
+		gpu.setBackground(0x000000)
+		gpu.fill(1, 1, 80, 25, ' ')
+		gpu.set(width / 2 - 9, 1, "Fuchas Installation")
+		gpu.set(5, 5, "Downloading..")
+		gpu.set(5, 6, name)
+		
+		if (dent.namesize % 2 ~= 0) then
+			stream:seek("cur", 1)
+		end
+		if (dent.mode & 32768 ~= 0) then
+			fwrite()
+		end
+		if (dent.filesize % 2 ~= 0) then
+			stream:seek("cur", 1)
+		end
+	end
+end
+
 -- Code
 if width > 80 or height > 25 then
 	gpu.setResolution(80, 25)
@@ -58,15 +124,15 @@ end
 
 local function download(url)
 	local con = internet.request(url)
-	--con:finishConnection()
 	local buf = ""
 	local data = ""
 	while data ~= nil do
-		data = con.read(math.huge)
+		data = con:read(math.huge)
 		if data ~= nil then
 			buf = buf .. data
 		end
 	end
+	con:close()
 	return buf
 end
 
@@ -114,22 +180,8 @@ local function drawStage()
 end
 
 local function install()
-	stage = 4
-	for k, v in pairs(fileList) do
-		downloading = v
-		drawStage()
-		local content = download(repoURL .. v)
-		local path = filesystem.path(v)
-		if not filesystem.exists("/" .. path) then
-			filesystem.makeDirectory("/" .. path)
-		end
-		local buf, err = io.open("/" .. v, "w")
-		if buf == nil then
-			error(err)
-		end
-		buf:write(content)
-		buf:close()
-	end
+	local cpio = internet.request(repoURL .. "release.cpio")
+	cpio:close()
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then
 		error(err)
