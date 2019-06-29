@@ -2,6 +2,7 @@
 -- TODO: Support CP1 (Beep Card)
 --       and CP2 (Noise Card)
 local drv = {}
+local t = 0
 local syn = false
 local sound = component.getPrimary("sound")
 
@@ -9,6 +10,7 @@ local sound = component.getPrimary("sound")
 function drv.appendFrequency(channel, time, freq)
 	sound.setFrequency(freq)
 	sound.delay(time)
+    t = t + time
 	return true
 end
 
@@ -24,6 +26,10 @@ end
 
 function drv.flush()
 	sound.process()
+    if syn then
+        os.sleep(t)
+    end
+    t = 0
 end
 
 function drv.setSynchronous(sync)
@@ -36,7 +42,7 @@ function drv.isSynchronous()
 end
 
 function drv.openChannel(channel)
-	if channel > drv.getMaxChannels() then
+	if channel > drv.getMaxChannels() or channel < 0 then
 		return false
 	end
 	sound.open(channel)
@@ -44,7 +50,7 @@ function drv.openChannel(channel)
 end
 
 function drv.closeChannel(channel)
-	if channel > drv.getMaxChannels() then
+	if channel > drv.getMaxChannels() or channel < 0 then
 		return false
 	end
 	sound.close(channel)
@@ -58,7 +64,7 @@ end
 -- Specific to sound card
 
 function drv.setVolume(channel, volume)
-	if volume == nil then
+	if not volume then
 		volume = channel
 		channel = -1
 	end
@@ -74,7 +80,17 @@ function drv.setWave(channel, mode)
 end
 
 function drv.getRank() -- used by "driver" library to choose best driver
-	return 2 -- better than PC speaker
+	return 4 -- 1: PC speaker, 2: CP1, 3: CP2
+end
+
+function drv.getCapabilities()
+    return {
+        adsr = true,
+        asynchronous = true,
+        volume = true,
+        waveTypes = ["sine", "square", "triangle", "sawtooth"],
+        channels = 8
+    }
 end
 
 return component.isAvailable("sound"), "sound", drv

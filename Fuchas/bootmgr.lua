@@ -41,9 +41,12 @@ shin32.newProcess("System Interface", function()
 		error(err)
 	end)
 	if f == true then
+        computer.pushSignal("shutdown", computer.uptime())
+        require("event").exechandlers({"shutdown", computer.uptime()})
 		computer.shutdown() -- main interface exit
 	end
 end)
+
 while true do
 	shin32.scheduler()
 end

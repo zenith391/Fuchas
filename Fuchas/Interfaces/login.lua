@@ -46,10 +46,13 @@ userField.x = 10
 passField.width = 25
 userField.width = 25
 
+local continue = true
+
 loginBtn.y = 15
 loginBtn.x = 45
 loginBtn.ontouch = function()
 	gpu.setResolution(gpu.maxResolution())
+    continue = false
 	dofile("A:/Fuchas/Interfaces/Fushell/main.lua")
 end
 
@@ -58,7 +61,7 @@ container.add(passField)
 container.add(userField)
 container.render()
 
-while true do
+while continue do
 	local i = 1
 	local t = table.pack(require("event").pull())
 	container.event(t)

@@ -47,4 +47,14 @@ function drv.getRank() -- used by "driver" library to choose best driver
 	return 1
 end
 
+function drv.getCapabilities()
+    return {
+        adsr = false,
+        asynchronous = false,
+        volume = false,
+        waveTypes = [],
+        channels = 1
+    }
+end
+
 return true, "sound", drv
