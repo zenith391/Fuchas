@@ -1,7 +1,7 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.4.0-alpha",
-	DEBUG = true
+	VERSION = "0.4.0",
+	DEBUG = false
 }
 
 local screen = nil
