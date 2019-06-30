@@ -48,43 +48,56 @@ function lib.newSource(capabilities)
         return nil, err
     end
     local source = {
-        type = type,
         opened = true,
         data = {},
         setData = function(self, data)
             self.data = data
         end
     }
-    local id = 1
+    local id = #sources+1
     sources[id] = source
     return id
 end
 
--- TODO: UPDATE
-function lib.readSound(sound, buffer, type)
-	if type == "psa" then
-		local sound = dll.createSoundContext()
-		local ver = string.byte(buffer:read(1))
-		local len = string.byte(buffer:read(1))
-		if ver == 1 then
-			local i = 0
-			while i < len do
-				local freq = io.tou16({string.byte(buffer:read(1)), string.byte(buffer:read(1))}, 1)
-				freq = tonumber(freq)
-				print(freq)
-				local dur = tonumber(string.byte(buffer:read(1)))
-				dur = dur / 100
-				dll.appendFrequency(sound, tonumber(freq), dur)
-				i = i + 1
+-- Availables formats:
+--	- AAF: Adaptive Audio Format
+function lib.readFile(src, type)
+	local signatureReaded = false
+	if not type then
+		type = "aaf"
+	end
+	if type == "aaf" then
+		
+	end
+end
+
+function lib.play(soundID)
+	local sound = sources[soundID]
+	local driver = driver.getDriver("sound")
+	local data = sound.data
+	local lastWaveTypes = {}
+	for 1, #data do
+		local dat = data[i]
+		if dat.wave ~= lastWaveTypes[dat.channel] then
+			if driver.setWave(dat.channel, dat.wave) then
+				lastWaveTypes[dat.channel] = dat.wave
 			end
+		end
+		if dat.type == "flush" then
+		end
+		if dat.type == "adsr" then
+			driver.setADSR(dat.channel, )
+		end
+		if dat.type == "volume" then
+			
 		end
 	end
 end
 
 function lib.close(soundID)
-  lib.clear(soundID)
-  sources[soundID].opened = false
-  sources[soundID] = nil
+	lib.clear(soundID)
+	sources[soundID].opened = false
+	sources[soundID] = nil
 end
 
 return lib

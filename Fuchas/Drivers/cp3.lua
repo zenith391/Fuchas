@@ -75,10 +75,6 @@ function drv.setVolume(channel, volume)
 	end
 end
 
-function drv.setWave(channel, mode)
-	sound.setWave(channel, mode)
-end
-
 function drv.getRank() -- used by "driver" library to choose best driver
 	return 4 -- 1: PC speaker, 2: CP1, 3: CP2
 end

@@ -124,20 +124,20 @@ function io.fromunum(data, littleEndian, count)
 	end
 end
 
-function dll.getSystemVars() 
+function dll.getenvs() 
 	return sysvars
 end
-dll.getenvs = dll.getSystemVars
+dll.getSystemVars = dll.getenvs
 
-function dll.getSystemVar(var)
+function dll.getenv(var)
 	return sysvars[var]
 end
-dll.getenv = dll.getSystemVar
+dll.getSystemVar = dll.getenv
 
-function dll.setSystemVar(var, value)
+function dll.setenv(var, value)
 	sysvars[var] = value
 end
-dll.setenv = dll.setSystemVar
+dll.setSystemVar = dll.setenv
 
 function dll.newProcess(name, func)
 	local pid = table.getn(processes) + 1
