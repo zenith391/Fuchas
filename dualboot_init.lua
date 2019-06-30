@@ -1,6 +1,7 @@
 computer.supportsOEFI = function()
 	return false
 end
+
 local loadfile = load([[return function(file)
 	local pc,cp = computer or package.loaded.computer, component or package.loaded.component
 	local addr, invoke = pc.getBootAddress(), cp.invoke
@@ -15,15 +16,18 @@ local loadfile = load([[return function(file)
 	invoke(addr, "close", handle)
 	return load(buffer, "=" .. file, "bt", _G)
 end]], "=loadfile", "bt", _G)()
-local cp = component
-if cp.list("gpu")() == nil or cp.list("screen")() == nil then
-	error("Graphics Card and Screen required.")
+
+if component.list("gpu")() == nil or component.list("screen")() == nil then
+	error("gpu and screen required")
 end
+
 local gpua = cp.list("gpu")()
 local screena = cp.list("screen")()
 local gpu = cp.proxy(gpua)
 gpu.bind(screena)
 gpu.setResolution(40, 16)
+gpu.setBackground(0x000000)
+gpu.fill(1, 1, 40, 16, ' ')
 gpu.set(1, 1, "Press ENTER for Fuchas")
 gpu.set(1, 2, "Press O     for OpenOS")
 
@@ -32,7 +36,7 @@ while true do
 	if id == "key_down" then
 		if ch == 28 then
 			_G.loadfile = loadfile
-			loadfile("Fuchas/NT/boot.lua")()
+			loadfile("Fuchas/Boot/boot.lua")()
 			break
 		elseif ch == 24 then
 			loadfile("/lib/core/boot.lua")(loadfile)

@@ -6,24 +6,21 @@ local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
 
 function event.register(key, callback, interval, times, opt_handlers)
-  local handler =
-  {
-    key = key,
-    times = times or 1,
-    callback = callback,
-    interval = interval or math.huge,
-  }
-
-  handler.timeout = computer.uptime() + handler.interval
-  opt_handlers = opt_handlers or handlers
-
-  local id = 0
-  repeat
-    id = id + 1
-  until not opt_handlers[id]
-
-  opt_handlers[id] = handler
-  return id
+	local handler =
+	{
+		key = key,
+		times = times or 1,
+		callback = callback,
+		interval = interval or math.huge,
+	}
+	handler.timeout = computer.uptime() + handler.interval
+	opt_handlers = opt_handlers or handlers
+	local id = 0
+	repeat
+		id = id + 1
+	until not opt_handlers[id]
+	opt_handlers[id] = handler
+	return id
 end
 
 function event.exechandlers(event_data)

@@ -3,7 +3,7 @@ local component     = require("component")
 local internet      = component.getPrimary("internet")
 local gpu           = require("term").gpu()
 local event         = require("event")
-local filesystem = require("filesystem")
+local filesystem    = require("filesystem")
 local width, height = gpu.getResolution()
 local stage         = 1
 local selected      = 2
@@ -13,8 +13,8 @@ local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local downloading   = ""
 
--- AwesomeCat's uncpio
-local function extract(stream)
+-- AwesomeCatgirl's uncpio
+local function ext(stream)
 	local dent = {
 		magic = 0,
 		dev = 0,
@@ -30,8 +30,8 @@ local function extract(stream)
 	}
 	local function readint(amt, rev)
 		local tmp = 0
-		for i=(rev and amt) or 1, (rev and 1) or amt, (rev and -1) or 1 do
-			tmp = tmp | (stream:read(1):byte() << ((i-1)*8))
+		for i=1, amt do
+			tmp = bit32.bor(tmp, bit32.lshift(string.byte(stream:read(1)), ((i-1)*8)))
 		end
 		return tmp
 	end
@@ -55,9 +55,9 @@ local function extract(stream)
 		dent.gid = readint(2)
 		dent.nlink = readint(2)
 		dent.rdev = readint(2)
-		dent.mtime = (readint(2) << 16) | readint(2)
+		dent.mtime = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		dent.namesize = readint(2)
-		dent.filesize = (readint(2) << 16) | readint(2)
+		dent.filesize = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
 		if (name == "TRAILER!!!") then break end
 		dent.name = name
@@ -70,7 +70,7 @@ local function extract(stream)
 		if (dent.namesize % 2 ~= 0) then
 			stream:seek("cur", 1)
 		end
-		if (dent.mode & 32768 ~= 0) then
+		if (bit32.band(dent.mode, 32768) ~= 0) then
 			fwrite()
 		end
 		if (dent.filesize % 2 ~= 0) then
@@ -127,12 +127,12 @@ local function download(url)
 	local buf = ""
 	local data = ""
 	while data ~= nil do
-		data = con:read(math.huge)
+		data = con.read(math.huge)
 		if data ~= nil then
 			buf = buf .. data
 		end
 	end
-	con:close()
+	con.close()
 	return buf
 end
 
@@ -180,14 +180,21 @@ local function drawStage()
 end
 
 local function install()
-	local cpio = internet.request(repoURL .. "release.cpio")
-	cpio:close()
+	local cpio = download(repoURL .. "release.cpio")
+	local tmpCpioPath = os.tmpname()
+	print(tmpCpioPath)
+	local tmpCpio = io.open(tmpCpioPath, "w")
+	tmpCpio:write(cpio)
+	tmpCpio:close()
+	tmpCpio = io.open(tmpCpioPath, "rb")
+	ext(tmpCpio)
+	tmpCpio:close()
+	
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then
 		error(err)
 	end
 	buf:write(download(repoURL .. "dualboot_init.lua"))
-	buf:close()
 	buf:close()
 	stage = 5
 	drawStage()
