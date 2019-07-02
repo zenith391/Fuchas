@@ -12,9 +12,21 @@ local args, options = shell.parse(...)
 -- File checks
 local packages, repoList
 if not fs.exists(shared .. "/fpm-packages.lon") then
-	packages = {}
+	packages = {
+		["fpm"] = {
+			files = {
+				["Fuchas/Binaries/fpm.lua"] = "A:"
+			},
+			dependencies = {},
+			name = "Fuchas Package Manager",
+			description = "Download what you're using to download this. Downloadception",
+			authors = "zenith391",
+			version = "1.0",
+			revision = 1
+		}
+	}
 	local s = fs.open(shared .. "/fpm-packages.lon", "w")
-	s:write("{}")
+	s:write(liblon.sertable(packages))
 	s:close()
 else
 	local s = io.open(shared .. "/fpm-packages.lon", "r")
