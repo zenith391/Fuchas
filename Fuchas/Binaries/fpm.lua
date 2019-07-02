@@ -46,16 +46,24 @@ end
 local function downloadPackage(src, name, pkg)
 	for k, v in pairs(pkg.files) do
 		local dest = fs.canonical(v) .. "/" .. k
+		io.stdout:write("\tDownloading " .. k .. "..  ")
+		local txt = driver.internet.readFully(githubGet .. src .. "/master/" .. k)
+		if txt == "" then
+			local fg = component.gpu.getForeground()
+			component.gpu.setForeground(0xFF0000)
+			print("NOT FOUND!")
+			print("\tDOWNLOAD ABORTED")
+			component.gpu.setForeground(fg)
+			return
+		end
 		local s = fs.open(dest, "w")
-		io.stdout:write("Downloading " .. k .. "..  ")
-		s:write(driver.internet.readFully(githubGet .. src .. "/master/" .. k))
+		s:write(txt)
 		s:close()
 		local fg = component.gpu.getForeground()
 		component.gpu.setForeground(0x00FF00)
 		print("OK!")
 		component.gpu.setForeground(fg)
 	end
-	print("Saving package list..")
 	packages[name] = pkg
 	save()
 end
@@ -82,23 +90,27 @@ if args[1] == "list" then
 end
 
 if args[1] == "remove" then
+	local toInstall = {}
+	for i=2,#args do
+		table.insert(toInstall, args[i])
+	end
 	for k, v in pairs(packages) do
-		if k == args[2] then
-			for f, dir in pairs(v.files) do
-				local dest = fs.canonical(dir) .. "/" .. f
-				io.stdout:write("Removing " .. f .. "..  ")
-				fs.remove(dest)
-				local fg = component.gpu.getForeground()
-				component.gpu.setForeground(0xFF0000)
-				print("REMOVED!")
-				component.gpu.setForeground(fg)
+		for _, i in pairs(toInstall) do
+			if k == i then
+				for f, dir in pairs(v.files) do
+					local dest = fs.canonical(dir) .. "/" .. f
+					io.stdout:write("Removing " .. f .. "..  ")
+					fs.remove(dest)
+					local fg = component.gpu.getForeground()
+					component.gpu.setForeground(0xFF0000)
+					print("REMOVED!")
+					component.gpu.setForeground(fg)
+				end
+				packages[k] = nil
+				save()
 			end
-			packages[k] = nil
-			save()
-			return
 		end
 	end
-	print(args[2] .. " is not installed")
 	return
 end
 
@@ -107,18 +119,24 @@ if args[1] == "update" then
 		io.stderr:write("Internet card required!")
 		return
 	end
+	local toInstall = {}
+	for i=2,#args do
+		table.insert(toInstall, args[i])
+	end
 	local installed = false
 	for k, _ in pairs(packages) do
-		if k == args[2] then
-			installed = true
-			break
+		for _, i in pairs(toInstall) do
+			if k == i then
+				installed = true
+				break
+			end
 		end
 	end
 	if not installed then
 		print(args[2] .. " is not installed")
 		return
 	end
-	print("Searching package: " .. args[2])
+	print("Searching packages..")
 	local packageList = {}
 	for k, v in pairs(repoList) do
 		print("  Source: " .. v)
@@ -130,20 +148,22 @@ if args[1] == "update" then
 			print("    " .. err)
 		end
 	end
+	local isnt = false
 	for src, v in pairs(packageList) do
 		for k, e in pairs(v) do
-			if k == args[2] then
-				if e.revision == packages[args[2]].revision then
-					print(e.name .. " is up-to-date")
-					return
+			for _, i in pairs(toInstall) do
+				if k == i then
+					if e.revision == packages[args[2]].revision then
+						print(e.name .. " is up-to-date")
+					else
+						print("Updating " .. e.name)
+						local ok, err = pcall(downloadPackage, src, k, e)
+						if not ok then
+							print("Error downloading package: " .. err)
+						end
+						print(e.name .. " updated")
+					end
 				end
-				print("Updating " .. e.name)
-				local ok, err = pcall(downloadPackage, src, k, e)
-				if not ok then
-					print("Error downloading package: " .. err)
-				end
-				print(e.name .. " updated")
-				return
 			end
 		end
 	end
@@ -156,17 +176,23 @@ if args[1] == "recalc" then
 end
 
 if args[1] == "install" then
+	local toInstall = {}
 	if not component.isAvailable("internet") then
 		io.stderr:write("Internet card required!")
 		return
 	end
+	for i=2,#args do
+		table.insert(toInstall, args[i])
+	end
 	for k, _ in pairs(packages) do
-		if k == args[2] then
-			print(k .. " is installed")
-			return
+		for _, i in pairs(toInstall) do
+			if k == i then
+				print(k .. " is installed")
+				return
+			end
 		end
 	end
-	print("Searching package: " .. args[2])
+	print("Searching packages..")
 	local packageList = {}
 	for k, v in pairs(repoList) do
 		print("  Source: " .. v)
@@ -178,18 +204,24 @@ if args[1] == "install" then
 			print("    " .. err)
 		end
 	end
+	local isnt = false
 	for src, v in pairs(packageList) do
 		for k, e in pairs(v) do
-			if k == args[2] then
-				print("Installing " .. e.name)
-				local ok, err = pcall(downloadPackage, src, k, e)
-				if not ok then
-					print("Error downloading package: " .. err)
+			for _, i in pairs(toInstall) do
+				if k == i then
+					print("Installing " .. e.name)
+					local ok, err = pcall(downloadPackage, src, k, e)
+					if not ok then
+						print("Error downloading package: " .. err)
+					end
+					print(e.name .. " installed")
+					isnt = true
 				end
-				print(e.name .. " installed")
-				return
 			end
 		end
+	end
+	if isnt then
+		return
 	end
 	print("Package not found: " .. args[2])
 	return
