@@ -1,0 +1,13 @@
+{
+	["fpm"] = {
+		files = {
+			["Fuchas/Binaries/fpm.lua"] = "A:"
+		},
+		dependencies = {},
+		name = "Fuchas Package Manager",
+		description = "Download what you're using to download this. Downloadception",
+		authors = "zenith391",
+		version = "1.0",
+		revision = 1
+	}
+}

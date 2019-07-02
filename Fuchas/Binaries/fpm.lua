@@ -23,6 +23,7 @@ else
 end
 if not fs.exists(shared .. "/fpm-sources.lon") then
 	repoList = { -- Default sources
+		"zenith391/Fuchas",
 		"zenith391/zenith391-Pipboys"
 	}
 	local s = fs.open(shared .. "/fpm-sources.lon", "w")
