@@ -84,7 +84,7 @@ end
 if args[1] == "remove" then
 	for k, v in pairs(packages) do
 		if k == args[2] then
-			 for f, dir in pairs(v.files) do
+			for f, dir in pairs(v.files) do
 				local dest = fs.canonical(dir) .. "/" .. f
 				io.stdout:write("Removing " .. f .. "..  ")
 				fs.remove(dest)
@@ -94,6 +94,7 @@ if args[1] == "remove" then
 				component.gpu.setForeground(fg)
 			end
 			packages[k] = nil
+			save()
 			return
 		end
 	end
