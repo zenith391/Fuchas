@@ -13,7 +13,7 @@ local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local downloading   = ""
 
--- AwesomeCatgirl's uncpio
+-- Adorable-Catgirl's uncpio
 local function ext(stream)
 	local dent = {
 		magic = 0,
@@ -143,7 +143,7 @@ local function drawStage()
 	if stage == 1 then
 		gpu.set(5, 5, "You are going to install Fuchas on your computer.")
 		gpu.set(5, 6, "You can either wipe your drive or put Fuchas")
-		gpu.set(5, 7, "next to your OpenOS installation. And so install")
+		gpu.set(5, 7, "next to your OpenOS installation, and have")
 		gpu.set(5, 8, "a dual-boot configuration.")
 		drawBorder(6, 10, width - 12, 3)
 		drawEntries()
@@ -151,14 +151,14 @@ local function drawStage()
 	if stage == 2 then
 		if not doErase then
 			gpu.set(5, 4, "Information:")
-			gpu.set(5, 5, "Dual-boot will be effective on the hard drive.")
-			gpu.set(5, 6, "Meaning dual-boot will not affect EEPROM..")
+			gpu.set(5, 5, "Dual-boot will be effective on the hard drive,")
+			gpu.set(5, 6, "meaning dual-boot will not affect EEPROM.")
 			gpu.set(5, 7, "You will be prompted between launching OpenOS or Fuchas")
 			gpu.set(5, 8, "when booting on this hard drive.")
 			gpu.set(5, 10, "Please wait..")
 		else
 			gpu.set(5, 5, "Erasing OpenOS is untested.")
-			gpu.set(5, 6, "For security issues, dual-boot will be choosed")
+			gpu.set(5, 6, "For security reasons, dual-boot will be chosen")
 			gpu.set(5, 8, "Please wait..")
 			doErase = false
 		end
