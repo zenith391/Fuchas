@@ -1,5 +1,6 @@
 -- Variables
 local component     = require("component")
+local bit32         = require("bit32")
 local internet      = component.getPrimary("internet")
 local gpu           = require("term").gpu()
 local event         = require("event")
