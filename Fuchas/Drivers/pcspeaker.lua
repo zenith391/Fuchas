@@ -52,7 +52,7 @@ function drv.getCapabilities()
         adsr = false,
         asynchronous = false,
         volume = false,
-        waveTypes = ["square"],
+        waveTypes = {"square"},
         channels = 1
     }
 end

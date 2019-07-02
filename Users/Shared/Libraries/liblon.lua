@@ -33,13 +33,13 @@ function lib.sertable(tab, depth)
 			if type(k) == "number" then
 				str = str .. "\n" .. string.rep("\t", depth) .. lib.sertable(v)
 			else
-				str = str .. "\n" .. string.rep("\t", depth) .. k .. " = " .. lib.sertable(v, depth+1)
+				str = str .. "\n" .. string.rep("\t", depth) .. "[" .. k .. "]" .. " = " .. lib.sertable(v, depth+1)
 			end
 		else
 			if type(k) == "number" then
 				str = str .. "\n" .. string.rep("\t", depth) .. formatVal(v)
 			else
-				str = str .. "\n" .. string.rep("\t", depth) .. k .. " = " .. formatVal(v)
+				str = str .. "\n" .. string.rep("\t", depth) .. "[" .. k .. "]" .. " = " .. formatVal(v)
 			end
 		end
 		if i < table.getn(tab) then

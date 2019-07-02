@@ -1,10 +1,8 @@
 -- Compatibility shortcuts (it is prefered to use shin32 library)
 function os.getenv(name)
-	return shin32.getSystemVar(name)
+	return shin32.getenv(name)
 end
 
 function os.setenv(name, value)
-	checkArg(1, "string", name)
-	if not value then value = nil end
-	shin32.getSystemVars[name] = value
+	shin32.setenv(name, value)
 end

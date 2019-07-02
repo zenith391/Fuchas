@@ -84,7 +84,7 @@ function drv.getCapabilities()
         adsr = true,
         asynchronous = true,
         volume = true,
-        waveTypes = ["sine", "square", "triangle", "sawtooth"],
+        waveTypes = {"sine", "square", "triangle", "sawtooth"},
         channels = 8
     }
 end

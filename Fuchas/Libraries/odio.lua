@@ -67,7 +67,10 @@ function lib.readFile(src, type)
 		type = "aaf"
 	end
 	if type == "aaf" then
-		
+		local signature = src:read(5)
+		if signature ~= " AAF " then
+			error("file isn't aaf")
+		end
 	end
 end
 

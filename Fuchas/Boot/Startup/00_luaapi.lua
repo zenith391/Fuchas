@@ -89,3 +89,23 @@ function string.split(str, sep)
 	end
 	return t
 end
+
+-- Convenient Lua extensions
+
+function try(func)
+	return {
+		catch = function(handler, filter)
+			local ok, ex = pcall(func)
+			if not ok then
+				handler(ex)
+			end
+		end
+	}
+end
+
+-- Try/Catch Example:
+-- try(function()
+--   print("Hello World")
+-- end).catch(function(ex)
+--   print("Error: " .. ex.trace)
+-- end)
