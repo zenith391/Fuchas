@@ -1,0 +1,26 @@
+{
+	["benchmark-efi"] = {
+		["dependencies"] = {
+		},
+		["revision"] = 1,
+		["description"] = "Benchmark, requires OEFI.",
+		["version"] = "1.0",
+		["authors"] = "zenith391",
+		["files"] = {
+			["benchmark-efi.lua"] = "A:/.efi"
+		},
+		["name"] = "BenchmarkEFI"
+	},
+	["midi"] = {
+		["dependencies"] = {
+		},
+		["revision"] = 1,
+		["description"] = "Useful for video games. Allow to play MIDI files using available drivers.",
+		["authors"] = "zenith391",
+		["version"] = "0.1",
+		["files"] = {
+			["midi.lua"] = "A:/Users/Shared/Libraries"
+		},
+		["name"] = "MIDI Library"
+	}
+}
