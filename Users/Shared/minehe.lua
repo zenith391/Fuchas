@@ -6,7 +6,7 @@ local sec = require("security")
 
 local config = {
 	transport = "modem", -- Implementation of OSI 4 layer
-	wwwpath = "Users/Shared/www"
+	wwwpath = "A:/Users/Shared/www"
 }
 
 print("Very Basic 1.0 OHTP Server")

@@ -21,8 +21,8 @@ if not fs.exists(shared .. "/fpm-packages.lon") then
 			name = "Fuchas Package Manager",
 			description = "Download what you're using to download this. Downloadception",
 			authors = "zenith391",
-			version = "1.0",
-			revision = 1
+			version = "bundled",
+			revision = 0
 		}
 	}
 	local s = fs.open(shared .. "/fpm-packages.lon", "w")
@@ -97,7 +97,7 @@ end
 if args[1] == "list" then
 	print("Package list:")
 	for k, v in pairs(packages) do
-		print("\t- " .. k .. " v" .. v.version .. " (rev " .. v.revision ..")")
+		print("\t- " .. k .. " " .. v.version .. " (rev " .. v.revision ..")")
 	end
 	return
 end

@@ -60,41 +60,13 @@ while run do
 			break
 		end
 	end
-	local path = args[1]
-	local exists = false
-	local tpath = path
-	local pathv = string.split(shin32.getSystemVar("PATH"), ";")
-	table.insert(pathv, shin32.getSystemVar("PWD"))
-	local exts = string.split(shin32.getSystemVar("PATHEXT"), ";")
-	table.insert(exts, "")
-	local tpi = 1
-	while not fs.exists(tpath) do
-		if tpi > table.getn(exts) then
-			break
-		end
-		local org = tpath
-		if not exists then
-			tpath = drive .. ":/" .. org .. exts[tpi]
-			exists = fs.exists(tpath)
-			if exists then break end
-		end
-		for i, sp in pairs(pathv) do
-			tpath = sp .. path .. exts[tpi]
-			if fs.exists(tpath) then
-				exists = true
-			end
-			if not exists then
-				tpath = org
-			else
-				break
-			end
-		end
-		if not exists then
-			tpath = drive .. ":/" .. org .. exts[tpi]
-			exists = fs.exists(tpath)
-		end
-		tpi = tpi + 1
+	
+	local path = sh.resolve(args[1])
+	local exists = true
+	if not path then
+		exists = false
 	end
+	
 	if exists and args[1] ~= "" then
 		local f, err = xpcall(function()
 			local programArgs = {}
@@ -105,7 +77,7 @@ while run do
 					end
 				end
 			end
-			local f, err = loadfile(tpath)
+			local f, err = loadfile(path)
 			if f == nil then
 				print(err)
 			end
@@ -125,7 +97,7 @@ while run do
 			print(debug.traceback(err))
 		end)
 	else
-		print("file " .. args[1] .. " does not exists")
+		print("No such command or external file found.")
 	end
 	end -- end of "continue" while
 end

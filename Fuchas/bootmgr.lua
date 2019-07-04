@@ -30,7 +30,7 @@ shin32.setenv("USER", "Guest")
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()
-		local l, err = loadfile("A:/Fuchas/Interfaces/login.lua")
+		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
 		if l == nil then
 			error(err)
 		end
@@ -41,8 +41,8 @@ shin32.newProcess("System Interface", function()
 		error(err)
 	end)
 	if f == true then
-        computer.pushSignal("shutdown", computer.uptime())
-        require("event").exechandlers({"shutdown", computer.uptime()})
+		computer.pushSignal("shutdown", computer.uptime())
+		require("event").exechandlers({"shutdown", computer.uptime()})
 		computer.shutdown() -- main interface exit
 	end
 end)

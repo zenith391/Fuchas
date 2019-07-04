@@ -1,6 +1,6 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.4.0",
+	VERSION = "0.4.1",
 	DEBUG = false
 }
 
@@ -22,8 +22,8 @@ if screen and gpu then
 	gpu.bind(screen)
 	w, h = gpu.maxResolution()
 	gpu.setResolution(w, h)
-	gpu.setBackground(0x2D2D2D)
-	gpu.setForeground(0xEFEFEF)
+	gpu.setBackground(0x000000)
+	gpu.setForeground(0xFFFFFF)
 	gpu.fill(1, 1, w, h, " ")
 end
 function dofile(file)
@@ -47,6 +47,9 @@ function gy() -- temporary cursor Y accessor
 	return y
 end
 function write(msg, fore)
+	if not screen or not gpu then
+		return
+	end
 	msg = tostring(msg)
 	if fore == nil then fore = 0xFFFFFF end
 	if gpu and screen then
@@ -80,12 +83,13 @@ function print(msg, fore)
 	write(msg .. "\n", fore)
 end
 
-function os.sleep(n)  -- seconds
-  local t0 = computer.uptime()
-  while computer.uptime() - t0 <= n do
-	coroutine.yield()
-  end
+function os.sleep(n)
+	local t0 = computer.uptime()
+	while computer.uptime() - t0 <= n do
+		coroutine.yield()
+	end
 end
+
 print("(1/5) Loading 'package' library..")
 local package = dofile("/Fuchas/Libraries/package.lua")
 _G.package = package
@@ -155,12 +159,12 @@ xpcall(function()
 		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/Boot/Startup/" .. k)
 	end
+	os.sleep(1)
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
 		gpu.setResolution(40, 16) -- fit to all screens/gpus
-		if io.stderr then -- if it happens during runtime
-			require("shell").setCursor(1, 2)
-			require("OCX/ConsoleUI").clear(0x0000FF)
+		if io["stderr"] then -- if it happens during runtime
+			require("shell").setCursor(1, 1)
 		end
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 40, 16, " ")
@@ -180,6 +184,5 @@ computer problem as a reply.]])
 		local traceback = debug.traceback()
 		write(traceback)
 		os.sleep(1) -- let the user see the error
-		return false
+		return err
 end)
-os.sleep(1)

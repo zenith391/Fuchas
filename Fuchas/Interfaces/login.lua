@@ -1,5 +1,6 @@
 local cui = require("OCX/ConsoleUI")
 local fs = require("filesystem")
+local sha = require("sha256")
 local gpu = component.gpu
 local hasAccount = false
 local choosing = false
@@ -16,13 +17,15 @@ end
 local function detectUsers()
 	for k, v in fs.list("A:/Users") do
 		local configStream = io.open("A:/Users/" .. k .. "/account.lon")
-		local config = require("liblon").loadlon(configStream)
-		configStream:close()
-		table.insert(users, {
-			name = config.name,
-			password = config.password,
-			security = "sha256"
-		})
+		if configStream then
+			local config = require("liblon").loadlon(configStream)
+			configStream:close()
+			table.insert(users, {
+				name = config.name,
+				password = config.password,
+				security = config.security
+			})
+		end
 	end
 end
 
@@ -52,7 +55,7 @@ loginBtn.y = 15
 loginBtn.x = 45
 loginBtn.ontouch = function()
 	gpu.setResolution(gpu.maxResolution())
-    continue = false
+	continue = false
 	dofile("A:/Fuchas/Interfaces/Fushell/main.lua")
 end
 

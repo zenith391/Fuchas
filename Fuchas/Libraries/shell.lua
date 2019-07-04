@@ -37,7 +37,7 @@ function lib.clear()
 end
 
 function lib.getKeyboard()
-	return component.getPrimary("screen").getKeyboards()[0]
+	return component.getPrimary("screen").getKeyboards()[1]
 end
 
 function lib.getScreen()
@@ -53,6 +53,9 @@ function lib.parse(tab)
 				options[v:sub(3, v:len())] = true
 			elseif v:sub(1, 1) == "-" then
 				options[v:sub(2, 2)] = true
+				if v:len() > 3 then
+					options[v:sub(2, 2)] = v:sub(4, v:len())
+				end
 			else
 				table.insert(ntab, v)
 			end
@@ -62,7 +65,27 @@ function lib.parse(tab)
 end
 
 function lib.resolve(path)
-	return path
+	local p = path
+	local paths = string.split(shin32.getenv("PATH"), ";")
+	table.insert(paths, shin32.getenv("PWD_DRIVE") .. ":/" .. shin32.getenv("PWD"))
+	local exts = string.split(shin32.getenv("PATHEXT"), ";")
+	table.insert(exts, "")
+	
+	if fs.exists(p) then
+		return p
+	end
+	
+	for _, pt in pairs(paths) do
+		pt = fs.canonical(pt)
+		for _, ext in pairs(exts) do
+			local np = pt .. "/" .. p .. ext
+			if fs.exists(np) then
+				return np
+			end
+		end
+	end
+	
+	return nil
 end
 
 function lib.write(obj)
@@ -105,12 +128,6 @@ function lib.parseCL(cl)
 	end
 	
 	return args
-end
-
-function lib.resolve()
-	if shin32.getSystemVar("PWD") then
-		
-	end
 end
 
 function lib.read()
