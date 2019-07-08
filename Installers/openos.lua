@@ -29,6 +29,7 @@ local function ext(stream)
 		namesize = 0,
 		filesize = 0
 	}
+	
 	local function readint(amt, rev)
 		local tmp = 0
 		for i=1, amt do
@@ -59,8 +60,11 @@ local function ext(stream)
 		dent.mtime = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		dent.namesize = readint(2)
 		dent.filesize = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
+		gpu.set(5, 7, "Size: " .. tostring(dent.filesize))
 		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
-		if (name == "TRAILER!!!") then break end
+		if (name == "TRAILER!!!") then
+			break
+		end
 		dent.name = name
 		gpu.setBackground(0x000000)
 		gpu.fill(1, 1, 80, 25, ' ')
@@ -182,18 +186,17 @@ end
 
 local function install()
 	local cpio = download(repoURL .. "release.cpio")
-	local tmpCpioPath = os.tmpname()
+	local tmpCpioPath = "/fuchas.cpio"
 	local tmpCpio = io.open(tmpCpioPath, "w")
-	tmpCpio:setvbuf("full", 512)
 	local ok, err = tmpCpio:write(cpio)
 	if not ok then
-		error("could not download CPIO: " .. err)
+		error("Could not download CPIO: " .. err)
 	end
 	tmpCpio:close()
 	tmpCpio = io.open(tmpCpioPath, "rb")
 	ext(tmpCpio)
-	tmpCpio:close()
-	
+	tmpCpio.close()
+	filesystem.remove("/fuchas.cpio")
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then
 		error(err)
