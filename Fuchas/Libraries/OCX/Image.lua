@@ -5,7 +5,7 @@ local formats = {}
 
 function lib.registerImageFormat(format)
 	if format.getSignature == nil then
-		error("no format:getSignature()")
+		error("no format: getSignature()")
 	end
 	table.insert(formats, format)
 end
@@ -51,9 +51,11 @@ end
 ocif.getSignature = function(self)
 	return "OCIF"
 end
+
 ocif.getName = function(self)
 	return "OCIF 5/6"
 end
+
 ocif.decode = function(self, content)
 	local method = string.char(content:sub(5, 6))
 	local image = {}

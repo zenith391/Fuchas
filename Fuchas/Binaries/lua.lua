@@ -7,6 +7,11 @@ while true do
 	if ck == nil then
 		print(err)
 	else
-		ck()
+		try(function()
+        ck()
+    end)
+    .catch(function(err)
+        print(err)
+    end)
 	end
 end

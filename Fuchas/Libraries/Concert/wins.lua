@@ -1,96 +1,109 @@
 local lib = {}
+local ui = require("OCX/OCUI")
+local draw = require("OCX/OCDraw")
 local windows = {}
-local nextWinID = 1
+local desktop = {}
+
+local function titleBar(win)
+	local comp = ui.component()
+	comp.render = function(self)
+		if not self.context then -- init context if not yet
+			self:open()
+		end
+		self.canvas.fillRect(0, 0, win.width, 1, 0xCCCCCC)
+		self.canvas.fillRect(0, 1, win.width, win.height - 1, 0x2D2D2D)
+		self.canvas.drawText(1, 0, win.title, 0xFFFFFF)
+		self.canvas.drawText(win.width - 5, 0, "⣤ ⠶", 0xFFFFFF)
+		self.canvas.drawText(win.width - 1, 0, "X", 0xFF0000)
+		draw.drawContext(self.context)
+	end
+	return comp
+end
 
 function lib.newWindow()
-	local obj = {}
-	obj.title = ""
-	obj.x = 20
-	obj.y = 10
-	obj.width = 40
-	obj.height = 10
-	obj.moved = false
-	obj.dirty = true
-	obj.undecorated = false
-	obj.id = nextWinID
-	windows[nextWinID] = obj
-	nextWinID = nextWinID + 1
-	return nextWinID - 1
+	local obj = {
+		title = "",
+		x = 20,
+		y = 10,
+		width = 40,
+		height = 10,
+		moved = false,
+		dirty = true,
+		focused = false,
+		undecorated = false,
+		container = ui.container(),
+		id = #windows+1,
+		show = function(self)
+			desktop[self.id] = self
+		end,
+		hide = function(self)
+			desktop[self.id] = self
+			self.titleBar:dispose()
+			self.container:dispose()
+		end
+	}
+	obj.titleBar = titleBar(obj)
+	windows[obj.id] = obj
+	return obj
+end
+
+function lib.desktop()
+	return desktop
+end
+
+function lib.drawDesktop()
+	for _, win in pairs(desktop) do
+		if win.dirty then
+			if not win.undecorated then
+				win.titleBar.x = win.x
+				win.titleBar.y = win.y
+				win.titleBar.height = 1
+				win.titleBar.width = win.width
+				if win.titleBar.context then
+					draw.moveContext(win.titleBar.context, win.x, win.y)
+					draw.setContextSize(win.titleBar.context, win.width, 1)
+				end
+				win.titleBar:render()
+			end
+			
+			local cy = win.y+1
+			local ch = win.height-1
+			if win.undecorated then
+				cy = win.y
+				ch = win.height
+			end
+			win.container.x = win.x
+			win.container.y = cy
+			win.container.height = ch
+			win.container.width = win.width
+			if win.container.context then
+				draw.moveContext(win.container.context, win.x, cy)
+				draw.setContextSize(win.container.context, win.width, ch)
+			end
+			win.container:render()
+			
+			--win.dirty = false
+		end
+	end
 end
 
 function lib.windowingSystem()
 	local sys = {}
-	sys.getWindows = function()
-		return windows
-	end
-	sys.setTitle = function(winID, title)
-		windows[winID].title = title
-	end
-	sys.getTitle = function(winID)
-		return windows[winID].title
-	end
-	sys.getSize = function(winID)
-		local win = windows[winID]
-		return win.width, win.height
-	end
-	sys.isUndecorated = function(winID)
-		return windows[winID]
-	end
-	sys.setUndecorated = function(winID, undecorated)
-		windows[winID].undecorated = undecorated
-	end
-	sys.setSize = function(winID, width, height)
-		local win = windows[winID]
-		sys.checkDirty(win)
-		win.width = width
-		win.height = height
-		sys.checkDirty(win)
-	end
-	sys.getPosition = function(winID)
-		local win = windows[winID]
-		return win.x, win.y
-	end
-	sys.setPosition = function(winID, x, y)
-		local win = windows[winID]
-		sys.checkDirty(win)
-		win.x = x
-		win.y = y
-		sys.checkDirty(win)
-	end
-	sys.setCanvas = function(c)
-		sys.c = c
-	end
-	sys.checkDirty = function(v)
-		for i, k in pairs(windows) do
-			if k ~= v then
-				if v.x + v.width > k.x and v.x + v.width < k.x + k.width then
-					if v.y + v.height > k.y - 1 then
-						sys.renderWindow(i, sys.c)
-					end
-				end
-			end
-		end
-	end
-	sys.moveWindow = function(winID, tx, ty, c)
-		--c.copy(v.x, v.y, v.width, v.height, v.x, v.y)
-		local v = windows[winID]
-		sys.renderWindow(winID, c)
-		if tx-1 > v.x then
-			c.fillRect(v.x, v.y, tx - v.x, v.height, 0xEFEFEF)
+	sys.moveWindow = function(win, ox, oy, canvas, drop)
+		if drop then
+			sys.renderWindow(win, canvas)
 		end
 	end
 
-	sys.renderWindow = function(winID, c)
-		local v = windows[winID]
+	sys.renderWindow = function(win)
 		--error(debug.traceback())
-		c.fillRect(v.x, v.y, v.width, 1, 0xCCCCCC)
-		if v.undecorated == false then
-			c.fillRect(v.x, v.y + 1, v.width, v.height - 1, 0x2D2D2D)
-			c.drawText(v.x + 1, v.y, v.title, 0xFFFFFF)
-			c.drawText((v.x + v.width) - 5, v.y, "⣤ ⠶", 0xFFFFFF)
-			c.drawText((v.x + v.width) - 1, v.y, "X", 0xFF0000)
+		c.fillRect(win.x, win.y, win.width, 1, 0xCCCCCC)
+		if win.undecorated == false then
+			c.fillRect(win.x, win.y + 1, win.width, win.height - 1, 0x2D2D2D)
+			c.drawText(win.x + 1, win.y, win.title, 0xFFFFFF)
+			c.drawText((win.x + win.width) - 5, win.y, "⣤ ⠶", 0xFFFFFF)
+			c.drawText((win.x + win.width) - 1, win.y, "X", 0xFF0000)
 		end
-		sys.checkDirty(v)
 	end
 	return sys
 end

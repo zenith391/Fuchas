@@ -2,6 +2,7 @@
 local wins = require("Concert/wins")
 local event = require("event")
 local draw = require("OCX/OCDraw")
+local ui = require("OCX/OCUI")
 
 local windows = wins.windowingSystem()
 
@@ -10,34 +11,63 @@ local canvas = draw.canvas(ctx)
 local test = wins.newWindow()
 local taskBar = wins.newWindow()
 
-windows.setCanvas(canvas)
-windows.setUndecorated(taskBar, true)
-windows.setPosition(taskBar, 0, 50)
-windows.setSize(taskBar, 160, 1)
+do
+	taskBar.undecorated = true
+	taskBar.y = 49
+	taskBar.x = 0
+	taskBar.width = 160
+	taskBar.height = 1
+	taskBar:show()
+	
+	do
+		local comp = ui.component()
+		comp.render = function(self)
+			if not self.context then -- init context if not yet
+				self:open()
+			end
+			self.canvas.fillRect(0, 0, self.width, self.height, self.background)
+			
+			draw.drawContext(self.context) -- finally draw
+		end
+		taskBar.container = comp
+	end
+end
 
-canvas.fillRect(0, 0, 160, 50, 0xAAAAAA)
+do
+	test.title = "Test Window"
+	test:show()
+end
 
-function w(name, addr, x, y, button, player)
-	local wx, wy = windows.getPosition(test)
-	local ww, wh = windows.getSize(test)
-	windows.setTitle(test, "Test Window")
-	canvas.fillRect(wx, wy, ww, wh, 0xAAAAAA)
-	windows.setPosition(test, x-1, y-1)
-	windows.renderWindow(test, canvas)
-	windows.renderWindow(taskBar, canvas)
-	canvas.drawText(1, 10, "ram: " .. math.floor((computer.totalMemory() - computer.freeMemory()) / computer.totalMemory() * 100) .. "%, free: " .. (computer.freeMemory() / 1024) .. "K", 0xFFFFFF, 0)
+local function drawBackDesktop(dontDraw)
+	canvas.fillRect(0, 0, 160, 50, 0xAAAAAA)
+	if not dontDraw then
+		draw.drawContext(ctx)
+	end
+end
+
+local function screenEvent(name, addr, x, y, button, player)
+	if name == "touch" then
+		
+	end
+	if name == "drag" then
+		
+	end
+	local wx, wy = test.x, test.y
+	local ww, wh = test.width, test.height
+	drawBackDesktop()
+	test.x = x-1
+	test.y = y-1
+	test.dirty = true
 	draw.drawContext(ctx)
+	wins.drawDesktop()
 end
 
-function run()
-	coroutine.yield()
-end
+drawBackDesktop()
+wins.drawDesktop()
 
-w("touch", "", 10, 20, 1, nil)
 while true do
 	local name, addr, x, y, button, player = event.pull()
 	if name == "touch" or name == "drag" then
-		w(name, addr, x, y, button, player)
+		screenEvent(name, addr, x, y, button, player)
 	end
-	run()
 end

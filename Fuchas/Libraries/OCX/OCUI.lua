@@ -1,5 +1,7 @@
+-- Shared GUI components for any interfaces (Concert and Androoid)
+
 local draw = require("OCX/OCDraw")
-local width, height = gpu.getResolution()
+local width, height = component.gpu.getResolution()
 local lib = {}
 
 function lib.getWidth()
@@ -20,10 +22,49 @@ function lib.component()
 	comp.height = 0
 	comp.background = 0x000000
 	comp.foreground = 0xFFFFFF
+	comp.listeners = {}
 	comp.dirty = true
-	comp.dispose = function()
-		if comp.context then
-			draw.closeContext(comp.context)
+	comp.open = function(self)
+		self.context = draw.newContext(self.x, self.y, self.width, self.height)
+		self.canvas = draw.canvas(self.context)
+	end
+	comp.dispose = function(self)
+		if self.context then
+			draw.closeContext(self.context)
+		end
+	end
+	return comp
+end
+
+function lib.container()
+	local comp = lib.component()
+	comp.childrens = {}
+	
+	comp.add = function(self, component)
+		table.insert(self.childrens, component)
+	end
+	
+	comp.render = function(self)
+		-- container doesn't need a draw context
+		if not self.context then -- init context if not yet
+			self:open()
+		end
+		self.canvas.fillRect(0, 0, self.width, self.height, self.background) -- draw text
+		draw.drawContext(self.context) -- finally draw
+		for _, c in pairs(self.childrens) do
+			c:render()
+		end
+	end
+	
+	comp.listeners["*"] = function(...)
+		local id = select(1, ...)
+		for _, c in pairs(comp.childrens) do
+			if c.listeners["*"] then
+				c.listeners["*"](...)
+			end
+			if c.listeners[id] then
+				c.listeners[id](...)
+			end
 		end
 	end
 	return comp
@@ -31,12 +72,13 @@ end
 
 function lib.label(text)
 	local comp = lib.component()
-	comp.text = text
-	comp.render = function()
-		if not comp.context then
-			comp.context = draw.newContext()
+	comp.text = text or "Label"
+	comp.render = function(self)
+		if not self.context then -- init context if not yet
+			self:open()
 		end
-		draw.
+		self.canvas.drawText(0, 0, self.text, self.foreground, self.background) -- draw text
+		draw.drawContext(self.context) -- finally draw
 	end
 	return comp
 end
@@ -45,19 +87,11 @@ function lib.progressBar(maxProgress)
 	local pb = lib.component()
 	pb.progress = 0
 	pb.foreground = 0x00FF00
-	pb.render = function()
-		gpu.setBackground(pb.background)
-		gpu.setForeground(0xFFFFFF)
-		gpu.fill(pb.x + 1, pb.y + 1, pb.width - 1, pb.height - 1, " ")
-		
-		if pb.dirty == true then
-			gpu.fill(pb.x, pb.y, pb.width, pb.height, " ")
-			pb.renderBorder()
-			pb.dirty = false
+	pb.render = function(self)
+		if not self.context then
+			self:open()
 		end
 		
-		gpu.setForeground(pb.foreground)
-		gpu.fill(pb.x + 1, pb.y + 1, (pb.progress / maxProgress) * pb.width - 1, pb.height - 1, "█")
 	end
 	return pb
 end

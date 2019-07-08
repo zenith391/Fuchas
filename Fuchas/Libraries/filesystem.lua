@@ -251,9 +251,9 @@ function filesystem.open(path, mode)
 				self.fs.close(self.handle)
 				self.handle = nil
 				if self.proc ~= nil then
-					for k, v in pairs(self.proc.streams) do
+					for k, v in pairs(self.proc.closeables) do
 						if v == self then
-							table.remove(self.proc.streams, k)
+							table.remove(self.proc.closeables, k)
 						end
 					end
 				end
@@ -264,7 +264,7 @@ function filesystem.open(path, mode)
 	stream.seek = create_handle_method("seek")
 	stream.write = create_handle_method("write")
 	if stream.proc ~= nil then
-		table.insert(stream.proc.streams, stream)
+		table.insert(stream.proc.closeables, stream)
 	end
 	return stream
 end

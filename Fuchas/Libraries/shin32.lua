@@ -146,7 +146,7 @@ function dll.newProcess(name, func)
 		func = func,
 		pid = pid,
 		status = "created",
-		streams = {}, -- used for file streams
+		closeables = {}, -- used for file streams
 		detach = function(self)
 			self.parent = nil
 		end,
@@ -318,7 +318,7 @@ function dll.kill(proc, bypass)
 	if require("security").isRegistered(proc.pid) then
 		require("security").revoke(proc.pid)
 	end
-	for k, v in pairs(proc.streams) do
+	for k, v in pairs(proc.closeables) do
 		v:close()
 	end
 	processes[proc.pid] = nil

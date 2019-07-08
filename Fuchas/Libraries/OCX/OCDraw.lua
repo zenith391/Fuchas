@@ -1,4 +1,5 @@
 local gpu = component.getPrimary("gpu")
+local rw, rh = gpu.getResolution()
 
 local lib = {}
 local dc = {}
@@ -22,25 +23,25 @@ function lib.drawContext(ctxn)
 	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
-		local x = v.x
-		local y = v.y
+		local x = v.x+1
+		local y = v.y+1
 		local width = v.width
 		local height = v.height
 		local color = v.color
-		if t == "fillRect" then
+		if t == "fillRect" and x < rw+1 and y < rh+1 then
 			gpu.setBackground(color)
-			gpu.fill(x+1, y+1, width, height, " ")
+			gpu.fill(x, y, width, height, " ")
 		end
-		if t == "drawText" then
+		if t == "drawText" and x < rw and y < rh then
 			local back = v.color2
-			if not back then _, _, back = gpu.get(x+1, y+1) end
+			if not back then _, _, back = gpu.get(x, y) end
 			gpu.setForeground(color)
 			gpu.setBackground(back)
-			gpu.set(x+1, y+1, v.text)
+			gpu.set(x, y, v.text)
 		end
 		if t == "copy" then
 			local x2, y2 = i.x2+1, i.y2+1
-			gpu.copy(x+1, y+1, width, height, x2 - x, y2 - y)
+			gpu.copy(x, y, width, height, x2 - x, y2 - y)
 		end
 	end
 	ctx.drawBuffer = {}
@@ -61,6 +62,12 @@ function lib.setContextSize(ctx, width, height)
 	local c = dc[ctx]
 	c.width = width
 	c.height = height
+end
+
+function lib.moveContext(ctx, x, y)
+	local c = dc[ctx]
+	c.x = x
+	c.y = y
 end
 
 function lib.canvas(ctxn)
