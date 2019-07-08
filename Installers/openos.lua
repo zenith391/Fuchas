@@ -183,9 +183,12 @@ end
 local function install()
 	local cpio = download(repoURL .. "release.cpio")
 	local tmpCpioPath = os.tmpname()
-	print(tmpCpioPath)
 	local tmpCpio = io.open(tmpCpioPath, "w")
-	tmpCpio:write(cpio)
+	tmpCpio:setvbuf("full", 512)
+	local ok, err = tmpCpio:write(cpio)
+	if not ok then
+		error("could not download CPIO: " .. err)
+	end
 	tmpCpio:close()
 	tmpCpio = io.open(tmpCpioPath, "rb")
 	ext(tmpCpio)
@@ -205,7 +208,7 @@ local doErase = false
 local function process()
 	if stage == 1 then
 		stage = 2
-		doErase = selected == 1
+		doErase = (selected == 1)
 		selected = 1
 		drawStage()
 		os.sleep(5) -- let the user read
