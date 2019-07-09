@@ -82,7 +82,7 @@ while run do
 				print(err)
 			end
 
-			local proc = shin32.newProcess("shell child program", function()
+			local proc = shin32.newProcess("cli-" .. args[1], function()
 				if f ~= nil then
 					xpcall(f, function(err)
 						print(err)
