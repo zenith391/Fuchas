@@ -1,44 +1,74 @@
 package.loaded["xml"] = nil
 local xml = require("xml")
-print("liblon test:")
-package.loaded["liblon"] = nil
-local lon = require("liblon")
-local tab = {
-	username = "Zen1th",
-	protection = "sha256",
-	pwhash = "yozenith",
-	usernames = {
-		"admin", "zen1th", "shared", "guest"
-	}
-}
-print("table:")
-print(tostring(lon.sertable(tab)))
+local shell = require("shell")
+local gpu = component.gpu
+local width, height = gpu.getResolution()
+local args, options = shell.parse(...)
 
-local parsed = xml.parse([[
+--local stream = io.open(shell.resolve(args[1]))
+local text = [[
 <ohml lang="fr" version=1.1>
 	<text x=4 y=2>
-		UPS History
+		Please note that Fuchas
 	</text>
-	<text x=8 y=3>
-		Will come soon!
+	<text x=4 y=3>
+		is made by zenith391.<br></br>
+		With the help of AdorableCatgirl for some parts (uncpio)
 	</text>
 </ohml>
-]])
+]]
 
-local function exploreTab(tab, level)
-	for k, v in pairs(tab) do
-		write(string.rep("\t", level))
-		if type(v) == "table" then
-			print(k .. ":")
-			if k == "parent" then
-				print(string.rep("\t", level) .. "upper-level")
-			else
-				exploreTab(v, level + 1)
-			end
-		else
-			print(k .. " = " .. tostring(v))
-		end
-	end
+if not text then
+    text = stream:read("a")
+end
+                      
+local parsed = xml.parse(text)
+
+local cy = 1
+local cx = 1
+local objects = {}
+
+local function resolve(tag)
+    for _, v in pairs(tag.childrens) do
+        if v.attr.x then
+            cx = v.attr.x
+        end
+        if v.attr.y then
+            cy = v.attr.y
+        end
+        if v.name == "#text" then
+            if cx + v.content:len() > width then
+                cx = 1
+                cy = cy + 1
+            end
+            table.insert(objects, {
+                type = "text",
+                x = cx,
+                y = cy,
+                text = v.content
+            })
+            cx = cx + v.content:len()
+        elseif v.name == "br" then
+            cx = 1
+            cy = cy + 1
+        else
+            resolve(v)
+        end
+    end
 end
 
---exploreTab(parsed, 0)
+local function render()
+    gpu.setBackground(0x000000)
+    gpu.setForeground(0xFFFFFF)
+    gpu.fill(1, 1, width, height, " ")
+    for _, obj in pairs(objects) do
+        if obj.type == "text" then
+            gpu.set(obj.x, obj.y, obj.text)
+        end
+    end
+end
+
+resolve(parsed)
+render()
+
+
