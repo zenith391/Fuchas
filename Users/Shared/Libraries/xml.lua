@@ -1,32 +1,43 @@
 local xml = {}
 
+--- Tags are tables as follow:
+---   name: Name
+---   attr: Attributes
+---   parent: Parent
+---   childrens: Childrens
+--- What this function return is a root tag (just a tag with no name, no attribute and no parent, that have all tags (not nested ones) as childrens)
 function xml.parse(str)
 	local chars = string.toCharArray(str)
-	local rootTag = {
+    local line = 1
+    local rootTag = {
 		name = nil,
 		attr = nil,
 		parent = nil,
 		childrens = {}
 	}
+    local ok, err = pcall(function()
 	local currentTag = rootTag
 	
 	local i = 1
-	local _st = false
-	local _sta = false
-	local _te = false
-	local _tn = ""
-	local _tap = ""
-	local _tav = ""
-	local _tt = ""
-	local _itap = false
-	local _ta = {}
+	local _st = false -- is parsing tag name? (<ohml>)
+	local _sta = false -- is parsing attributes?
+	local _te = false -- is tag a ending tag? (</ohml>)
+	local _tn = "" -- tag name
+	local _tap = "" -- tag attribute propety (name)
+	local _tav = "" -- tag attribute value
+	local _tt = "" -- currently parsing text
+	local _itap = false -- is parsing attribute property?
+	local _ta = {} -- currently parsing attributes
 	while i < #chars do
 		local ch = chars[i]
-		if ch == '/' then
+		if ch == '/' and not _sta then
 			i = i + 1
 			ch = chars[i] -- skip "/"
 			_te = true
 		end
+        if ch == '\n' then
+            line = line + 1
+        end
 		if _sta then
 			if _itap then
 				if ch == '=' then
@@ -98,7 +109,10 @@ function xml.parse(str)
 		end
 		i = i + 1
 	end
-	
+          end)
+    if not ok then
+        error("could not parse line " .. tostring(line) .. ": " .. tostring(err))
+    end
 	return rootTag
 end
 

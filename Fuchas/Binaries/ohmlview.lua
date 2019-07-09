@@ -1,27 +1,21 @@
+-- OHML v1.0.1 compliant viewer/browser
+-- Partially compatible with OHML v1.0.2
+
 package.loaded["xml"] = nil
 local xml = require("xml")
 local shell = require("shell")
+local event = require("event")
 local gpu = component.gpu
 local width, height = gpu.getResolution()
 local args, options = shell.parse(...)
 
---local stream = io.open(shell.resolve(args[1]))
-local text = [[
-<ohml lang="fr" version=1.1>
-	<text x=4 y=2>
-		Please note that Fuchas
-	</text>
-	<text x=4 y=3>
-		is made by zenith391.<br></br>
-		With the help of AdorableCatgirl for some parts (uncpio)
-	</text>
-</ohml>
-]]
+args[1] = "A:/Users/Shared/www/index.ohml"
 
-if not text then
-    text = stream:read("a")
-end
-                      
+local currentPath = args[1]
+
+local stream = io.open(shell.resolve(args[1]))
+local text = stream:read("a")
+
 local parsed = xml.parse(text)
 
 local cy = 1
@@ -41,13 +35,27 @@ local function resolve(tag)
                 cx = 1
                 cy = cy + 1
             end
-            table.insert(objects, {
-                type = "text",
-                x = cx,
-                y = cy,
-                text = v.content
-            })
+            if v.parent.name == "a" then
+                table.insert(objects, {
+                    type = "hyperlink",
+                    x = cx,
+                    y = cy,
+                    text = v.content,
+                    hyperlink = v.attr.href
+                })
+            else
+                table.insert(objects, {
+                    type = "text",
+                    x = cx,
+                    y = cy,
+                    text = v.content
+                })
+            end
             cx = cx + v.content:len()
+             if v.parent.name == "text" or v.parent.name == "h1" or v.parent.name == "h2" or v.parent.name == "h3" or v.parent.name == "h4" or v.parent.name == "h5" then
+                cx = 1
+                cy = cy + 1
+            end
         elseif v.name == "br" then
             cx = 1
             cy = cy + 1
@@ -60,9 +68,26 @@ end
 local function render()
     gpu.setBackground(0x000000)
     gpu.setForeground(0xFFFFFF)
+    local fore = 0xFFFFFF
     gpu.fill(1, 1, width, height, " ")
+    gpu.set(1, height, "Ctrl+C: Exit")
     for _, obj in pairs(objects) do
         if obj.type == "text" then
+            if fore ~= 0xFFFFFF then
+                gpu.setForeground(0xFFFFFF)
+            end
+            gpu.set(obj.x, obj.y, obj.text)
+        end
+        if obj.type == "hyperlink" then
+            if obj.trigerred then
+                if fore ~= 0x2020AA then
+                    gpu.setForeground(0x2020AA)
+                end
+            else
+                if fore ~= 0x2020FF then
+                    gpu.setForeground(0x2020FF)
+                end
+            end
             gpu.set(obj.x, obj.y, obj.text)
         end
     end
@@ -72,3 +97,25 @@ resolve(parsed)
 render()
 
 
+while true do
+    local id, a, b, c = event.pull()
+    if id == "interrupt" then
+        break
+    end
+    if id == "touch" then
+        local x = b
+        local y = c
+        for _, obj in pairs(objects) do
+            if obj.type == "hyperlink" then
+                if x >= obj.x and x < obj.x + obj.text:len() and y == obj.y then
+                    -- TODO: Actually trigger hyperlink
+                    obj.trigerred = true
+                    render()
+                    gpu.set(1, 1, tostring(obj.hyperlink))
+                end
+            end
+        end
+    end
+end
+
+gpu.fill(1, 1, width, height, " ")
