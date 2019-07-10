@@ -56,6 +56,31 @@ local function save()
 	s:close()
 end
 
+local function searchSource(source)
+	if not fs.exists("A:/Users/Shared/fpm-cache") then
+		fs.makeDirectory("A:/Users/Shared/fpm-cache")
+	end
+	local txt
+	if not fs.exists("A:/Users/Shared/fpm-cache/" .. source .. ".lon") then
+		if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
+			fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
+		end
+		txt = driver.internet.readFully(githubGet .. source .. "/master/programs.lon")
+		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
+		stream:write(txt)
+		stream:close()
+	else
+		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
+		txt = stream:read("a")
+		stream:close()
+	end
+	local ok, out = pcall(liblon.loadlon, txt)
+	if not ok then
+		print("    " .. out)
+	end
+	return out
+end
+
 local function downloadPackage(src, name, pkg)
 	for k, v in pairs(pkg.files) do
 		local dest = fs.canonical(v) .. "/" .. k
@@ -153,13 +178,7 @@ if args[1] == "update" then
 	local packageList = {}
 	for k, v in pairs(repoList) do
 		print("  Source: " .. v)
-		local txt = driver.internet.readFully(githubGet .. v .. "/master/programs.lon")
-		local ok, err = pcall(liblon.loadlon, txt)
-		if ok then
-			packageList[v] = err
-		else
-			print("    " .. err)
-		end
+		packageList[v] = searchSource(v)
 	end
 	local isnt = false
 	for src, v in pairs(packageList) do
@@ -209,13 +228,7 @@ if args[1] == "install" then
 	local packageList = {}
 	for k, v in pairs(repoList) do
 		print("  Source: " .. v)
-		local txt = driver.internet.readFully(githubGet .. v .. "/master/programs.lon")
-		local ok, err = pcall(liblon.loadlon, txt)
-		if ok then
-			packageList[v] = err
-		else
-			print("    " .. err)
-		end
+		packageList[v] = searchSource(v)
 	end
 	local isnt = false
 	for src, v in pairs(packageList) do

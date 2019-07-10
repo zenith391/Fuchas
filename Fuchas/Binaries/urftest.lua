@@ -3,6 +3,9 @@ print("Launching..")
 print("Importing liburf..")
 local liburf = require("liburf")
 print("Opening A:/Temporary/test.urf as write")
+if not require("filesystem").exists("A:/Temporary") then
+	require("filesystem").makeDirectory("A:/Temporary")
+end
 local s = io.open("A:/Temporary/test.urf", "w")
 print("Creating new archive..")
 local arc = liburf.newArchive()

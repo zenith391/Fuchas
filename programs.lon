@@ -7,7 +7,7 @@
 		name = "Fuchas Package Manager",
 		description = "Download what you're using to download this. Downloadception",
 		authors = "zenith391",
-		version = "1.0.1",
-		revision = 2
+		version = "1.0.2",
+		revision = 3
 	}
 }

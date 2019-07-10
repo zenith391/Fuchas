@@ -2,7 +2,7 @@ local filesystem = {}
 local drives = {}
 
 local function readAll(node, path)
-	local handle = node.open(path)
+	local handle = node.open(path, "r")
 	local buf = ""
 	local data = ""
 	while data ~= nil do
@@ -10,10 +10,11 @@ local function readAll(node, path)
 		data = node.read(handle, math.huge)
 	end
 	node.close(handle)
+	return buf
 end
 
 local function writeAllTo(node, path, content)
-	local handle = node.open(path)
+	local handle = node.open(path, "w")
 	node.write(handle, content)
 	node.close(handle)
 end
@@ -209,6 +210,13 @@ end
 
 function filesystem.unmanagedFilesystems()
 	return {}
+end
+
+function filesystem.copy(src, dest)
+	local oldNode, oldRest = findNode(src)
+	local newNode, newRest = findNode(dest)
+	local dat = readAll(oldNode, oldRest)
+	writeAllTo(newNode, newRest, dat)
 end
 
 function filesystem.open(path, mode)

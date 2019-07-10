@@ -1,15 +1,9 @@
 -- Variables
-local component     = require("component")
-local bit32         = require("bit32")
-local internet      = component.getPrimary("internet")
-local gpu           = require("term").gpu()
+local internet      = component.internet
+local gpu           = component.gpu
 local event         = require("event")
 local filesystem    = require("filesystem")
 local width, height = gpu.getResolution()
-local stage         = 1
-local selected      = 2
-local maxSelect     = 2
-local fileList      = nil
 local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local downloading   = ""
@@ -41,7 +35,7 @@ local function ext(stream)
 		if (dir) then
 			filesystem.makeDirectory("/" .. dir)
 		end
-		local hand = io.open("/" .. dent.name, "w")
+		local hand = io.open("A:/" .. dent.name, "w")
 		hand:write(stream:read(dent.filesize))
 		hand:close()
 	end
@@ -95,13 +89,16 @@ local function install()
 	if not filesystem.exists("A:/Temporary") then
 		filesystem.makeDirectory("A:/Temporary")
 	end
+	print("Downloading release..")
 	local cpio = download(repoURL .. "release.cpio")
 	local tmpCpio = io.open("A:/Temporary/fuchas.cpio", "w")
 	tmpCpio:write(cpio)
 	tmpCpio:close()
 	tmpCpio = io.open("A:/Temporary/fuchas.cpio", "rb")
+	print("Extracting Fuchas..")
 	ext(tmpCpio)
 	tmpCpio:close()
+	filesystem.remove("A:/Temporary/fuchas.cpio")
 end
 
 print("Upgrading Fuchas (no new version check, always forced)")

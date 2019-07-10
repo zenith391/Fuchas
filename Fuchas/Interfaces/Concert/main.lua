@@ -4,8 +4,6 @@ local event = require("event")
 local draw = require("OCX/OCDraw")
 local ui = require("OCX/OCUI")
 
-local windows = wins.windowingSystem()
-
 local ctx = draw.newContext(0, 0, 160, 50)
 local canvas = draw.canvas(ctx)
 local test = wins.newWindow()
@@ -50,7 +48,9 @@ local function screenEvent(name, addr, x, y, button, player)
 		
 	end
 	if name == "drag" then
-		
+		for _, v in pairs(wins.desktop()) do
+			
+		end
 	end
 	local wx, wy = test.x, test.y
 	local ww, wh = test.width, test.height

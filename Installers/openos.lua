@@ -195,7 +195,7 @@ local function install()
 	tmpCpio:close()
 	tmpCpio = io.open(tmpCpioPath, "rb")
 	ext(tmpCpio)
-	tmpCpio.close()
+	tmpCpio:close()
 	filesystem.remove("/fuchas.cpio")
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then

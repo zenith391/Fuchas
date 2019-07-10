@@ -87,22 +87,12 @@ function lib.drawDesktop()
 	end
 end
 
+--- deprecated
 function lib.windowingSystem()
 	local sys = {}
 	sys.moveWindow = function(win, ox, oy, canvas, drop)
 		if drop then
 			sys.renderWindow(win, canvas)
-		end
-	end
-
-	sys.renderWindow = function(win)
-		--error(debug.traceback())
-		c.fillRect(win.x, win.y, win.width, 1, 0xCCCCCC)
-		if win.undecorated == false then
-			c.fillRect(win.x, win.y + 1, win.width, win.height - 1, 0x2D2D2D)
-			c.drawText(win.x + 1, win.y, win.title, 0xFFFFFF)
-			c.drawText((win.x + win.width) - 5, win.y, "⣤ ⠶", 0xFFFFFF)
-			c.drawText((win.x + win.width) - 1, win.y, "X", 0xFF0000)
 		end
 	end
 	return sys

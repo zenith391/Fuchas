@@ -90,7 +90,7 @@ while run do
 					end, programArgs)
 				end
 			end)
-			shin32.waitFor(proc)
+			proc:join()
 			component.gpu.setForeground(0xFFFFFF)
 			component.gpu.setBackground(0x000000)
 		end, function(err)
