@@ -11,7 +11,9 @@ local gpu = component.gpu
 local width, height = gpu.getResolution()
 local args, options = shell.parse(...)
 
-args[1] = "A:/Users/Shared/www/index.ohml"
+if not args[1] then
+	args[1] = "A:/Users/Shared/www/index.ohml"
+end
 
 local currentPath = args[1]
 
@@ -21,7 +23,7 @@ stream:close()
 
 local parsed = xml.parse(text)
 
-local cy = 1
+local cy = 3
 local cx = 1
 local objects = {}
 
@@ -73,6 +75,10 @@ local function render()
 	gpu.setForeground(0xFFFFFF)
 	local fore = 0xFFFFFF
 	gpu.fill(1, 1, width, height, " ")
+	gpu.set(width/2-4, 1, "MineScape")
+	--gpu.set(2, 2, "|")
+	gpu.set(math.floor(width/2-(currentPath:len()/2)), 2, currentPath)
+	--gpu.set(width-1, 2, "|")
 	gpu.set(1, height, "Ctrl+C: Exit")
 	for _, obj in pairs(objects) do
 		if obj.type == "text" then
@@ -103,14 +109,14 @@ local function go(link)
 	if link:sub(1, 1) == "/" then
 		currentPath = "A:" .. link
 	else
-		currentPath = filesystem.path(currentPath) .. "/" .. link
+		currentPath = filesystem.path(currentPath) .. link
 	end
 	stream = io.open(shell.resolve(currentPath))
 	text = stream:read("a")
 	stream:close()
 	parsed = xml.parse(text)
 	cx = 1
-	cy = 1
+	cy = 3
 	objects = {}
 	resolve(parsed)
 	render()
