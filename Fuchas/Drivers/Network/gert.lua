@@ -3,7 +3,7 @@
 local protocol = {}
 local GERTi = {}
 local event = require("event")
-local serialize = require("serialization")
+local liblon = require("liblon")
 local modem = nil
 local tunnel = nil
 
@@ -215,7 +215,7 @@ end
 event.listen("modem_message", receivePacket)
 
 -- forward neighbor table up the line
-local serialTable = serialize.serialize(nodes)
+local serialTable = liblon.sertable(nodes)
 if serialTable ~= "{}" then
 	local mncUnavailable = true
 	local addr = (modem or tunnel).address

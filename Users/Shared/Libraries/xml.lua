@@ -30,14 +30,14 @@ function xml.parse(str)
 	local _ta = {} -- currently parsing attributes
 	while i < #chars do
 		local ch = chars[i]
-		if ch == '/' and not _sta then
+		if ch == '/' and not _sta and _tt == "" then
 			i = i + 1
 			ch = chars[i] -- skip "/"
 			_te = true
 		end
-        if ch == '\n' then
-            line = line + 1
-        end
+		if ch == '\n' then
+			line = line + 1
+		end
 		if _sta then
 			if _itap then
 				if ch == '=' then
@@ -57,6 +57,7 @@ function xml.parse(str)
 				_sta = false
 				if _te then
 					currentTag = currentTag.parent
+					_te = false
 				else
 					if _tap ~= "" then
 						_ta[_tap] = load("return " .. _tav)() -- value conversion, insecure

@@ -109,3 +109,36 @@ end
 -- end).catch(function(ex)
 --   print("Error: " .. ex.trace)
 -- end)
+
+if _VERSION == "Lua 5.3" then
+	bit32 = {}
+	-- TODO complete
+	function bit32.band(...)
+		local tab = table.pack(...)
+		local num = tab[1] or 0
+		for i=2,#tab do
+			--num = num & tab[i]
+		end
+		return num
+	end
+	function bit32.bor(...)
+		local tab = table.pack(...)
+		local num = tab[1] or 0
+		for i=2,#tab do
+			--num = num | tab[i]
+		end
+		return num
+	end
+	function bit32.bxor(...)
+		local tab = table.pack(...)
+		local num = tab[1] or 0
+		for i=2,#tab do
+			--num = num | tab[i]
+		end
+		return num
+	end
+	function bit32.bnot(x)
+		return x
+	end
+	math.atan2 = math.atan
+end

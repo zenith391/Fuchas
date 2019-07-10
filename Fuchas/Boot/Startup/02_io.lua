@@ -62,9 +62,6 @@ require("shell").setCursor(1, gy())
 _G.gy = nil
 
 -- Redefine NT's stdio functions
-function write(msg)
-	io.stdout:write(msg)
-end
 
 function print(msg)
 	write(tostring(msg) .. "\n")
@@ -73,6 +70,7 @@ end
 function io.write(msg)
 	io.stdout:write(tostring(msg))
 end
+write = io.write
 
 function io.open(filename, mode)
 	if not fs.isDirectory(filename) then

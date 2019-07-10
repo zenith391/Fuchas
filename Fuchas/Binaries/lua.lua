@@ -1,17 +1,18 @@
 local shell = require("shell")
 
 while true do
-	write(" > ")
-	local ck, err = load(shell.read(), "usercode")
-	write("\n ")
+	io.write(" > ")
+	local ck, err = load("return " .. shell.read(), "usercode")
+	io.write("\n ")
 	if ck == nil then
 		print(err)
 	else
 		try(function()
-        ck()
-    end)
-    .catch(function(err)
-        print(err)
-    end)
+			local tab = table.pack(ck())
+			print(table.unpack(tab))
+		end)
+		.catch(function(err)
+			print(err)
+		end)
 	end
 end
