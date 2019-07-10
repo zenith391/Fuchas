@@ -2,6 +2,9 @@ computer.supportsOEFI = function()
 	return false
 end
 
+local cp = component or package.loaded.component
+local pc = computer or package.loaded.computer
+
 local loadfile = load([[return function(file)
 	local pc,cp = computer or package.loaded.computer, component or package.loaded.component
 	local addr, invoke = pc.getBootAddress(), cp.invoke
