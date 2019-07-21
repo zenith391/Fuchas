@@ -117,7 +117,7 @@ if _VERSION == "Lua 5.3" then
 		local tab = table.pack(...)
 		local num = tab[1] or 0
 		for i=2,#tab do
-			--num = num & tab[i]
+			num = num & tab[i]
 		end
 		return num
 	end
@@ -125,7 +125,7 @@ if _VERSION == "Lua 5.3" then
 		local tab = table.pack(...)
 		local num = tab[1] or 0
 		for i=2,#tab do
-			--num = num | tab[i]
+			num = num | tab[i]
 		end
 		return num
 	end
@@ -133,12 +133,18 @@ if _VERSION == "Lua 5.3" then
 		local tab = table.pack(...)
 		local num = tab[1] or 0
 		for i=2,#tab do
-			--num = num | tab[i]
+			num = num ~ tab[i]
 		end
 		return num
 	end
 	function bit32.bnot(x)
-		return x
+		return ~x
+	end
+	function bit32.rshift(num, disp)
+		return num >> disp
+	end
+	function bit32.lshift(num, disp)
+		return num << disp
 	end
 	math.atan2 = math.atan
 end
