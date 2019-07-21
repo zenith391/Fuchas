@@ -146,5 +146,8 @@ if _VERSION == "Lua 5.3" then
 	function bit32.lshift(num, disp)
 		return num << disp
 	end
+	function bit32.btest(...)
+		return but32.band(...) ~= 0
+	end
 	math.atan2 = math.atan
 end
