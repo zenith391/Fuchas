@@ -28,9 +28,9 @@ local run = true
 sh.clear()
 -- splash
 print(string.rep("=-", 15))
-print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " - Fushell")
-print("Awesome Shell for Awesome OS")
+print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " - Fuchas")
 print("Welcome to Fuchas!")
+print("GitHub: https://github.com/zenith391/Fuchas")
 print(string.rep("-=", 15))
 
 shin32.setSystemVar("PWD", "")

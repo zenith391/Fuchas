@@ -111,6 +111,7 @@ end
 -- end)
 
 if _VERSION == "Lua 5.3" then
+    load([[
 	bit32 = {}
 	-- TODO complete
 	function bit32.band(...)
@@ -141,13 +142,14 @@ if _VERSION == "Lua 5.3" then
 		return ~x
 	end
 	function bit32.rshift(num, disp)
-		return num >> disp
+		--return num >> disp
 	end
 	function bit32.lshift(num, disp)
-		return num << disp
+		--return num << disp
 	end
 	function bit32.btest(...)
 		return bit32.band(...) ~= 0
 	end
-	math.atan2 = math.atan
+	--math.atan2 = math.atan
+          ]])()
 end
