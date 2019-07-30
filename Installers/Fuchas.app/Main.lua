@@ -104,8 +104,9 @@ installButton.onTouch = function()
   layout:addChild(progressBar)
   layout:addChild(progressText)
   install(progressBar)
+  filesystem.rename("/OS.lua", "/_OS.lua")
   progressBar:remove()
-  progressText.text = "Before restarting please install a real BIOS (Zorya)"
+  progressText.text = "If you want to get back to MineOS. Type 'cp _OS.lua A:/OS.lua' in Fuchas"
 end
 
 layout:addChild(icon)
