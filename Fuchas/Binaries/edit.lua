@@ -16,11 +16,15 @@ end
 
 file = shell.resolve(file)
 
+if not file then
+	io.stderr:write(file .. " doesn't exists!")
+end
+
 if filesystem.isDirectory(file) then
 	io.stderr:write("path is directory\n")
 end
 
-local text = ""
+local lines = nil
 
 local function drawBottomBar()
 	gpu.setBackground(0xFFFFFF)
@@ -31,21 +35,25 @@ local function drawBottomBar()
 	gpu.setForeground(0xFFFFFF)
 end
 
-local function drawText(x, y, text)
-	shell.setCursor(x, y)
-	io.stdout:write(text)
+local function drawText()
+	local y = 1
+	for _, l in pairs(lines) do
+		shell.setCursor(1, y)
+		io.stdout:write(text)
+		y = y + 1
+	end
 end
 
 ---------------------------------------------
 
 do
 	local b = io.open(file)
-	_, text = b:read("a")
+	lines = b:lines()
 	b:close()
 end
 
 shell.clear()
-drawText(1, 1, text)
+drawText(1, 1)
 drawBottomBar()
 
 while true do

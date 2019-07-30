@@ -61,6 +61,10 @@ while run do
 		end
 	end
 	
+	if sh.getCommand(args[1]) ~= nil then
+		args[1] = sh.getCommand(args[1])
+	end
+	
 	local path = sh.resolve(args[1])
 	local exists = true
 	if not path then

@@ -1,6 +1,6 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.4.2",
+	VERSION = "0.4.3",
 	DEBUG = false
 }
 
@@ -153,26 +153,26 @@ _G.loadfile = function(path)
 	return load(buffer, "=" .. path, "bt", _G)
 end
 
-xpcall(function()
+local ok, err = xpcall(function()
 	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/Boot/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/Boot/Startup/" .. k)
 	end
-	os.sleep(1)
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
-		gpu.setResolution(40, 16) -- fit to all screens/gpus
-		if io["stderr"] then -- if it happens during runtime
-			require("shell").setCursor(1, 1)
+		if io then
+			pcall(function()
+				require("shell").setCursor(1, 1)
+			end) -- in case shell is the erroring library
 		end
 		gpu.setBackground(0x0000FF)
-		gpu.fill(1, 1, 40, 16, " ")
+		gpu.fill(1, 1, 160, 50, " ")
 		write([[A problem has been detected and Fuchas
-has been shutdown to prevent damage
+has shutdown to prevent damage
 to your computer.
  
-]] .. err .. [[
+]] .. err .. " \n \n " .. [[
 If this is the first time you've seen
 this BSOD screen, restart your
 computer.
@@ -183,6 +183,9 @@ Fuchas topic and speak about your
 computer problem as a reply.]])
 		local traceback = debug.traceback()
 		write(traceback)
-		os.sleep(1) -- let the user see the error
-		return err
+		local t0 = computer.uptime()
+		while computer.uptime() - t0 <= 5 do
+			computer.pullSignal(0.1)
+		end
+		computer.pullSignal()
 end)

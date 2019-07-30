@@ -110,15 +110,15 @@ function io.open(filename, mode)
 					while true do
 						local r = file.h:read(1)
 						if r == nil then
-							return false, nil
+							return s
 						elseif r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
-							return false, s
+							return s
 						end
 						s = s .. r
 					end
 					return s
 				end
-				return false, "invalid mode"
+				return nil, "invalid mode"
 			--end)
 		end
 		file.lines = function(self, f)
@@ -130,10 +130,13 @@ function io.open(filename, mode)
 				end
 			end
 			local i = 0
-			return function()
-				i = i + 1
+			setmetatable(tab, {
+				__call = function()
+					i = i + 1
 				if i <= n then return tab[i] end
-			end
+				end
+			})
+			return tab
 		end
 		return file
 	end

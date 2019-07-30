@@ -23,6 +23,10 @@ function protocol.listen(port)
 	return sock
 end
 
+function protocol.getAddress()
+	return component.list("modem")()
+end
+
 function protocol.open(addr, dport)
 	component.modem.open(dport)
 	return {

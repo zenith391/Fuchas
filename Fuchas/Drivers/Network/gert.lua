@@ -1,5 +1,6 @@
--- GERT v1.1 Release
+-- GERT v1.1.1 Release
 -- Made by GlobalEmpire
+-- Adapted by zenith391
 local protocol = {}
 local GERTi = {}
 local event = require("event")
@@ -115,7 +116,6 @@ handler.CloseConnection = function(sendingModem, port, ID, dest, origin)
 	end
 	if dest == iAdd or origin == iAdd then
 		connections[dest][origin][ID] = nil
-		computer.pushSignal("GERTConnectionClose", origin, dest, ID)
 	end
 end
 
@@ -340,20 +340,51 @@ function GERTi.getNeighbors()
 	return nodes
 end
 
-function GERTi.getAddress()
+function protocol.getAddress()
 	return iAdd
 end
 
-function protocol.open(addr, port)
-    GERTi.openSocket(addr, true, math.random() * 1000)
+function protocol.open(addr, outID)
+	local port, add
+	if outID == nil then
+		if connections[gAddress] and connections[gAddress][iAdd] then
+			outID = #connections[gAddress][iAdd] + 1
+		else
+			outID = 1
+		end
+	end
+	if nodes[gAddress] then
+		port = nodes[gAddress]["port"]
+		add = nodes[gAddress]["add"]
+		storeConnection(iAdd, outID, gAddress)
+		routeOpener(gAddress, iAdd, "A", nodes[gAddress]["add"], nodes[gAddress]["port"], nodes[gAddress]["port"], outID)
+	else
+		storeConnection(iAdd, outID, gAddress)
+		if routeOpener(gAddress, iAdd, "A", firstN["add"], firstN["port"], firstN["port"], outID) then
+			storeConnection(iAdd, outID, gAddress)
+		else
+			return nil
+		end
+	end
+	
+	local socket = {origination = iAdd,
+		destination = gAddress,
+		outPort = port or firstN["port"],
+		nextHop = add or firstN["add"],
+		ID = outID,
+		order = 1,
+		write = writeData,
+		read = readData,
+		close = closeSock}
+	return socket
 end
 
 function protocol.listen(port)
-    
+	
 end
 
 function protocol.isProtocolAddress(addr)
-    return false
+	return tonumber(addr) ~= nil
 end
 
 return "gert", protocol

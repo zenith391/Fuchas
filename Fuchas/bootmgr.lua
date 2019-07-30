@@ -26,7 +26,7 @@ if not fs.exists("A:/Users/Shared") then
 	fs.makeDirectory("A:/Users/Shared")
 end
 shin32.setenv("USER", "Guest")
---error("test")
+
 require("shell").setCursor(1, 1)
 shin32.newProcess("System Interface", function()
 	local f, err = xpcall(function()

@@ -1,4 +1,10 @@
 local lib = {}
+local aliases = {
+	["cp"] = "copy",
+	["del"] = "delete",
+	["rm"] = "delete",
+	["ls"] = "dir"
+}
 local fs = require("filesystem")
 
 local cursor = {
@@ -90,6 +96,28 @@ end
 
 function lib.write(obj)
 	write(tostring(obj))
+end
+
+function lib.getAliases(cmd)
+	if cmd then
+		local cmdAliases = {}
+		for k, v in pairs(aliases) do
+			if v == cmd then
+				table.insert(cmdAliases, k)
+			end
+		end
+		return cmdAliases
+	else
+		return aliases
+	end
+end
+
+function lib.getCommand(alias)
+	return aliases[alias]
+end
+
+function lib.addAlias(alias, cmd)
+	aliases[alias] = cmd
 end
 
 function lib.parseCL(cl)

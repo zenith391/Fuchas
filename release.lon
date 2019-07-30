@@ -1,0 +1,13 @@
+{
+	version = "0.4.3",
+	changelog = [[
+		- Removed 'hello' command
+		- Added BSOD (well that's better than computer just crashing without a message)
+		- file:lines() now returns a table usable as iterator instdead of an iterator
+		- Started integrating GERTi network interface
+		- Added loopback network interface, usable with address "localhost"
+		- Every protocol now have a getAddress() method, it can returns nil if it can't get computer's address (e.g. IP)
+		- Aliases, you can use cp instdead of copy or del instdead of delete
+		- Improved edit program. Yet not finalized
+	]]
+}
