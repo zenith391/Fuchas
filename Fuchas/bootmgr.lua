@@ -7,11 +7,6 @@ dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 
 local drv = require("driver")
 
--- Is 2nd installation step?
-if fs.exists("A:/installing") then
-	dofile("A:/Fuchas/Binaries/installer.lua") -- Run 2nd step installer
-	computer.shutdown(true)
-end
 -- Initialization
 -- Unmanaged drives
 for k, v in pairs(fs.unmanagedFilesystems()) do

@@ -93,7 +93,7 @@ function io.open(filename, mode)
 					f = "a"
 				end
 				
-				if f == "a" then
+				if f == "a" or f == "*a" then
 					local s = ""
 					while true do
 						local r = file.h:read(math.huge)
@@ -105,13 +105,18 @@ function io.open(filename, mode)
 					return s
 				end
 				
-				if f == "l" then
+				if f == "l" or f == "*l" then
 					local s = ""
 					while true do
 						local r = file.h:read(1)
 						if r == nil then
-							return s
-						elseif r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
+							if s == "" then
+								return nil
+							else
+								break
+							end
+						end
+						if r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
 							return s
 						end
 						s = s .. r
@@ -124,10 +129,11 @@ function io.open(filename, mode)
 		file.lines = function(self, f)
 			local tab = {}
 			while true do
-				local ok, result = self.read(self, "l")
-				if result == nil then
-					table.insert(tab, ok)
+				local line = self.read(self, "l")
+				if line == nil then
+					break
 				end
+				table.insert(tab, line)
 			end
 			local i = 0
 			setmetatable(tab, {

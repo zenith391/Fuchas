@@ -60,7 +60,7 @@ computer.pullSignal = function(...)
 		event_data = table.pack(handlers(...))
 		event.exechandlers(event_data)
 	else
-		event_data = coroutine.yield("pull event", ...)
+		event_data = coroutine.yield("pull event", ...) or {nil, n = 1}
 	end
 	if kbd.isCtrlPressed() then
 		if kbd.isPressed(46) then

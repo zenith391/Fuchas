@@ -232,6 +232,8 @@ function dll.scheduler()
 					if lastEvent[1] ~= nil then
 						p.result = lastEvent
 						p.status = "ready"
+					elseif computer.uptime() >= p.timeout then
+						p.status = "ready"
 					end
 				end
 			end
@@ -271,7 +273,11 @@ function dll.scheduler()
 					end
 					if type(ret) == "string" then
 						if ret == "pull event" then
-							p.arg1 = a1
+							if a1 then
+								p.timeout = computer.uptime() + a1
+							else
+								p.timeout = math.huge
+							end
 							p.status = "wait_event"
 						end
 					end
