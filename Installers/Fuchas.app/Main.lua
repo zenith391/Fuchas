@@ -106,7 +106,7 @@ installButton.onTouch = function()
   install(progressBar)
   filesystem.rename("/OS.lua", "/_OS.lua")
   progressBar:remove()
-  progressText.text = "If you want to get back to MineOS. Type 'cp _OS.lua A:/OS.lua' in Fuchas"
+  progressText.text = "'cp _OS.lua A:/OS.lua' to get back to MineOS."
 end
 
 layout:addChild(icon)

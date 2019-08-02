@@ -1,9 +1,9 @@
 -- Fuchas Boot Manager
-computer.supportsOEFI = function()
+(computer or package.loaded.computer).supportsOEFI = function()
 	return false
 end
 loadfile = load([[return function(file)
-	local pc,cp = computer, component
+	local pc,cp = computer or package.loaded.computer, component or package.loaded.component
 	local addr, invoke = pc.getBootAddress(), cp.invoke
 	local handle, reason = invoke(addr, "open", file)
 	assert(handle, reason)

@@ -103,6 +103,14 @@ function try(func)
 	}
 end
 
+function ifOr(bool, one, two)
+	if bool then
+		return one
+	else
+		return two
+	end
+end
+
 -- Try/Catch Example:
 -- try(function()
 --   print("Hello World")

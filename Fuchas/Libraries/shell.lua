@@ -3,7 +3,8 @@ local aliases = {
 	["cp"] = "copy",
 	["del"] = "delete",
 	["rm"] = "delete",
-	["ls"] = "dir"
+	["ls"] = "dir",
+	["ps"] = "pl"
 }
 local fs = require("filesystem")
 
