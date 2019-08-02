@@ -7,7 +7,7 @@ Here are all common data you will find:
 ```
 Signature: <DC3> <A> <A> <F> <ETX>
 Wave Type: SQUARE (0) | SINE (1) | TRIANGLE (2) | SAWTOOTH (3)
-Action: WAVE (0) | ADSR (1) | VOLUME (2) | WAVETYPE (3)
+Action: WAVE (0) | ADSR (1) | VOLUME (2) | WAVETYPE (3) | NO_OP (4)
 ```
 
 ### CAPABILITIES

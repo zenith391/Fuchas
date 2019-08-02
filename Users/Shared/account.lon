@@ -1,5 +1,5 @@
 {
 	username = "guest",
 	security = "none",
-	password = ""
+	level = 0
 }

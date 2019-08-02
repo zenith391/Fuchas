@@ -194,11 +194,9 @@ local function digestblock(msg, i, H)
 	H[8] = band(H[8] + h)
 end
  
-return {
-   hash = function(msg)
-	  msg = preproc(msg, #msg)
-	  local H = initH256({})
-	  for i = 1, #msg, 64 do digestblock(msg, i, H) end
-	  return str2hexa(num2s(H[1], 4) .. num2s(H[2], 4) .. num2s(H[3], 4) .. num2s(H[4], 4) .. num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
-   end
-}
+return function(msg)
+	msg = preproc(msg, #msg)
+	local H = initH256({})
+	for i = 1, #msg, 64 do digestblock(msg, i, H) end
+	return str2hexa(num2s(H[1], 4) .. num2s(H[2], 4) .. num2s(H[3], 4) .. num2s(H[4], 4) .. num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
+end
