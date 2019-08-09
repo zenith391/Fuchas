@@ -61,14 +61,14 @@ local function searchSource(source)
 		fs.makeDirectory("A:/Users/Shared/fpm-cache")
 	end
 	local txt
-	if not fs.exists("A:/Users/Shared/fpm-cache/" .. source .. ".lon") then
-		if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
-			fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
-		end
+	if not fs.exists("A:/Users/Shared/fpm-cache/" .. source .. ".lon") or true then -- cache is disabled temporaly
+		--if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
+		--	fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
+		--end
 		txt = driver.internet.readFully(githubGet .. source .. "/master/programs.lon")
-		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
-		stream:write(txt)
-		stream:close()
+		--local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
+		--stream:write(txt)
+		--stream:close()
 	else
 		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
 		txt = stream:read("a")
@@ -239,6 +239,9 @@ if args[1] == "install" then
 					local ok, err = pcall(downloadPackage, src, k, e)
 					if not ok then
 						print("Error downloading package: " .. err)
+					end
+					for _, v in pairs(e.dependencies) do
+						table.insert(toInstall, v)
 					end
 					print(e.name .. " installed")
 					isnt = true

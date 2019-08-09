@@ -98,7 +98,7 @@ _G.package.loaded.computer = computer
 print("(2/5) Checking OEFI compatibility..")
 if computer.supportsOEFI() then
 	local oefiLib = oefi or ...
-	if oefiLib.getAPIVersion() > 1 then -- imcompatible with Zorya due to it saying API version 2 being it implements version 1
+	if oefiLib.getAPIVersion() > 1 and oefiLib.getBootAddress then
 		oefi = nil
 		function computer.getBootAddress()
 			return oefiLib.getBootAddress()
