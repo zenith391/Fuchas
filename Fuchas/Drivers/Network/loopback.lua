@@ -7,9 +7,23 @@ function protocol.isProtocolAddress(addr)
 	return addr == "localhost"
 end
 
+function protocol.receive(port)
+	if loopBackSockets[port] then
+		if loopBackSockets[port].used then
+			return nil
+		else
+			loopBackSockets[port].used = true
+			return loopBackSockets[port]
+		end
+	else
+		return nil
+	end
+end
+
 function protocol.listen(port)
 	while true do
 		if loopBackSockets[port] then
+			loopBackSockets[port].used = true
 			return loopBackSockets[port]
 		end
 		coroutine.yield()
@@ -18,6 +32,10 @@ end
 
 function protocol.getAddress()
 	return "localhost"
+end
+
+function protocol.getAddresses()
+	return {"localhost", "127.0.0.1", "::1", 0.0, "0.0:0.0"}
 end
 
 function protocol.open(addr, dport)
@@ -35,7 +53,7 @@ function protocol.open(addr, dport)
 			if #loopBackBuffers[dport] > 0 then
 				return table.remove(loopBackBuffers[dport], 1)
 			else
-				while #loopBackBuffers[dport] > 0 then
+				while #loopBackBuffers[dport] > 0 do
 					os.sleep(0.1)
 				end
 			end

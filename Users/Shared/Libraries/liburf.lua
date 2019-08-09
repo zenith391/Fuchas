@@ -23,24 +23,39 @@ local function u32fromstr(str)
 	return io.tou32(arr, 1)
 end
 
-local function readALI(s)
+function lib.readALI(s)
 	local num = 0
 	local i = 0
 	local continue = true
 	while continue do
 		local byte = string.byte(s:read(1))
-		local inc = bit32.lshift(bit32.band(byte, 127), i)
+		local inc = bit32.lshift(bit32.band(byte, 254), i*7-1) -- do not include 8th byte
 		num = num + inc
-		continue = (bit32.band(byte, 128) == 128) -- if 8th byte = 1
+		continue = (bit32.band(byte, 255) == 255) -- if 8th byte = 1
 		i = i + 1
 	end
 	return num
 end
 
-local function writeALI(num)
+function lib.writeALI(num)
+	package.loaded["liburf"] = nil
 	local bytes = {}
+	local sub = 255
+	local rlshift = 0
+	local i = 1
 	while num > 0 do
-		
+		local xnum = bit32.band(num, sub)
+		xnum = bit32.rshift(xnum, rlshift)
+		xnum = bit32.band(sub, bit32.lshift(xnum, 1))
+		if bit32.band(num, bit32.lshift(sub, 8)) ~= 0 then
+			xnum = bit32.bor(xnum, 1)
+		end
+		bytes[i] = xnum
+		num = num - bit32.band(sub, bit32.lshift(sub, 1))
+		sub = sub + bit32.lshift(sub, 8)
+		--sub = sub*sub
+		rlshift = rlshift + 8
+		i = i + 1
 	end
 	return bytes
 end

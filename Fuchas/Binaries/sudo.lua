@@ -1,10 +1,22 @@
 -- executes command as "admin" (* permission)
 local security = require("security")
 local shell = require("shell")
-local args = table.pack(...)
+local args = ...
+
+if #args < 1 then
+	io.stderr:write("Usage: sudo <command>\n")
+	return
+end
+
 local cmd = args[1]
 table.remove(args, 1)
-if args.n then args.n = args.n - 1 end
+
 local res = shell.resolve(cmd)
+if res == nil then
+	io.stderr:write(cmd .. " not found.\n")
+	return
+end
+
 security.requestPermission("*")
+
 loadfile(res)(table.unpack(args))

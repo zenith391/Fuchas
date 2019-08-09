@@ -7,7 +7,9 @@ local ui = require("OCX/OCUI")
 local ctx = draw.newContext(0, 0, 160, 50)
 local canvas = draw.canvas(ctx)
 local test = wins.newWindow()
+local test2 = wins.newWindow()
 local taskBar = wins.newWindow()
+local selectedWin = nil
 
 do
 	taskBar.undecorated = true
@@ -36,6 +38,13 @@ do
 	test:show()
 end
 
+do
+	test2.title = "Test Window 2"
+	test2.x = 40
+	test2.y = 30
+	test2:show()
+end
+
 local function drawBackDesktop(dontDraw)
 	canvas.fillRect(0, 0, 160, 50, 0xAAAAAA)
 	if not dontDraw then
@@ -45,21 +54,20 @@ end
 
 local function screenEvent(name, addr, x, y, button, player)
 	if name == "touch" then
-		
-	end
-	if name == "drag" then
+		selectedWin = nil
 		for _, v in pairs(wins.desktop()) do
-			
+			if x >= v.x and y >= v.y and x < v.x+v.width and y < v.y+v.height and not v.undecorated then
+				selectedWin = v
+			end
 		end
 	end
-	local wx, wy = test.x, test.y
-	local ww, wh = test.width, test.height
-	drawBackDesktop()
-	test.x = x-1
-	test.y = y-1
-	test.dirty = true
-	draw.drawContext(ctx)
-	wins.drawDesktop()
+	if name == "drag" then
+		if selectedWin ~= nil then
+			--wins.moveWindow(selectedWin, x-1, y-1)
+			drawBackDeesktop()
+			wins.drawDesktop()
+		end
+	end
 end
 
 drawBackDesktop()

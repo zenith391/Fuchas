@@ -55,6 +55,10 @@ while run do
 	end
 	if args[1]:len() == 2 then
 		if args[1]:sub(2, 2) == ":" then
+			if not fs.isMounted(args[1]:sub(1, 1)) then
+				print("No such drive: " .. args[1]:sub(1, 1))
+				break
+			end
 			drive = args[1]:sub(1, 1)
 			shin32.setSystemVar("PWD", "")
 			break

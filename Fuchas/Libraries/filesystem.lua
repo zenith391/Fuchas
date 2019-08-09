@@ -99,6 +99,14 @@ function filesystem.isDriveFormatted(letter)
 	end
 end
 
+function filesystem.isMounted(letter)
+	return drives[letter:upper()] ~= nil
+end
+
+function filesystem.mounts()
+	return drives
+end
+
 function filesystem.mountDrive(proxy, letter)
 	if letter:len() ~= 1 then
 		return false, "invalid length"
@@ -152,6 +160,60 @@ function filesystem.isDirectory(path)
 	return node.isDirectory(rest)
 end
 
+function filesystem.getAttributes(path, raw)
+	local attr = nil
+	local node, rest = findNode(path)
+	if node then
+		if node.getAttributes then -- unmanaged node that supports attributes natively
+			attr = node.getAttributes(path)
+		else
+			local dir = nil
+			local issame = false
+			if filesystem.isDirectory(path) then
+				dir = path
+				if dir:sub(dir:len(), dir:len()) ~= "/" then
+					dir = dir .. "/"
+				end
+				print(dir)
+				issame = true
+			else
+				dir = filesystem.path(path)
+			end
+			if filesystem.exists(dir .. ".dir") then
+				local node2, rest2 = findNode(dir .. ".dir")
+				local content = readAll(node2, rest2)
+				local dirAttr = string.byte(content:sub(1, 1))
+				if issame then
+					attr = dirAttr
+				else
+					local filesNum = string.byte(content:sub(2, 2))
+					local addr = 3
+					for i=1, filesNum do
+						local len = string.byte(content:sub(addr, addr))
+						local name = dir .. content:sub(addr+1, addr+1+len)
+						local attr = content:sub(addr+2+len, addr+2+len)
+
+						addr = addr + len + 3
+					end
+					attr = dirAttr
+				end
+			else
+				attr = 0
+			end
+		end
+	end
+	if raw then
+		return attr
+	else
+		return {
+			readOnly = (bit32.band(attr, 1) == 1), -- always read-only
+			system = (bit32.band(attr, 2) == 2), -- read-only if not having correct permission
+			protected = (bit32.band(attr, 4) == 4), -- unaccessible if not having correct permission
+			hidden = (bit32.band(attr, 8) == 8) -- hidden
+		}
+	end
+end
+
 function filesystem.list(path)
 	local node, rest = findNode(path)
 	local result = {}
@@ -161,18 +223,23 @@ function filesystem.list(path)
 	local set = {}
 	local keys = {}
 	for _,name in ipairs(result) do
-		local key = filesystem.canonical(name)
-		set[key] = name
-		table.insert(keys, key)
+		if name ~= ".dir" or true then
+			local key = filesystem.canonical(name)
+			set[key] = name
+			table.insert(keys, key)
+		end
 	end
 	local i = 1
-	return function()
-		if i == #keys+1 then
-			return nil
+	setmetatable(set, {
+		__call = function()
+			if i == #keys+1 then
+				return nil
+			end
+			i = i + 1
+			return keys[i-1], set[keys[i-1]]
 		end
-		i = i + 1
-		return keys[i-1], set[keys[i-1]]
-	end
+	})
+	return set
 end
 
 function filesystem.makeDirectory(path)

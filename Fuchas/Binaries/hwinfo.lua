@@ -1,11 +1,11 @@
 local info = computer.getDeviceInfo()
 
-print("Hardware Info:")
+print("Software Info:")
 print("\tHas OEFI? " .. tostring(ifOr(computer.supportsOEFI(), true, false)))
 
-print("Extended Info:")
+print("Hardware Info:")
 if info == nil then
-	print("\t  Your computer doesn't support extended hardware information.")
+	print("\tYour computer doesn't support extended hardware information.")
 	return
 end
 

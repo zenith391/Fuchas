@@ -1,7 +1,7 @@
 # NitroFS
 Numbers are ALWAYS little-endian
 
-Note that NitroFS requires OSDI and partition type is Nitro_FS
+In case of use with OSDI, partition type is Nitro_FS
 
 ## Sizes and Computations
 - Default Logical Sector Size (SS): 512
