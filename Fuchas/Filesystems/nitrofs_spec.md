@@ -5,13 +5,15 @@ In case of use with OSDI, partition type is Nitro_FS
 
 ## Sizes and Computations
 - Default Logical Sector Size (SS): 512
-- Default Logical Sector Offset (SO): 8
+- Default Logical Sector Offset (SO): 512
 - Content Address (CA) -> Physical Address: CA * SS + SO
 
 ## Head structure
 - NTRFS1 - 6 bytes
+- [OS] - 20 bytes - The OS/kernel that written attributes (to respect OS's attributes format). Current allocated are: FUCHAS, TSUKI
+- [BOOT] - 2 bytes - Optional (set to 0 to ignore), CA pointing to a file that contains Lua code to execute. Pointless if using OSDI and init.lua at root directory is still a thing 
 - [DIR] - CA pointing to root directory - 2 bytes - The CA by default equals 0, but is changeable
-- Total MFSR size: 8 bytes
+- Total MFSR size: 30 bytes
 
 ## Filesystem Structure
 

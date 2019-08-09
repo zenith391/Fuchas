@@ -209,7 +209,8 @@ function filesystem.getAttributes(path, raw)
 			readOnly = (bit32.band(attr, 1) == 1), -- always read-only
 			system = (bit32.band(attr, 2) == 2), -- read-only if not having correct permission
 			protected = (bit32.band(attr, 4) == 4), -- unaccessible if not having correct permission
-			hidden = (bit32.band(attr, 8) == 8) -- hidden
+			hidden = (bit32.band(attr, 8) == 8), -- hidden
+			noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
 		}
 	end
 end
