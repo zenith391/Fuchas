@@ -11,8 +11,8 @@ In case of use with OSDI, partition type is Nitro_FS
 ## Head structure
 The head structure contains the signature and some informations for booting, reading/writing attributes, etc. While MFSR use 30 bytes, the next entry written will be at 512, this is made for the filesystem to be synced with sectors and allow very easy and fast reads/writes.
 
-- NTRFS1 - 6 bytes
-- [OS] - 20 bytes - The OS/kernel that written attributes (to respect OS's attributes format). Current allocated are: FUCHAS, TSUKI
+- `NTRFS1` - 6 bytes
+- [OS] - 20 bytes - The OS/kernel that written attributes (to respect OS's attributes format). Current allocated are: `FUCHAS` and `TSUKI`
 - [BOOT] - 2 bytes - Optional (set to 0 to ignore), CA pointing to a file that contains Lua code to execute. Pointless if using OSDI and init.lua at root directory is still a thing 
 - [DIR] - CA pointing to root directory - 2 bytes - The CA by default equals 0, but is changeable
 - Total MFSR size: 30 bytes
