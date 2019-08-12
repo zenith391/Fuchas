@@ -31,8 +31,8 @@ shin32.newProcess("System Interface", function()
 		end
 		return l()
 	end, function(err)
-		print(err)
-		print(debug.traceback(" ", 1))
+		io.stderr:write(err)
+		io.stderr:write(debug.traceback(" ", 1))
 		error(err)
 	end)
 	if f == true then

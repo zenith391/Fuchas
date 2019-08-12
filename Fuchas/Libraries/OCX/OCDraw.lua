@@ -4,7 +4,7 @@ local rw, rh = gpu.getResolution()
 local lib = {}
 local dc = {}
 
-local doDebug = true -- warning costs a lost of GPU call budget
+local doDebug = false -- warning costs a lost of GPU call budget
 
 function lib.closeContext(ctx)
 	lib.drawContext(ctx)

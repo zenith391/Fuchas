@@ -44,12 +44,13 @@ end
 local function createStdErr()
 	local stream = {}
 	stream.write = function(self, val)
-		gpu.setForeground(0xFF0000)
-		local b = io.stdout.write(io.stdout, val)
-		gpu.setForeground(0xFFFFFF)
+		local fg = component.gpu.getForeground()
+		component.gpu.setForeground(0xFF0000)
+		local b = io.stdout:write(val)
+		component.gpu.setForeground(fg)
 		return b
 	end
-	stream.write = io.stdout.write
+	--stream.write = io.stdout.write
 	stream.read = io.stdout.read
 	stream.close = io.stdout.close
 	return stream
@@ -93,7 +94,7 @@ function io.open(filename, mode)
 					f = "a"
 				end
 				
-				if f == "a" or f == "*a" then
+				if f == "a" or f == "*a" then -- the * before a or l and others is deprecated in Lua 5.3
 					local s = ""
 					while true do
 						local r = file.h:read(math.huge)

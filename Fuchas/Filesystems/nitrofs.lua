@@ -44,7 +44,7 @@ end
 
 local fs = {}
 local SS = 512
-local SO = 8 -- add 1 for the 1-number base
+local SO = 512 -- add 1 for the 1-number base
 
 local function getName(addr, id)
 	local a = id * SS + SO
@@ -73,12 +73,12 @@ end
 --- Warning! num counts from 0
 local function setChildren(addr, id, num, ctype, cid)
 	local a = id * SS + SO
-	writeBytes(addr, a + 39 + (num*3), {string.byte(ctype), table.unpack(io.tounum(cid, 2, true))})
+	writeBytes(addr, a + 40 + (num*3), {string.byte(ctype), table.unpack(io.tounum(cid, 2, true))})
 end
 
 local function setChildrenNum(addr, id, num)
 	local a = id * SS + SO
-	writeBytes(addr, a + 37, io.tounum(num, 2, true))
+	writeBytes(addr, a + 38, io.tounum(num, 2, true))
 end
 
 local function getChildrens(addr, id)
@@ -167,9 +167,8 @@ function fs.format(addr)
 	for i=1, 16 do -- clear sectors
 		component.invoke(addr, "writeSector", i, string.rep(string.char(0), 512))
 	end
-	if component.type(addr) ~= "osdi_partition" then
-		writeBytes(addr, 0, "NTRFS1")
-	end
+	writeBytes(addr, 0, "NTRFS1")
+	writeBytes(addr, 6, "FUCHAS")
 	writeEntry(addr, "D", 0, 0)
 	setName(addr, 0, "/")
 	return true

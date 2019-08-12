@@ -93,10 +93,8 @@ while run do
 			local proc = shin32.newProcess("cli-" .. args[1], function()
 				if f ~= nil then
 					xpcall(f, function(err)
-						component.gpu.setForeground(0xFFFFFF)
-						component.gpu.setBackground(0x000000)
-						print(err)
-						print(debug.traceback())
+						io.stderr:write(err .. "\n")
+						io.stderr:write(debug.traceback() .. "\n")
 					end, programArgs)
 				end
 			end)

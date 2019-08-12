@@ -63,9 +63,11 @@ local function screenEvent(name, addr, x, y, button, player)
 	end
 	if name == "drag" then
 		if selectedWin ~= nil then
-			--wins.moveWindow(selectedWin, x-1, y-1)
-			drawBackDeesktop()
-			wins.drawDesktop()
+			wins.moveWindow(selectedWin, x-1, y-1)
+			--selectedWin.x = x-1
+			--selectedWin.y = y-1
+			--drawBackDesktop()
+			--wins.drawDesktop()
 		end
 	end
 end

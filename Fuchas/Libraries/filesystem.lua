@@ -160,6 +160,15 @@ function filesystem.isDirectory(path)
 	return node.isDirectory(rest)
 end
 
+function filesystem.setAttributes(path, raw)
+	local node, rest = findNode(path)
+	if node then
+		if node.setAttributes then
+			node.setAttributes(path, raw)
+		end
+	end
+end
+
 function filesystem.getAttributes(path, raw)
 	local attr = nil
 	local node, rest = findNode(path)
@@ -191,14 +200,22 @@ function filesystem.getAttributes(path, raw)
 					for i=1, filesNum do
 						local len = string.byte(content:sub(addr, addr))
 						local name = dir .. content:sub(addr+1, addr+1+len)
-						local attr = content:sub(addr+2+len, addr+2+len)
-
+						local att = content:sub(addr+2+len, addr+2+len)
+						if name == path then
+							attr = att
+						end
 						addr = addr + len + 3
 					end
-					attr = dirAttr
+					if attr == nil then
+						attr = dirAttr -- no attributes for the specific file
+					end
 				end
 			else
-				attr = 0
+				if dir == "A:/" then
+					attr = 0
+				else
+					attr = filesystem.getAttributes(filesystem.path(dir), true)
+				end
 			end
 		end
 	end

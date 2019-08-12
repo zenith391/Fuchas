@@ -2,6 +2,7 @@
 -- the new socket object aspect used by network library
 local protocol = {}
 local event = require("event")
+local listenedPorts = {}
 
 function protocol.isProtocolAddress(addr)
 	return addr:len() == 36 -- todo: more checks
@@ -59,5 +60,9 @@ function protocol.open(addr, dport)
 		end
 	}
 end
+
+event.listen("modem_message", function(_, sender, port)
+
+end)
 
 return "modem", protocol

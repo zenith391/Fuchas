@@ -10,16 +10,17 @@ Wave Type: SQUARE (0) | SINE (1) | TRIANGLE (2) | SAWTOOTH (3)
 Action: WAVE (0) | ADSR (1) | VOLUME (2) | WAVETYPE (3) | NO_OP (4)
 ```
 
-### CAPABILITIES
+### Capabilities
 ```
-- 
+- [WAVE TYPES] - Act as flag, 1 = SQUARE, 2 = SINE, 4 = TRIANGLE and 8 = SAWTOOTH
+- [FLAGS] - Same, a flag for miscelanous things, 1 = ADSR, 2 = VOLUME
+- [CHANNELS] - 1 byte unsigned number
 ```
 
 ### Header
 ```
 - [SIGNATURE]
-- [CAPABILITIES]
-- [AUDIO LENGTH] - number of audio fragment
+- [CAPABILITIES] - see Capabilities above
 - [AUDIO FRAGMENTS]
 ```
 
@@ -38,7 +39,7 @@ If ACTION == WAVETYPE:
 If ACTION == ADSR:
   - [ATTACK] - unsigned short, duration in milliseconds
   - [DELAY] - unsigned short, duration in milliseconds
-  - [SUSTAIN] - unsigned short, duration in milliseconds
+  - [SUSTAIN] - unsigned short, volume level (like [VOLUME])
   - [RELEASE] - unsigned short, duration in milliseconds
 If ACTION == VOLUME:
   - [VOLUME] - unsigned byte, decimal obtained by dividing by 100 (giving 100 volume levels)

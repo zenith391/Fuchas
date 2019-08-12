@@ -70,7 +70,7 @@ struct FileEntry {
 
 ### Fragment Entry
 - R = fRagment - 1 byte
-- NEXT - 2 bytes - next fragment of the file, equals to 0 if file done
+- NEXT - 2 bytes - next fragment of the file, equals to 0 if it is last fragment
 - TEXT FRAGMENT - 509 bytes
 
 Finally, it's C structure would be:
