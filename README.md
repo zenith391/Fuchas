@@ -4,12 +4,12 @@
 ![image](https://gamexmc.000webhostapp.com/misc/fuchas.png)
 ![image](http://gamexmc.000webhostapp.com/misc/fpm.png)
 ## Advantages
-Using the multitask aspect (with tasks/processes) and the drivers orientation. You can develop easily multitasked applications.
+Using the the hardware abstraction layer that abstracts hardware to common API. You can develop easily applications that supports multiple hardwares, without directly having to support them.
 
-And for the end user, he benefits of the freedom to install any interfaces he wants, to easily install/desinstall programs. And to use pipboys in Fushell to manage packages and install new applications easily.
+And for the end user, he benefits of the freedom to install any interfaces he wants, to easily install/desinstall programs. And as OPPM replacement, Fuchas offers an integrated alternative: fpm. And of course Fuchas offers directories/files attributes and a security system (WIP)
 
 ## Comparisons
-In term of startup speed, there isn't better for what all of Fuchas is capable. Multitasking usable on slow machines. And fast interfaces! Say goodbye to the slowness, and enter Fuchas!
+In term of startup speed, there isn't better for what all of Fuchas is capable. Multitasking usable on slow machines. And fast interfaces! Say goodbye to the slowness, and enter Fuchas! Videos coming out soon. Fuchas is also only 150KiB, that means you could put it 3 times in a floppy!
 
 ## Miscelanous
 
