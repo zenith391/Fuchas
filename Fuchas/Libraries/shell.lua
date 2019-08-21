@@ -7,11 +7,91 @@ local aliases = {
 	["ps"] = "pl"
 }
 local fs = require("filesystem")
+local stdout = io.stdout
 
 local cursor = {
 	x = 1,
 	y = 1
 }
+
+function lib.enableANSI()
+	local ESC = string.char(27)
+	local gpu = component.gpu
+	local width, height = gpu.getResolution()
+	io.stdout.write = function(self, val)
+		if val:find("\t") then
+			val = val:gsub("\t", "    ")
+		end
+		if val:find(ESC .. "c") then
+			local _, occ = val:find(ESC .. "c")
+			gpu.setBackground(0x000000)
+			gpu.fill(1, 1, width, height, " ")
+			val = val:sub(occ, val:len())
+			io.stdout:write(val)
+		end
+		-- CSI sequences
+		if val:find(ESC .. "[A") then
+			local _, occ = val:find(ESC .. "c")
+			cursor.y = cursor.y - 1
+			if cursor.y < 1 then cursor.y = 1 end
+			val = val:sub(occ, val:len())
+			io.stdout:write(val)
+		end
+		if val:find(ESC .. "[B") then
+			local _, occ = val:find(ESC .. "c")
+			cursor.y = cursor.y + 1
+			val = val:sub(occ, val:len())
+			io.stdout:write(val)
+		end
+		if val:find(ESC .. "[C") then
+			local _, occ = val:find(ESC .. "c")
+			cursor.x = cursor.x + 1
+			if cursor.x > width then cursor.x = width end
+			val = val:sub(occ, val:len())
+			io.stdout:write(val)
+		end
+		if val:find(ESC .. "[D") then
+			local _, occ = val:find(ESC .. "c")
+			cursor.x = cursor.x - 1
+			if cursor.x < 1 then cursor.x = 1 end
+			val = val:sub(occ, val:len())
+			io.stdout:write(val)
+		end
+
+		if val:find("\n") then
+			for line in val:gmatch("([^\n]+)") do
+				if sh.getY() == h then
+					gpu.copy(1, 2, w, h - 1, 0, -1)
+					gpu.fill(1, h, w, 1, " ")
+					sh.setY(sh.getY() - 1)
+				end
+				gpu.set(sh.getX(), sh.getY(), line)
+				sh.setX(1)
+				sh.setY(sh.getY() + 1)
+			end
+		else
+			if sh.getY() == h then
+				gpu.copy(1, 2, w, h - 1, 0, -1)
+				gpu.fill(1, h, w, 1, " ")
+				sh.setY(sh.getY() - 1)
+			end
+			gpu.set(sh.getX(), sh.getY(), val)
+			sh.setX(sh.getX() + val:len())
+		end
+		return true
+	end
+end
+
+function lib.resetStdout(full) -- disables ANSI
+	if full then
+		stdout = io.createStdOut()
+	end
+	io.stdout = stdout
+end
+
+function lib.stdout()
+	return io.stdout
+end
 
 function lib.getX()
 	return cursor.x

@@ -165,6 +165,9 @@ end, function(err)
 			pcall(function()
 				require("shell").setCursor(1, 1)
 			end) -- in case shell is the erroring library
+		else
+			x = 1
+			y = 1
 		end
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 160, 50, " ")
@@ -183,9 +186,21 @@ Fuchas topic and speak about your
 computer problem as a reply.]])
 		local traceback = debug.traceback()
 		write(traceback)
-		local t0 = computer.uptime()
-		while computer.uptime() - t0 <= 5 do
-			computer.pullSignal(0.1)
+		if io then
+			pcall(function()
+				y = require("shell").getY()
+			end)
 		end
-		computer.pullSignal()
 end)
+
+local t0 = computer.uptime() + 10
+gpu.set(1, y+4, "Press any key to reboot now.")
+while computer.uptime() <= t0 do
+	gpu.fill(1, y+2, 160, 1, " ")
+	gpu.set(1, y+2, "Auto-reboot in " .. math.ceil(t0 - computer.uptime()))
+	if computer.pullSignal(1) == "key_down" then
+		break
+	end
+end
+
+computer.shutdown(true)

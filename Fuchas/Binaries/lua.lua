@@ -2,7 +2,7 @@ local shell = require("shell")
 
 while true do
 	io.write(" > ")
-	local ck, err = load("return " .. shell.read(), "usercode")
+	local ck, err = load(shell.read(), "usercode")
 	io.write("\n ")
 	if ck == nil then
 		print(err)

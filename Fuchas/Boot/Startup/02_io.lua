@@ -1,7 +1,7 @@
 local fs = require("filesystem")
 local comp = require("component")
 
-local function createStdOut()
+function io.createStdOut()
 	local stream = {}
 	local sh = require("shell")
 	local gpu = comp.proxy(comp.list("gpu")())
@@ -41,7 +41,7 @@ local function createStdOut()
 	return stream
 end
 
-local function createStdErr()
+function io.createStdErr()
 	local stream = {}
 	stream.write = function(self, val)
 		local fg = component.gpu.getForeground()
@@ -56,8 +56,8 @@ local function createStdErr()
 	return stream
 end
 
-io.stdout = createStdOut()
-io.stderr = createStdErr()
+io.stdout = io.createStdOut()
+io.stderr = io.createStdErr()
 
 require("shell").setCursor(1, gy())
 _G.gy = nil
