@@ -15,17 +15,17 @@
 		you have a risk of having viruses from your ennemy. That's what Fuchas prevents!<br></br>
 		<br></br>
 		<h3>Installations Instructions (OpenOS)</h3>
+		  1. Execute 'pastebin run EbHYvEE8'<br></br>
+		  2. Enter the informations from what you want<br></br>
+		  3. Enjoy Fuchas!<br></br>
+		<br></br>
+		<h3>Installations Instructions (OpenOS) (if above doesn't work)</h3>
 		  1. <a href="/release.cpio">Download CPIO</a><br></br>
 		  2. Install a program like 'uncpio' if you don't have it already.<br></br>
 		  3. Extract the CPIO to your root directory.<br></br>
 		  4. Then execute 'wget https://raw.githubusercontent.com/zenith391/Fuchas/master/init.lua init.lua'<br></br>
 		  5. Reboot<br></br>
 		  6. Enjoy Fuchas!<br></br>
-		<br></br>
-		<h3>Installations Instructions (OpenOS) (easier)</h3>
-		  1. Execute 'pastebin run EbHYvEE8'<br></br>
-		  2. Enter the informations from what you want<br></br>
-		  3. Enjoy Fuchas!<br></br>
 		<br></br>
 		<h3>Installations Instructions (MineOS)</h3>
 		  1. Download application 'Fuchas Installer'<br></br>

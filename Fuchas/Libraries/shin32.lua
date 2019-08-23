@@ -147,6 +147,7 @@ function dll.newProcess(name, func)
 		pid = pid,
 		status = "created",
 		closeables = {}, -- used for file streams
+		errorHandler = nil,
 		detach = function(self)
 			self.parent = nil
 		end,
@@ -189,18 +190,36 @@ function dll.getUser()
 end
 
 local function systemEvent(pack)
+	local fs = require("filesystem")
 	local id = pack[1]
 	if id == "component_added" then
 		if pack[3] == "filesystem" then
-			require("filesystem").mountDrive(component.proxy(pack[2]), "B")
+			local letter = fs.freeDriveLetter()
+			if letter ~= nil then -- if nil, then cannot mount another drive
+				fs.mountDrive(component.proxy(pack[2]), "B")
+			end
 		end
 	end
 	if id == "component_removed" then
 		if pack[3] == "filesystem" then
-			require("filesystem").unmountDrive("B")
+			fs.unmountDrive(fs.getLetter(pack[2]))
 		end
 	end
 	return true
+end
+
+local function handleProcessError(err, p)
+	local parent = p.parent
+	if parent ~= nil then
+		if parent.childErrorHandler then
+			parent.childErrorHandler(p, err)
+			return true
+		else
+			return handleProcessError(err, parent)
+		end
+	else
+		return false
+	end
 end
 
 local eventlib = require("event")
@@ -227,7 +246,7 @@ function dll.scheduler()
 		if coroutine.status(p.thread) == "dead" then
 			dll.kill(p, true)
 		else
-			if p.status == "wait_event" then
+			if p.status == "wait_signal" then
 				if lastEvent ~= nil then
 					if lastEvent[1] ~= nil then
 						p.result = lastEvent
@@ -250,20 +269,17 @@ function dll.scheduler()
 				currentProc = nil
 				p.status = "ready"
 				if not ok then
-					if p.parent ~= nil then
-						if p.parent.childErrorHandler ~= nil then
-							p.parent.childErrorHandler(p, ret)
-						else
-							error(ret)
-						end
+					if p.errorHandler then
+						p.errorHandler(ret)
 					else
-						print("PANIC!")
-						error(ret) -- just panic if it's system process
+						if not handleProcessError(ret, p) then
+							shin32.kill(p)
+						end
 					end
 				end
 				if ret then
 					if type(ret) == "function" then
-						currentProc = p -- make thinks it's during process execution
+						currentProc = p
 						local cont, val = true, nil
 						while cont do
 							cont, val = ret(val)
@@ -272,13 +288,13 @@ function dll.scheduler()
 						currentProc = nil
 					end
 					if type(ret) == "string" then
-						if ret == "pull event" then
+						if ret == "pull_event" then
 							if a1 then
 								p.timeout = computer.uptime() + a1
 							else
 								p.timeout = math.huge
 							end
-							p.status = "wait_event"
+							p.status = "wait_signal"
 						end
 					end
 				end
@@ -314,11 +330,6 @@ end
 
 --- bypass = Bypasses the current process protection
 function dll.kill(proc, bypass)
-	-- Protection due to expected behavior being "instant" kill of the process. But if it is running it needs to
-	-- finish its process tick.
-	if currentProc == proc and not bypass then -- only current process is in state "running"
-		error("cannot kill current process")
-	end
 	proc.status = "dead"
 	activeProcesses = activeProcesses - 1
 	if require("security").isRegistered(proc.pid) then
@@ -328,6 +339,9 @@ function dll.kill(proc, bypass)
 		v:close()
 	end
 	processes[proc.pid] = nil
+	if currentProc == proc then
+		coroutine.yield()
+	end
 end
 
 function dll.getActiveProcesses()

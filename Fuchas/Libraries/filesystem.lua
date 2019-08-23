@@ -103,6 +103,31 @@ function filesystem.isMounted(letter)
 	return drives[letter:upper()] ~= nil
 end
 
+function filesystem.freeDriveLetter()
+	local letter = "A"
+	for k in pairs(drives) do
+		if k == letter then
+			if letter == "Z" then -- Z: is maximum letter
+				return nil
+			end
+			letter = string.char(string.byte(letter) + 1)
+		end
+	end
+	return letter
+end
+
+function filesystem.getLetter(address)
+	for k, v in pairs(drives) do
+		if v.fs.address == address then
+			return k
+		end
+	end
+end
+
+function filesystem.getDrive(path)
+	return findNode(path)
+end
+
 function filesystem.mounts()
 	return drives
 end
@@ -211,7 +236,7 @@ function filesystem.getAttributes(path, raw)
 					end
 				end
 			else
-				if dir == "A:/" then
+				if dir:len() <= 3 then
 					attr = 0
 				else
 					attr = filesystem.getAttributes(filesystem.path(dir), true)

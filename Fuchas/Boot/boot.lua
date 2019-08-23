@@ -161,7 +161,8 @@ local ok, err = xpcall(function()
 	end
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
-		if io then
+		local computer = (computer or package.loaded.computer)
+		if io and package and package.loaded and package.loaded.shell then
 			pcall(function()
 				require("shell").setCursor(1, 1)
 			end) -- in case shell is the erroring library
@@ -193,6 +194,7 @@ computer problem as a reply.]])
 		end
 end)
 
+local computer = (computer or package.loaded.computer)
 local t0 = computer.uptime() + 10
 gpu.set(1, y+4, "Press any key to reboot now.")
 while computer.uptime() <= t0 do
