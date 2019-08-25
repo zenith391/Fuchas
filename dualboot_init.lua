@@ -39,7 +39,7 @@ while true do
 	if id == "key_down" then
 		if ch == 28 then
 			_G.loadfile = loadfile
-			loadfile("Fuchas/Boot/boot.lua")()
+			loadfile("Fuchas/Boot/boot.lua")() -- TODO: change in 0.5
 			break
 		elseif ch == 24 then
 			loadfile("/lib/core/boot.lua")(loadfile)

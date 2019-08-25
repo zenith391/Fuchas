@@ -4,7 +4,7 @@ local rw, rh = gpu.getResolution()
 local lib = {}
 local dc = {}
 
-local doDebug = false -- warning costs a lost of GPU call budget
+local doDebug = OSDATA.DEBUG -- warning costs a lost of GPU call budget
 
 function lib.closeContext(ctx)
 	lib.drawContext(ctx)
@@ -47,12 +47,18 @@ function lib.drawContext(ctxn)
 	ctx.drawBuffer = {}
 end
 
-function lib.newContext(x, y, width, height)
+function lib.newContext(x, y, width, height, braille)
 	local ctx = {}
 	ctx.x = x or 1
 	ctx.y = y or 1
 	ctx.width = width or 160
 	ctx.height = height or 50
+	ctx.braille = braille
+	-- braille=0 - No braille, same default lame size as OC, full color: fastest
+	-- braille=1 - Vertical braille, allows a max resolution (T3) of 160x100, full color: faster
+	-- braille=2 - Horizontal braille, allows a max resolution (T3) of 320x50, full color: faster
+	-- braille=3 - Full braille, allows a max resolution (T3) of 320x200, monochrome: slower
+	-- braille=4 - Full braille, allows a max resolution (T3) of 320x200, averaged colors: slowest
 	ctx.drawBuffer = {}
 	dc[#dc+1] = ctx
 	return #dc

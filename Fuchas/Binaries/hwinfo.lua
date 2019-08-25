@@ -1,7 +1,12 @@
 local info = computer.getDeviceInfo()
 
 print("Software Info:")
-print("\tHas OEFI? " .. tostring(ifOr(computer.supportsOEFI(), true, false)))
+print("\tHas OEFI? " .. tostring(ifOr(computer.supportsOEFI(), "Yes", "No")))
+if computer.supportsOEFI() then
+	local oefi = require("oefi")
+	print("\tOEFI Version: " .. oefi.getAPIVersion())
+	print("\tImplementation: " .. oefi.getImplementationName())
+end
 
 print("Hardware Info:")
 if info == nil then

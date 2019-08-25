@@ -68,6 +68,14 @@ while run do
 	if sh.getCommand(args[1]) ~= nil then
 		args[1] = sh.getCommand(args[1])
 	end
+
+	local newargs = string.split(args[1])
+	if #newargs > 1 then
+		table.remove(args, 1)
+		for i=#newargs, 1, -1 do
+			table.insert(args, 1, newargs[i])
+		end
+	end
 	
 	local path = sh.resolve(args[1])
 	local exists = true

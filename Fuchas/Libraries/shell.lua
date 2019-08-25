@@ -4,7 +4,9 @@ local aliases = {
 	["del"] = "delete",
 	["rm"] = "delete",
 	["ls"] = "dir",
-	["ps"] = "pl"
+	["ps"] = "pl",
+	["reboot"] = "power reboot",
+	["shutdown"] = "power off"
 }
 local fs = require("filesystem")
 local stdout = io.stdout

@@ -1,1 +1,0 @@
-computer.shutdown(true)

@@ -229,7 +229,7 @@ function dll.scheduler()
 	end
 	
 	-- System Event Handling
-	local lastEvent = table.pack(eventlib.handlers(0.05)) -- call for a tick
+	local lastEvent = table.pack(eventlib.handlers(0))
 	if not systemEvent(lastEvent) then
 		lastEvent = nil -- if not propagating
 	end

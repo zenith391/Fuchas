@@ -1,5 +1,6 @@
 local driver = require("driver")
-local shell  = require("shell")
+local shell = require("shell")
+local filesystem = require("filesystem")
 local args, ops = shell.parse(...)
 
 if #args < 1 then

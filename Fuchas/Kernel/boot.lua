@@ -4,6 +4,8 @@ _G.OSDATA = {
 	DEBUG = false
 }
 
+_G._OSVERSION = _G.OSDATA.NAME .. " " .. _G.OSDATA.VERSION
+
 local screen = nil
 for address in component.list("screen", true) do
 	if #component.invoke(address, "getKeyboards") > 0 then
@@ -134,6 +136,20 @@ for k, v in component.list() do -- TODO: check if letter is over Z
 	end
 end
 
+-- kernel = {}
+-- setmetatable(kernel, {
+-- 	__index = function(table, key)
+-- 		if table[key] then
+-- 			return table[key]
+-- 		end
+-- 		if require("filesystem").exists("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua") then
+-- 			local data = _G.loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
+-- 			table[key] = data()
+-- 			return table[key]
+-- 		end
+-- 	end
+-- })
+
 _G.loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
@@ -155,9 +171,9 @@ end
 
 local ok, err = xpcall(function()
 	_G.shin32 = require("shin32")
-	for k, v in require("filesystem").list("A:/Fuchas/Boot/Startup/") do
+	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
-		dofile("A:/Fuchas/Boot/Startup/" .. k)
+		dofile("A:/Fuchas/Kernel/Startup/" .. k)
 	end
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
