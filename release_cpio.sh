@@ -1,3 +1,5 @@
 #!/bin/sh
-find .efi/Source | cpio -oHbin > ".efi/fuchas.efi2"
-find Fuchas Users/Shared zorya-modules .efi | cpio -oHbin > "release.cpio"
+cd .efi/Source
+find . | cpio -oHbin > "../fuchas.efi2"
+cd ../..
+find Fuchas Users/Shared .efi | cpio -oHbin > "release.cpio"
