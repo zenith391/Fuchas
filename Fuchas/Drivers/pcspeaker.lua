@@ -57,4 +57,8 @@ function drv.getCapabilities()
     }
 end
 
+function drv.getName()
+	return "Lame(R) PC Speaker"
+end
+
 return true, "sound", drv

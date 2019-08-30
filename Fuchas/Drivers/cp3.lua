@@ -89,4 +89,8 @@ function drv.getCapabilities()
     }
 end
 
+function drv.getName()
+	return "Yanaki Sound Systems Drivers for MinoSound 244-X"
+end
+
 return component.isAvailable("sound"), "sound", drv

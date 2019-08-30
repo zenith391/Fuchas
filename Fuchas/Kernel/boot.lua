@@ -136,19 +136,19 @@ for k, v in component.list() do -- TODO: check if letter is over Z
 	end
 end
 
--- kernel = {}
--- setmetatable(kernel, {
--- 	__index = function(table, key)
--- 		if table[key] then
--- 			return table[key]
--- 		end
--- 		if require("filesystem").exists("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua") then
--- 			local data = _G.loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
--- 			table[key] = data()
--- 			return table[key]
--- 		end
--- 	end
--- })
+kernel = {}
+setmetatable(kernel, {
+	__index = function(table, key)
+		if table[key] then
+			return table[key]
+		end
+		if require("filesystem").exists("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua") then
+			local data = _G.loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
+			table[key] = data()
+			return table[key]
+		end
+	end
+})
 
 _G.loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")

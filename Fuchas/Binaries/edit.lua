@@ -5,6 +5,7 @@ local keyboard = require("keyboard")
 local gpu = component.getPrimary("gpu")
 local rw, rh = gpu.getResolution()
 local cx, cy = 1, 1
+local sx, sy = 1, 1
 local ctick, cblink = computer.uptime(), false
 local cursor = 1
 
@@ -40,11 +41,14 @@ local function drawBottomBar()
 end
 
 local function drawText()
-	local y = 1
+	local y = sy
 	for _, line in pairs(lines) do
 		shell.setCursor(1, y)
 		io.stdout:write(line)
 		y = y + 1
+		if y > rh - sy then
+			break
+		end
 	end
 end
 
@@ -146,8 +150,12 @@ while true do
 				ctick = computer.uptime() + 0.5
 			end
 			if code == 208 then -- down
-				if cy < #lines then
+				if cy < #lines and cy < rh - sy - 1 then
 					cy = cy + 1
+				end
+				if cy >= rh - sy - 1 then
+					sy = sy + 10
+					drawText()
 				end
 				cblink = true
 				ctick = computer.uptime() + 0.5
