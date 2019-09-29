@@ -139,21 +139,27 @@ end
 kernel = {}
 setmetatable(kernel, {
 	__index = function(table, key)
-		if table[key] then
-			return table[key]
+		if rawget(table, key) then
+			return rawget(table, key)
 		end
 		if require("filesystem").exists("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua") then
-			local data = _G.loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
-			table[key] = data()
+			local data, err = loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
+			if data ~= nil then
+				data = data()
+			else
+				error(err)
+			end
+			rawset(table, key, data)
 			return table[key]
 		end
-	end
+	end,
+	__newindex = function() end
 })
 
-_G.loadfile = function(path)
+loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
-		if _G.OSDATA.DEBUG then
+		if OSDATA.DEBUG then
 			error(reason)
 		else
 			return nil, reason
@@ -168,6 +174,8 @@ _G.loadfile = function(path)
 	file:close()
 	return load(buffer, "=" .. path, "bt", _G)
 end
+
+kernel.runlevel.value(0)
 
 local ok, err = xpcall(function()
 	_G.shin32 = require("shin32")
@@ -191,7 +199,7 @@ end, function(err)
 		write([[A problem has been detected and Fuchas
 has shutdown to prevent damage
 to your computer.
- 
+
 ]] .. err .. " \n \n " .. [[
 If this is the first time you've seen
 this BSOD screen, restart your

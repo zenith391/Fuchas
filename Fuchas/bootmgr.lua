@@ -1,6 +1,5 @@
 -- Bootstrap for Fuchas interface.
 local fs = require("filesystem")
---require("OCX/ConsoleUI").clear(0x000000)
 
 -- Bootstrap routine
 dofile("A:/Fuchas/autorun.lua") -- system variables autorun

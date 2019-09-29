@@ -265,8 +265,9 @@ function filesystem.list(path)
 	end
 	local set = {}
 	local keys = {}
+	table.sort(result)
 	for _,name in ipairs(result) do
-		if name ~= ".dir" or true then
+		if name ~= ".dir" and type(name) == "string" then
 			local key = filesystem.canonical(name)
 			set[key] = name
 			table.insert(keys, key)

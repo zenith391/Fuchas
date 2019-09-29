@@ -1,4 +1,4 @@
-local drv = require("driver") 
+local drv = require("driver")
 local driver = drv.sound
 
 print("Driver Name: " .. driver.getName())
