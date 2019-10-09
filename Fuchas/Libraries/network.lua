@@ -36,8 +36,8 @@ end
 function net.protocolList()
 	if protocols == nil then
 		protocols = {}
-		for k, v in fs.list("A:/Fuchas/Drivers/Network/") do
-			local id, lib = dofile("A:/Fuchas/Drivers/Network/" .. k)
+		for k, v in fs.list("A:/Fuchas/Drivers/network/") do -- network drivers are specific and aren't compatible with driver API
+			local id, lib = dofile("A:/Fuchas/Drivers/network/" .. k)
 			protocols[id] = lib
 		end
 	end
