@@ -93,13 +93,18 @@ end
 -- Convenient Lua extensions
 
 function try(func)
+	local fin = function(handler)
+		handler()
+	end
 	return {
 		catch = function(handler, filter)
 			local ok, ex = pcall(func)
 			if not ok then
 				handler(ex)
 			end
-		end
+			return fin
+		end,
+		finally = fin
 	}
 end
 
@@ -116,9 +121,11 @@ end
 --   print("Hello World")
 -- end).catch(function(ex)
 --   print("Error: " .. ex.trace)
+-- end).finally(function()
+--   print("Function ended")
 -- end)
 
-if _VERSION == "Lua 5.3" then
+if not bit32 then
     load([[
 	bit32 = {}
 	-- TODO complete

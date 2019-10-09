@@ -28,10 +28,11 @@ if screen and gpu then
 	gpu.setForeground(0xFFFFFF)
 	gpu.fill(1, 1, w, h, " ")
 end
-function dofile(file)
+
+function dofile(file, ...)
 	local program, reason = loadfile(file)
 	if program then
-		local result = table.pack(pcall(program))
+		local result = table.pack(pcall(program, ...))
 		if result[1] then
 			return table.unpack(result, 2, result.n)
 		else
@@ -48,7 +49,7 @@ local x = 1
 function gy() -- temporary cursor Y accessor
 	return y
 end
-function write(msg, fore)
+local function write(msg, fore)
 	if not screen or not gpu then
 		return
 	end
@@ -80,6 +81,7 @@ function write(msg, fore)
 		end
 	end
 end
+_G.write = write
 
 function print(msg, fore)
 	write(msg .. "\n", fore)
@@ -186,7 +188,7 @@ local ok, err = xpcall(function()
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
 		local computer = (computer or package.loaded.computer)
-		if io and package and package.loaded and package.loaded.shell then
+		if io and package and package.loaded and package.loaded.shell and false then
 			pcall(function()
 				require("shell").setCursor(1, 1)
 			end) -- in case shell is the erroring library
@@ -216,10 +218,12 @@ computer problem as a reply.]])
 				y = require("shell").getY()
 			end)
 		end
+		return traceback
 end)
 
 local computer = (computer or package.loaded.computer)
-local t0 = computer.uptime() + 10
+local t0 = computer.uptime() + 30
+--gpu.set(1, y+3, "Error: " .. err)
 gpu.set(1, y+4, "Press any key to reboot now.")
 while computer.uptime() <= t0 do
 	gpu.fill(1, y+2, 160, 1, " ")

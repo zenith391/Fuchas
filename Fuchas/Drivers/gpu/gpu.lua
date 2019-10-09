@@ -1,5 +1,5 @@
 local drv = {}
-local comp = component.gpu
+local comp = component.proxy(...)
 
 local function getTier()
 	local rw, rh = comp.maxResolution()
@@ -30,17 +30,33 @@ local function getPalettedColors()
 	end
 end
 
-function drv.drawText(x, y, text)
+function drv.drawText(x, y, text, fg)
+	if fg then
+		comp.setForeground(fg)
+	end
 	comp.set(x, y, tostring(text))
 end
 
-function drv.setColor(rgb)
-
+function drv.setColor(rgb, palette)
+	comp.setBackground(rgb, palette)
 end
 
-function drv.getPalette()
-	return {} -- TODO
-end
+drv.palette = setmetatable({}, {
+	__index = function(table, key)
+		if type(key) == "number" then
+			if key > 0 and key <= getColors() then
+				return comp.getPaletteColor(key)
+			end
+		end
+	end,
+	__newindex = function(table, key, value)
+		if type(key) == "number" then
+			if key > 0 and key <= getPalettedColors() then
+				comp.setPaletteColor(key, value)
+			end
+		end
+	end
+})
 
 
 function drv.getRank() -- used by "driver" library to choose best driver
@@ -52,7 +68,8 @@ function drv.getCapabilities()
         paletteSize = getColors(),
         hasPalette = true,
         hasEditablePalette = true,
-        editableColors = getPalettedColors()
+        editableColors = getPalettedColors(),
+        hardwareText = true
     }
 end
 

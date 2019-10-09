@@ -26,21 +26,26 @@ function driver.searchpath(name, path, sep, rep)
 	return nil, table.concat(errorFiles, "\n")
 end
 
-function driver.changeDriver(type, path)
+function driver.changeDriver(type, addr, path)
 	checkArg(1, type, "string")
 	checkArg(2, path, "string")
 	local ok, driver = loadDriver(path)
+	if not loaded[type] then
+		loaded[type] = {}
+		loaded[type]["default"] = getDefaultDriver(type)
+	end
 	loaded[type] = driver
 end
 
-local function findBestDriver(type)
+local function findBestDriver(type, addr)
 	local sel = nil
 	for _, v in pairs(string.split(shin32.getSystemVar("DRV_PATH"), ";")) do
-		if fs.exists(v) then
-			for path, _ in fs.list(v) do
-				if not fs.isDirectory(v .. path) then
-					local av, cp, drv = dofile(v .. path)
-					if cp == type and av then
+		local dir = v .. type .. "/"
+		if fs.exists(dir) then
+			for path, _ in fs.list(dir) do
+				if not fs.isDirectory(dir .. path) then
+					local drv = dofile(dir .. path, addr)
+					if drv.isCompatible() then
 						if sel == nil then
 							sel = drv
 						else
@@ -53,14 +58,33 @@ local function findBestDriver(type)
 			end
 		end
 	end
-	loaded[type] = sel
+	return sel
 end
 
-function driver.getDriver(type)
-	if not loaded[type] then
-		findBestDriver(type)
+local function getDefaultDriver(type)
+	for addr, _ in pairs(component.list()) do
+		local d = findBestDriver(type, addr)
+		if d ~= nil then
+			return d
+		end
 	end
-	return loaded[type]
+end
+
+function driver.getDriver(type, addr)
+	if not addr then
+		addr = "default"
+	end
+	if not loaded[type] then
+		loaded[type] = {}
+		loaded[type]["default"] = getDefaultDriver(type)
+	end
+	if not loaded[type][addr] then
+		loaded[type][addr] = findBestDriver(type, addr)
+	end
+	return loaded[type][addr]
+end
+
+function driver.getDrivers(type)
 end
 
 function driver.isDriverAvailable(path)

@@ -13,6 +13,10 @@ function io.createStdOut()
 		if val:find("\t") then
 			val = val:gsub("\t", "    ")
 		end
+		if sh.getX() >= 160 then
+			sh.setX(0)
+			sh.setY(sh.getY() + 1)
+		end
 		if val:find("\n") then
 			for line in val:gmatch("([^\n]+)") do
 				if sh.getY() == h then

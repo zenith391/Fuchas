@@ -12,6 +12,10 @@ function drv.setADSR(ch, attack, decay, sustain, release)
 	return false, "unsupported"
 end
 
+function drv.isCompatible()
+	return true
+end
+
 function drv.setWave(ch, type)
 	return false, "unsupported"
 end
@@ -61,4 +65,4 @@ function drv.getName()
 	return "Lame(R) PC Speaker"
 end
 
-return true, "sound", drv
+return drv

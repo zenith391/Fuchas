@@ -11,12 +11,14 @@ local sectorCache = { -- sectors are cached for faster properties/content readin
 
 local function readBytes(addr, off, len, asString) -- optimized function for reading bytes
 	local bytes = {}
-	if sectorCache.id ~= off / 512 or sectorCache.addr ~= addr then
-		sectorCache.id = off / 512
+	local sectorId = math.ceil(off/512)
+	if sectorCache.id ~= sectorId or sectorCache.addr ~= addr then
+		sectorCache.id = sectorId
 		sectorCache.addr = addr
-		sectorCache.text = component.invoke(addr, "readSector", off / 512+1)
+		sectorCache.text = component.invoke(addr, "readSector", sectorId)
 	end
-	bytes = string.byte(sectorCache.text:sub(1, off % 512))
+	print(sectorCache.text)
+	bytes = string.byte(sectorCache.text:sub(off%512+1, off%512+1+len))
 	if asString then
 		return table.pack(string.char(bytes))
 	else
@@ -29,22 +31,21 @@ local function writeBytes(addr, off, data) -- optimized function for writing byt
 		data = table.pack(string.byte(data, 1, string.len(data)))
 	end
 	if #data > SECTOR_IO_TRESHOLD and false then -- if it became more efficient to use sector i/o
-		local sector = off/512+1
+		local sector = math.ceil(off/512)
 		local offset = off%512
 		local sec = component.invoke(addr, "readSector", sector)
 		sec = sec:sub(1, offset-1) .. string.char(table.unpack(data)) .. sec:sub(offset+#data+1)
-		--print(sec)
 		component.invoke(addr, "writeSector", sector, sec)
 	else
 		for i=1, #data do
-			component.invoke(addr, "writeByte", off+i-1, data[i])
+			component.invoke(addr, "writeByte", off-1+i-1, data[i])
 		end
 	end
 end
 
 local fs = {}
 local SS = 512
-local SO = 512 -- add 1 for the 1-number base
+local SO = 513 -- add 1 for the 1-number base
 
 local function getName(addr, id)
 	local a = id * SS + SO
@@ -83,7 +84,7 @@ end
 
 local function getChildrens(addr, id)
 	local a = id * SS + SO
-	local num = io.fromunum(readBytes(addr, a + 37, 2), true, 2)
+	local num = io.fromunum(readBytes(addr, a + 38, 2), true, 2)
 	local childs = {}
 	for i=1, num do
 		table.append(childs, {
@@ -95,7 +96,7 @@ local function getChildrens(addr, id)
 end
 
 local function isOccupied(addr, id)
-	return readBytes(addr, id*SS+SO+1, 1) ~= 0
+	return readBytes(addr, id*SS+SO, 1) ~= 0
 end
 
 local function getFreeID(addr, startFID)
@@ -164,11 +165,10 @@ local function getId(addr, path)
 end
 
 function fs.format(addr)
-	for i=1, 16 do -- clear sectors
-		component.invoke(addr, "writeSector", i, string.rep(string.char(0), 512))
-	end
-	writeBytes(addr, 0, "NTRFS1")
-	writeBytes(addr, 6, "FUCHAS")
+	local str = string.rep('\0', 512)
+	component.invoke(addr, "writeSector", 1, str)
+	writeBytes(addr, 1, "NTRFS1")
+	writeBytes(addr, 7, "FUCHAS")
 	writeEntry(addr, "D", 0, 0)
 	setName(addr, 0, "/")
 	return true
@@ -203,6 +203,7 @@ function fs.makeDirectory(addr, path)
 		error(err)
 	end
 	local nid = getFreeID(addr)
+	print("Parent ID: " .. id)
 	print("New ID: " .. nid)
 	writeEntry(addr, "D", nid, id)
 	setName(addr, nid, segments[#segments])
@@ -211,6 +212,7 @@ function fs.makeDirectory(addr, path)
 	print("Children ID: " .. cnum)
 	setChildren(addr, id, cnum, "D", nid)
 	setChildrenNum(addr, id, cnum+1)
+	cnum = #getChildrens(addr, id)
 	print("Children Count: " .. cnum)
 end
 

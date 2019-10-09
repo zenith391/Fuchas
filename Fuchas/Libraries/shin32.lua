@@ -66,7 +66,7 @@ function io.tounum(number, count, littleEndian)
 	
 	if littleEndian then
 		local i = count
-		while i > 1 do
+		while i > 0 do
 			data[i] = bit32.band(number, 0x000000FF)
 			number = bit32.rshift(number, 8)
 			i = i - 1
@@ -109,7 +109,7 @@ function io.fromunum(data, littleEndian, count)
 		local bytes, result = {string.byte(data or "\x00", 1, 4)}, 0
 		if littleEndian then
 			local i = #bytes -- just do it in inverse order
-			while i > 1 do
+			while i > 0 do
 				result = bit32.bor(bit32.lshift(result, 8), bytes[i])
 				i = i - 1
 			end
