@@ -32,53 +32,58 @@ function lib.enableANSI()
 			io.stdout:write(val)
 		end
 		-- CSI sequences
-		if val:find(ESC .. "[A") then
+		if val:find(ESC .. "%[A") then
 			local _, occ = val:find(ESC .. "c")
 			cursor.y = cursor.y - 1
 			if cursor.y < 1 then cursor.y = 1 end
 			val = val:sub(occ, val:len())
 			io.stdout:write(val)
 		end
-		if val:find(ESC .. "[B") then
+		if val:find(ESC .. "%[B") then
 			local _, occ = val:find(ESC .. "c")
 			cursor.y = cursor.y + 1
 			val = val:sub(occ, val:len())
 			io.stdout:write(val)
 		end
-		if val:find(ESC .. "[C") then
+		if val:find(ESC .. "%[C") then
 			local _, occ = val:find(ESC .. "c")
 			cursor.x = cursor.x + 1
 			if cursor.x > width then cursor.x = width end
 			val = val:sub(occ, val:len())
 			io.stdout:write(val)
 		end
-		if val:find(ESC .. "[D") then
+		if val:find(ESC .. "%[D") then
 			local _, occ = val:find(ESC .. "c")
 			cursor.x = cursor.x - 1
 			if cursor.x < 1 then cursor.x = 1 end
 			val = val:sub(occ, val:len())
 			io.stdout:write(val)
 		end
-
+		if val:find(ESC .. "%[2J") then
+			cursor.x = 1
+			cursor.y = 1
+			gpu.fill(1, 1, 160, 50, " ")
+		end
+		
 		if val:find("\n") then
 			for line in val:gmatch("([^\n]+)") do
-				if sh.getY() == h then
+				if lib.getY() == h then
 					gpu.copy(1, 2, w, h - 1, 0, -1)
 					gpu.fill(1, h, w, 1, " ")
-					sh.setY(sh.getY() - 1)
+					lib.setY(lib.getY() - 1)
 				end
-				gpu.set(sh.getX(), sh.getY(), line)
-				sh.setX(1)
-				sh.setY(sh.getY() + 1)
+				gpu.set(lib.getX(), lib.getY(), line)
+				lib.setX(1)
+				lib.setY(lib.getY() + 1)
 			end
 		else
-			if sh.getY() == h then
+			if lib.getY() == h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
 				gpu.fill(1, h, w, 1, " ")
-				sh.setY(sh.getY() - 1)
+				lib.setY(lib.getY() - 1)
 			end
-			gpu.set(sh.getX(), sh.getY(), val)
-			sh.setX(sh.getX() + val:len())
+			gpu.set(lib.getX(), lib.getY(), val)
+			lib.setX(lib.getX() + val:len())
 		end
 		return true
 	end

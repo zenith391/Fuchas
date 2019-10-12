@@ -1,6 +1,7 @@
 local drv = {}
-local int = component.getPrimary("internet")
 local fs = require("filesystem")
+local cp, int = ...
+int = cp.proxy(int)
 
 function drv.httpDownload(url, dest)
 	local h = int.request(url)
@@ -28,8 +29,12 @@ function drv.readFully(url)
 	return buf
 end
 
+function drv.isCompatible()
+	return int ~= nil and int.type == "internet"
+end
+
 function drv.getRank()
 	return 1
 end
 
-return component.isAvailable("internet"), "internet", drv
+return drv

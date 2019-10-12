@@ -19,4 +19,4 @@ end
 
 security.requestPermission("*")
 
-loadfile(res)(table.unpack(args))
+loadfile(res)(args)

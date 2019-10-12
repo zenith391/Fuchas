@@ -13,7 +13,6 @@ local list = filesystem.list(fullPath)
 print("List of " .. fullPath)
 for k, v in list do
 	local fp = filesystem.concat(filesystem.canonical(fullPath), k)
-	--print(fp)
 	local isdir = filesystem.isDirectory(fp)
 	if isdir then
 		gpu.setForeground(0x00FF00)
