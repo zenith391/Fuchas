@@ -2,6 +2,7 @@ local primaries = {}
 local vcomponents = {}
 
 -- original component methods
+local cp = component
 local _list = component.list
 local _type = component.type
 local _proxy = component.proxy
@@ -10,7 +11,7 @@ local _methods = component.methods
 local _slot = component.slot
 local _proxy = component.proxy
 
-function component.list(filter)
+function cp.list(filter)
 	local list = _list(filter)
 	for k, v in pairs(vcomponents) do
 		if not filter or v.type == filter then
@@ -20,7 +21,7 @@ function component.list(filter)
 	return list
 end
 
-function component.type(addr)
+function cp.type(addr)
 	for k, v in pairs(vcomponents) do
 		if k == addr then
 			return v.type
@@ -29,7 +30,7 @@ function component.type(addr)
 	return _type(addr)
 end
 
-function component.proxy(addr)
+function cp.proxy(addr)
 	for k, v in pairs(vcomponents) do
 		if k == addr then
 			return v
@@ -38,8 +39,8 @@ function component.proxy(addr)
 	return _proxy(addr)
 end
 
-function component.get(addr)
-	for k, v in component.list() do
+function cp.get(addr)
+	for k, v in cp.list() do
 		if string.startsWith(k, addr) then
 			return k
 		end
@@ -47,8 +48,8 @@ function component.get(addr)
 	return nil
 end
 
-function component.isConnected(addr)
-	for k, v in pairs(component.list()) do
+function cp.isConnected(addr)
+	for k, v in pairs(cp.list()) do
 		if k == addr then
 			return true
 		end
@@ -56,44 +57,44 @@ function component.isConnected(addr)
 	return false
 end
 
-function component.isVirtual(addr)
-	if component.isConnected(addr) then
-		return (component.proxy.isvirtual == true)
+function cp.isVirtual(addr)
+	if cp.isConnected(addr) then
+		return (cp.proxy.isvirtual == true)
 	end
 end
 
-function component.addVComponent(addr, proxy)
+function cp.addVComponent(addr, proxy)
 	proxy.isvirtual = true -- atleast know it's virtual
 	vcomponents[addr] = proxy
 end
 
-function component.removeVComponent(addr)
+function cp.removeVComponent(addr)
 	vcomponents[addr] = nil
 end
 
-function component.isAvailable(type)
-	return component.list(type)() ~= nil
+function cp.isAvailable(type)
+	return cp.list(type)() ~= nil
 end
 
-function component.getPrimary(type)
+function cp.getPrimary(type)
 	if primaries[type] == nil then
-		if component.isAvailable(type) then -- if no primary component
-			primaries[type] = component.proxy(component.list(type)())
+		if cp.isAvailable(type) then -- if no primary component
+			primaries[type] = cp.proxy(cp.list(type)())
 		end
 	else
-		if not component.isConnected(primaries[type].address) then -- if outdated primary component
-			primaries[type] = component.proxy(component.list(type)())
+		if not cp.isConnected(primaries[type].address) then -- if outdated primary component
+			primaries[type] = cp.proxy(cp.list(type)())
 		end
 	end
 	return primaries[type]
 end
 
-function component.setPrimary(type, addr)
+function cp.setPrimary(type, addr)
 	if type(addr) == "string" then
-		if not component.isConnected(addr) then
+		if not cp.isConnected(addr) then
 			error("not connected: " .. addr)
 		end
-		primaries[type] = component.proxy(addr)
+		primaries[type] = cp.proxy(addr)
 	elseif type(addr) == "table" or type(addr) == "userdata" then
 		primaries[type] = addr
 	else
@@ -102,24 +103,43 @@ function component.setPrimary(type, addr)
 	primaries[type] = addr
 end
 
-setmetatable(component, {
+local cp = component
+setmetatable(cp, {
 	__index = function(self, key)
-		if component.getPrimary(key) ~= nil then
-			return component.getPrimary(key)
+		if cp.getPrimary(key) ~= nil then
+			return cp.getPrimary(key)
 		else
-			return component[key]
+			return cp[key]
 		end
 	end,
 	-- component.gpu: Return component.getPrimary("gpu") if available
 	-- component.getPrimary: Return getPrimary function
 	__newindex = function(self, key, value)
-		if self[key] == nil or component.getPrimary(key) ~= nil then
-			component.setPrimary(key, value)
-		else
-			error("component API is read-only")
+		if self[key] == nil or cp.getPrimary(key) ~= nil then
+			cp.setPrimary(key, value)
 		end
 	end
 	-- component.gpu = addr/proxy: Act same as component.setPrimary("gpu", addr/proxy)
 	-- component.xlodkzek = proxy: Also works to set as primary (virtual) component
-	-- component.setPrimary = function() ... end: Throws error
 })
+
+component = setmetatable({}, {
+	__index = function(self, key)
+		local sec = require("security")
+		if sec.hasPermission("critical.component.get") then
+			return cp[key]
+		else
+			error("Not enough permission to access component")
+		end
+	end,
+	__newindex = function(self, key, value)
+		local sec = require("security")
+		if sec.hasPermission("critical.component.set") then
+			cp[key] = value
+		end
+	end
+})
+
+package.loaded["driver"] = dofile("A:/Fuchas/Libraries/driver.lua", cp)
+package.loaded["component"] = component
+-- Driver need to be inited here in order to pass original component lib

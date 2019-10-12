@@ -6,16 +6,17 @@ local level = 0
 -- 3: Application (dir, etc.)
 
 local mod = {}
-local g = _G
+local restricted = {
+	kernel = kernel,
+	component = component,
+	computer = computer,
+}
 
 function mod.value(lvl)
 	if lvl then
-		if _G == nil then
-			local ser = require("security")
-			if ser.hasPermission("critical.runlevel.down") then
-				_G = g
-				_ENV = _G
-			end
+		local ser = require("security")
+		if ser.hasPermission("critical.runlevel.down") then
+			-- TODO
 		end
 		level = lvl
 	end
@@ -28,7 +29,7 @@ function mod.loadRestrict(chunk, source)
 		env.kernel = nil
 	end
 	if level > 1 then
-		env._G = nil
+		--env._G = nil
 		env.component = nil
 		env.computer = nil
 	end

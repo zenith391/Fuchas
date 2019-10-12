@@ -98,7 +98,7 @@ while run do
 				print(err)
 			end
 
-			local proc = shin32.newProcess("cli-" .. args[1], function()
+			local proc = shin32.newProcess(args[1], function()
 				if f ~= nil then
 					xpcall(f, function(err)
 						io.stderr:write(err .. "\n")

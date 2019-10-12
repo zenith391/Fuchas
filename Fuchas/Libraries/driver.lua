@@ -2,6 +2,7 @@ local driver = {}
 local loading = {}
 local loaded = {}
 
+local cp = ... -- only package to receive arguments
 local fs = require("filesystem")
 
 function driver.searchpath(name, path, sep, rep)
@@ -44,7 +45,7 @@ local function findBestDriver(type, addr)
 		if fs.exists(dir) then
 			for path, _ in fs.list(dir) do
 				if not fs.isDirectory(dir .. path) then
-					local drv = dofile(dir .. path, addr)
+					local drv = dofile(dir .. path, cp, addr)
 					if drv.isCompatible() then
 						if sel == nil then
 							sel = drv
@@ -62,7 +63,7 @@ local function findBestDriver(type, addr)
 end
 
 local function getDefaultDriver(type)
-	for addr, _ in pairs(component.list()) do
+	for addr, _ in pairs(cp.list()) do
 		local d = findBestDriver(type, addr)
 		if d ~= nil then
 			return d

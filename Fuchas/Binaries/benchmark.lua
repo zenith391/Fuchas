@@ -1,5 +1,7 @@
 local computer = computer
-local gpu = component.gpu
+local driver = require("driver")
+--local gpu = component.gpu
+local gpu = driver.getDriver("gpu")
 local benchmarkTime = 1
 local args, ops = require("shell").parse(...)
 
@@ -44,13 +46,13 @@ print("      Average Time: " .. time)
 local org = gpu.get(1, 1)
 print("  - GPU (set)..")
 time = benchmark(function()
-	gpu.set(1, 1, 'T')
+	gpu.drawText(1, 1, 'T')
 end)
 gpu.set(1, 1, org)
 print("      Average Time: " .. time)
 
 print("  - GPU (fill, 160x1)..")
 time = benchmark(function()
-	gpu.fill(1, 1, 160, 1, ' ')
+	gpu.fill(1, 1, 160, 1)
 end)
 print("      Average Time: " .. time)

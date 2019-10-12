@@ -1,10 +1,10 @@
 local fs = require("filesystem")
 local comp = require("component")
+local gpu = comp.proxy(comp.list("gpu")())
 
 function io.createStdOut()
 	local stream = {}
 	local sh = require("shell")
-	local gpu = comp.proxy(comp.list("gpu")())
 	local w, h = gpu.getViewport()
 	stream.close = function(self)
 		return false -- unclosable stream
@@ -48,10 +48,10 @@ end
 function io.createStdErr()
 	local stream = {}
 	stream.write = function(self, val)
-		local fg = component.gpu.getForeground()
-		component.gpu.setForeground(0xFF0000)
+		local fg = gpu.getForeground()
+		gpu.setForeground(0xFF0000)
 		local b = io.stdout:write(val)
-		component.gpu.setForeground(fg)
+		gpu.setForeground(fg)
 		return b
 	end
 	--stream.write = io.stdout.write

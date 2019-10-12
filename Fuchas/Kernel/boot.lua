@@ -177,8 +177,6 @@ loadfile = function(path)
 	return load(buffer, "=" .. path, "bt", _G)
 end
 
-kernel.runlevel.value(0)
-
 local ok, err = xpcall(function()
 	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do

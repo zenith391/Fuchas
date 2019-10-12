@@ -1,7 +1,8 @@
 local drv = {}
 local out = nil
 local outbuf = ""
-local printer = component.proxy(...)
+local cp, printer = ...
+printer = cp.proxy(printer)
 
 function drv.out()
 	if out == nil then

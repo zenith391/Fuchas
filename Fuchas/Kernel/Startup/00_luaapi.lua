@@ -7,8 +7,16 @@ local _lower = string.lower
 local _upper = string.upper
 local uni = true -- experiemental feature (automatic unicode support)
 
-function string.setUnicodeSupport(u)
+function string.setUnicodeEnabled(u)
 	uni = u
+end
+
+function string.isUnicodeEnabled()
+	return uni
+end
+
+function string.toggleUnicode()
+	uni = not uni
 end
 
 function string.toCharArray(s)

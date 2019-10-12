@@ -1,5 +1,6 @@
 local drv = {}
-local drive = component.proxy(...)
+local cp, drive = ...
+drive = cp.proxy(drive)
 
 local SECTOR_IO_TRESHOLD = 5
 local sectorCache = { -- sectors are cached for faster properties/content reading.
@@ -21,7 +22,7 @@ function drv.setLabel(label)
 end
 
 -- Should be used instdead of drv.readByte when possible, as it *can be* optimized
-function drv.readBytes(off, len)
+function drv.readBytes(off, len, asString)
 	local sectorId = math.ceil((off+1)/512)
 	if sectorCache.id ~= sectorId or sectorCache.addr ~= addr then
 		sectorCache.id = sectorId
@@ -30,18 +31,18 @@ function drv.readBytes(off, len)
 	end
 	local bytes = table.pack(string.byte(sectorCache.text:sub(off%512+1, off%512+len)))
 	if asString then
-		return table.pack(string.char(bytes))
+		return string.char(table.unpack(bytes))
 	else
-		return table.unpack(bytes)
+		return bytes
 	end
 end
 
 -- Should be used instdead of drv.writeByte when possible, as it *can be* optimized
-function drv.writeBytes(offset, data, len)
+function drv.writeBytes(off, data, len)
 	if type(data) == "string" then
 		data = table.pack(string.byte(data, 1, string.len(data)))
 	end
-	if #data > SECTOR_IO_TRESHOLD and false then -- if it became more efficient to use sector i/o
+	if #data > SECTOR_IO_TRESHOLD then -- if it became more efficient to use sector i/o
 		local sector = math.ceil((off+1)/512)
 		local offset = (off+1)%512
 		local sec = drive.readSector(sector)

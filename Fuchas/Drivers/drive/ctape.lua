@@ -1,6 +1,7 @@
 local drv = {}
 local pos = 0
-local tape = component.proxy(...)
+local cp, tape = ...
+tape = cp.proxy(tape)
 
 function drv.isCompatible()
 	return tape.type == "tape_drive"

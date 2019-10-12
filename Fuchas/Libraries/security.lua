@@ -46,6 +46,9 @@ function lib.isRegistered(pid)
 end
 
 function lib.hasPermission(perm, pid)
+	if not pid and shin32.getCurrentProcess() == nil then
+		return true
+	end
 	local proc = pid or currentProcess().pid
 	if permtable[proc]["*"] then
 		return true

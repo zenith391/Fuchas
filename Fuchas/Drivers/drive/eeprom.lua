@@ -1,5 +1,7 @@
 -- Placeholder
 local drv = {}
+local cp, drive = ...
+drive = cp.proxy(drive)
 
 function drv.isCompatible()
 	return false

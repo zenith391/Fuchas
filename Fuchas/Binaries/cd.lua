@@ -1,7 +1,6 @@
 local args = ...
 
 local filesystem = require("filesystem")
-local gpu = component.getPrimary("gpu")
 local drive = shin32.getSystemVar("PWD_DRIVE")
 local pwd = shin32.getSystemVar("PWD")
 local fullPath = drive .. ":/" .. pwd

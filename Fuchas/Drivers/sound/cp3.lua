@@ -4,7 +4,8 @@
 local drv = {}
 local t = 0
 local syn = false
-local sound = component.proxy(...)
+local cp, sound = ...
+sound = cp.proxy(sound)
 
 -- Universal for all sound drivers
 function drv.appendFrequency(channel, time, freq)
