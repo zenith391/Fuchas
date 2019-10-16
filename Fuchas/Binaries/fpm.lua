@@ -141,10 +141,10 @@ if args[1] == "remove" then
 					local dest = fs.canonical(dir) .. "/" .. f
 					io.stdout:write("Removing " .. f .. "..  ")
 					fs.remove(dest)
-					local fg = component.gpu.getForeground()
-					component.gpu.setForeground(0xFF0000)
+					local _, fg = gpu.getColor()
+					gpu.setForeground(0xFF0000)
 					print("REMOVED!")
-					component.gpu.setForeground(fg)
+					gpu.setForeground(fg)
 				end
 				packages[k] = nil
 				save()
