@@ -48,7 +48,7 @@ print("  - GPU (set)..")
 time = benchmark(function()
 	gpu.drawText(1, 1, 'T')
 end)
-gpu.set(1, 1, org)
+gpu.drawText(1, 1, org)
 print("      Average Time: " .. time)
 
 print("  - GPU (fill, 160x1)..")

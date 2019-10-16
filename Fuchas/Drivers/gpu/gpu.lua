@@ -39,6 +39,10 @@ function drv.setResolution(w, h)
 	comp.setViewport(w, h)
 end
 
+function drv.maxResolution()
+	return comp.maxResolution()
+end
+
 function drv.fillChar(x, y, w, h, ch)
 	comp.fill(x, y, w, h, ch)
 end

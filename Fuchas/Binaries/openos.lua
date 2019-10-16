@@ -49,7 +49,7 @@ end
 local function setupEnvironment()
 	local env = {
 		computer = computerAPI(),
-		component = _G.component,
+		component = _G.component.unrestricted,
 		math = _G.math,
 		coroutine = _G.coroutine,
 		bit32 = _G.bit32,
@@ -92,13 +92,12 @@ local function startMachine(env)
 	print("Loading function")
 	local start = load(init, "openos_init", "bt", env)
 	print("Starting..")
-	xpcall(start, function(err)
-		io.stderr:write("Error with OpenOS: " .. err .. "\n")
-		io.stderr:write(debug.traceback())
-	end)
+	--xpcall(start, function(err)
+	--	io.stderr:write("Error with OpenOS: " .. err .. "\n")
+	--	io.stderr:write(debug.traceback())
+	--end)
+	start()
 end
-
-local env = setupEnvironment()
 
 print("Process: " .. shin32.getCurrentProcess().pid)
 print("Process coroutine: " .. tostring(coroutine.running()))
@@ -108,7 +107,16 @@ local ret = nil
 local ret = coroutine.yield(function()
 	print("Main coroutine: " .. tostring(coroutine.running()))
 	os.sleep(1)
-	startMachine(env)
+	local env = setupEnvironment()
+	local ok, err = xpcall(startMachine, function(err)
+		print(err)
+		print(debug.traceback())
+		return err
+	end, env)
+	print(err)
+	while true do
+		require("event").pull()
+	end
 	return false, "ok"
 end)
 

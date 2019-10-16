@@ -36,7 +36,7 @@ function drv.out()
 end
 
 function drv.isCompatible()
-	return printer.type == "openprinter"
+	return printer and printer.type == "openprinter"
 end
 
 function drv.getName()

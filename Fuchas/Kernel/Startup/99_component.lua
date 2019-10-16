@@ -127,6 +127,9 @@ component = setmetatable({}, {
 	__index = function(self, key)
 		local sec = require("security")
 		if sec.hasPermission("critical.component.get") then
+			if cp == "unrestricted" then
+				return cp
+			end
 			return cp[key]
 		else
 			error("Not enough permission to access component")
