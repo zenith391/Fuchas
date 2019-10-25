@@ -4,7 +4,7 @@ local rw, rh = gpu.getResolution()
 local lib = {}
 local dc = {}
 
-local doDebug = OSDATA.DEBUG -- warning costs a lost of GPU call budget
+local doDebug = OSDATA.DEBUG -- warning costs a lot of GPU call budget
 
 function lib.closeContext(ctx)
 	lib.drawContext(ctx)
@@ -23,16 +23,16 @@ function lib.drawContext(ctxn)
 	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
-		local x = v.x+1
-		local y = v.y+1
+		local x = v.x
+		local y = v.y
 		local width = v.width
 		local height = v.height
 		local color = v.color
-		if t == "fillRect" and x < rw+1 and y < rh+1 then
+		if t == "fillRect" and x <= rw and y <= rh then
 			gpu.setBackground(color)
 			gpu.fill(x, y, width, height, " ")
 		end
-		if t == "drawText" and x < rw and y < rh then
+		if t == "drawText" and x <= rw and y <= rh then
 			local back = v.color2
 			if not back then _, _, back = gpu.get(x, y) end
 			gpu.setForeground(color)
@@ -40,7 +40,7 @@ function lib.drawContext(ctxn)
 			gpu.set(x, y, v.text)
 		end
 		if t == "copy" then
-			local x2, y2 = i.x2+1, i.y2+1
+			local x2, y2 = i.x2, i.y2
 			gpu.copy(x, y, width, height, x2 - x, y2 - y)
 		end
 	end
@@ -49,8 +49,8 @@ end
 
 function lib.newContext(x, y, width, height, braille)
 	local ctx = {}
-	ctx.x = x or 1
-	ctx.y = y or 1
+	ctx.x = (x or 1)-1
+	ctx.y = (y or 1)-1
 	ctx.width = width or 160
 	ctx.height = height or 50
 	ctx.braille = braille
@@ -72,19 +72,19 @@ end
 
 function lib.moveContext(ctx, x, y)
 	local c = dc[ctx]
-	c.x = x
-	c.y = y
+	c.x = x-1
+	c.y = y-1
 end
 
 function lib.canvas(ctxn)
 	local cnv = {}
 	cnv.fillRect = function(x, y, width, height, color)
 		local ctx = dc[ctxn]
-		if x + width - 1 > ctx.width then
-			width = ctx.width - x
+		if x + width > ctx.width+1 then
+			width = ctx.width - x+1
 		end
-		if y + height - 1 > ctx.height then
-		height = ctx.height - y
+		if y + height > ctx.height+1 then
+			height = ctx.height - y+1
 		end
 		x = x + ctx.x
 		y = y + ctx.y

@@ -8,6 +8,7 @@ function drv.isCompatible()
 end
 
 local function sync(off)
+	if tape.getPosition then pos = tape.getPosition() end
 	if pos ~= offset then
 		tape.seek(offset - pos)
 		pos = offset

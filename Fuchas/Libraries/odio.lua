@@ -62,15 +62,43 @@ end
 -- Availables formats:
 --	- AAF: Adaptive Audio Format
 function lib.readFile(src, type)
-	local signatureReaded = false
 	if not type then
 		type = "aaf"
 	end
 	if type == "aaf" then
 		local signature = src:read(5)
-		if signature ~= " AAF " then
-			error("file isn't aaf")
+		if signature ~= string.char(19) .. "AAF" .. string.char(3) then -- DC3 .. AAF .. ETX
+			return nil, "file isn't aaf"
 		end
+		local caps = {}
+		local flag = string.byte(src:read(1)) -- waves flag
+		if bit32.band(flag, 1) == 1 then
+			table.insert(caps.waveTypes, "square")
+		end
+		if bit32.band(flag, 2) == 2 then
+			table.insert(caps.waveTypes, "sine")
+		end
+		if bit32.band(flag, 4) == 4 then
+			table.insert(caps.waveTypes, "triangle")
+		end
+		if bit32.band(flag, 8) == 8 then
+			table.insert(caps.waveTypes, "sawtooth")
+		end
+		flag = string.byte(src:read(1)) -- miscelanous flag
+		if bit32.band(flag, 1) == 1 then
+			caps.adsr = true
+		end
+		if bit32.band(flag, 1) == 1 then
+			caps.volume = true
+		end
+		caps.channels = string.byte(src:read(1))
+
+		local ok, err = checkCapabilities(caps)
+		if not ok then
+			return nil, "missing capability: " .. err
+		end
+
+
 	end
 end
 
@@ -89,7 +117,7 @@ function lib.play(soundID)
 		if dat.type == "flush" then
 		end
 		if dat.type == "adsr" then
-			driver.setADSR(dat.channel, )
+			driver.setADSR(dat.channel, 0, 0, 0, 0)
 		end
 		if dat.type == "volume" then
 			

@@ -19,15 +19,20 @@ function benchmark(func)
 		func()
 		local funcTime = computer.uptime() - funcStart
 		time = (time + funcTime) / 2
+		coroutine.yield()
 	end
-	coroutine.yield()
 	return time
 end
 
 print("Benchmarking..")
-print("  - Event Pulling / Task Switch..")
+print("  - Event Pulling..")
 time = benchmark(function()
 	computer.pullSignal(0)
+end)
+print("      Average Time: " .. time)
+print("  - Task Switch..")
+time = benchmark(function()
+	coroutine.yield()
 end)
 print("      Average Time: " .. time)
 print("  - 100000 Lua loops (no call inside)..")

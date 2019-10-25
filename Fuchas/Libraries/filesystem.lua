@@ -190,6 +190,8 @@ function filesystem.setAttributes(path, raw)
 	if node then
 		if node.setAttributes then
 			node.setAttributes(path, raw)
+		else
+			
 		end
 	end
 end

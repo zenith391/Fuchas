@@ -165,10 +165,10 @@ if not bit32 then
 		return ~x
 	end
 	function bit32.rshift(num, disp)
-		--return num >> disp
+		return num >> disp
 	end
 	function bit32.lshift(num, disp)
-		--return num << disp
+		return num << disp
 	end
 	function bit32.btest(...)
 		return bit32.band(...) ~= 0
