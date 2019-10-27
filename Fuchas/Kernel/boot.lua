@@ -90,7 +90,7 @@ end
 _G.write = write
 
 function print(msg, fore)
-	write(msg .. "\n", fore)
+	write(tostring(msg) .. "\n", fore)
 end
 
 function os.sleep(n)
@@ -131,6 +131,9 @@ local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAd
 if not g then
 	print("Error while mounting A drive: " .. h)
 end
+_G.package.loaded.event = assert(loadfile("/Fuchas/Libraries/event.lua"))()
+_G.package.loaded.tasks = assert(loadfile("/Fuchas/Libraries/tasks.lua"))()
+_G.package.loaded.security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
 
 print("(4/5) Mounting all drives..")
 local letter = string.byte('A')

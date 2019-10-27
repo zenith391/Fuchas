@@ -251,8 +251,8 @@ function filesystem.getAttributes(path, raw)
 	else
 		return {
 			readOnly = (bit32.band(attr, 1) == 1), -- always read-only
-			system = (bit32.band(attr, 2) == 2), -- read-only if not having correct permission
-			protected = (bit32.band(attr, 4) == 4), -- unaccessible if not having correct permission
+			system = (bit32.band(attr, 2) == 2), -- protected in Read
+			protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
 			hidden = (bit32.band(attr, 8) == 8), -- hidden
 			noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
 		}
@@ -334,21 +334,21 @@ end
 
 function filesystem.open(path, mode)
 	checkArg(1, path, "string")
-	local attributes = filesystem.getAttributes(path)
-	if attributes.protected and false then
-		if not require("security").hasPermission("file.protected") then
-			return nil, "not enough permissions"
-		end
-	end
-	if attributes.system and false then
-		if not require("security").hasPermission("critical.file.system") then
-			return nil, "not enough permissions"
-		end
-	end
 	mode = tostring(mode or "r")
 	checkArg(2, mode, "string")
 	assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
 		"bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
+	local attributes = filesystem.getAttributes(path)
+	if attributes.protected then
+		if not require("security").hasPermission("file.protected") then
+			return nil, "not enough permissions"
+		end
+	end
+	if mode ~= "r" and mode ~= "rb" and attributes.system and package.loaded.security then
+		if not require("security").hasPermission("file.system") then
+			return nil, "not enough permissions"
+		end
+	end
 	local node, rest = findNode(path)
 	local segs = segments(path)
 	table.remove(segs, 1)
@@ -372,7 +372,7 @@ function filesystem.open(path, mode)
 		end
 	end
 	local cproc = nil
-	if shin32 then cproc = shin32.getCurrentProcess() end
+	if package.loaded.tasks then cproc = require("tasks").getCurrentProcess() end
 	local stream =
 	{
 		fs = node,

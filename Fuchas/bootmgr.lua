@@ -36,8 +36,6 @@ tasks.newProcess("System Interface", function()
 		error(err)
 	end)
 	if f == true then
-		computer.pushSignal("shutdown", computer.uptime())
-		require("event").exechandlers({"shutdown", computer.uptime()})
 		computer.shutdown() -- main interface exit
 	end
 end)

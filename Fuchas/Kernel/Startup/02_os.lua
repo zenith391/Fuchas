@@ -1,4 +1,6 @@
 local tasks = require("tasks")
+local _shutdown = computer.shutdown
+
 function os.getenvs()
 	local curr = tasks.getCurrentProcess()
 	return curr.env
@@ -16,4 +18,14 @@ function os.setenv(name, value)
 	if curr then
 		curr.env[name] = value
 	end
+end
+
+function computer.shutdown(reboot)
+	computer.pushSignal("shutdown", computer.uptime())
+	if tasks.getCurrentProcess() ~= nil then
+		coroutine.yield()
+	else
+		require("event").exechandlers({"shutdown", computer.uptime()})
+	end
+	_shutdown(reboot)
 end
