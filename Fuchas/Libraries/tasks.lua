@@ -2,11 +2,11 @@ local event = require("event")
 local mod = {}
 
 local activeProcesses = 0
-local currentProc = 0
+local currentProc = nil
 local processes = {}
 
 function mod.newProcess(name, func)
-	local pid = #processes
+	local pid = #processes+1
 	local proc = {
 		name = name,
 		func = func,
@@ -25,8 +25,14 @@ function mod.newProcess(name, func)
 			mod.waitFor(self)
 		end
 	}
+	local currProc = mod.getCurrentProcess()
+	if currProc ~= nil then
+		proc.env = currProc.env
+	else
+		proc.env = {}
+	end
 	processes[pid] = proc
-	if dll.getCurrentProcess() ~= nil then
+	if mod.getCurrentProcess() ~= nil then
 		proc.parent = mod.getCurrentProcess()
 	else -- else it's launched by system, so it's a system process
 		require("security").requestPermission("*", pid)

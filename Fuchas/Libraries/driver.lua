@@ -40,7 +40,7 @@ end
 
 local function findBestDriver(type, addr)
 	local sel = nil
-	for _, v in pairs(string.split(shin32.getSystemVar("DRV_PATH"), ";")) do
+	for _, v in pairs(string.split(os.getenv("DRV_PATH"), ";")) do
 		local dir = v .. type .. "/"
 		if fs.exists(dir) then
 			for path, _ in fs.list(dir) do

@@ -1,8 +1,8 @@
 local args = ...
 
 local filesystem = require("filesystem")
-local drive = shin32.getSystemVar("PWD_DRIVE")
-local pwd = shin32.getSystemVar("PWD")
+local drive = os.getenv("PWD_DRIVE")
+local pwd = os.getenv("PWD")
 local fullPath = drive .. ":/" .. pwd
 
 local current = filesystem.canonical(fullPath)
@@ -24,7 +24,7 @@ end
 local newPath = canon .. args[1]
 local effectivePath = drive .. ":" .. filesystem.canonical(newPath)
 if filesystem.exists(effectivePath) and filesystem.isDirectory(effectivePath) then
-	shin32.setSystemVar("PWD", filesystem.canonical(newPath))
+	os.setenv("PWD", filesystem.canonical(newPath))
 else
 	if not filesystem.exists(effectivePath) then
 		print(drive .. ":" .. newPath .. " doesn't exists.")

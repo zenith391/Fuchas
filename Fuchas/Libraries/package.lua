@@ -45,9 +45,9 @@ function require(module)
 		return loaded[module]
 	elseif not loading[module] then
 		local library, status, step
-		if shin32 then -- compatible before and after launching
-			if shin32.getSystemVar("LIB_PATH") then
-				package.path = shin32.getSystemVar("LIB_PATH")
+		if os and os.getenv then -- compatible before and after launching
+			if os.getenv("LIB_PATH") then
+				package.path = os.getenv("LIB_PATH")
 			end
 		end
 		step, library, status = "not found", package.searchpath(module, package.path)

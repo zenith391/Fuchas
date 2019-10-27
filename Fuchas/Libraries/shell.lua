@@ -160,9 +160,9 @@ end
 
 function lib.resolve(path)
 	local p = path
-	local paths = string.split(shin32.getenv("PATH"), ";")
-	table.insert(paths, shin32.getenv("PWD_DRIVE") .. ":/" .. shin32.getenv("PWD"))
-	local exts = string.split(shin32.getenv("PATHEXT"), ";")
+	local paths = string.split(os.getenv("PATH"), ";")
+	table.insert(paths, os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD"))
+	local exts = string.split(os.getenv("PATHEXT"), ";")
 	table.insert(exts, "")
 	
 	if fs.exists(p) then

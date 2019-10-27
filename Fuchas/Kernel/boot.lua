@@ -1,10 +1,13 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.5.0",
-	DEBUG = false
+	DEBUG = true
 }
 
 _G._OSVERSION = _G.OSDATA.NAME .. " " .. _G.OSDATA.VERSION
+if OSDATA.DEBUG then
+	_OSVERSION = _OSVERSION .. " (debug)"
+end
 
 local screen = nil
 for address in component.list("screen", true) do
@@ -32,6 +35,9 @@ end
 function dofile(file, ...)
 	local program, reason = loadfile(file)
 	if program then
+		if OSDATA.DEBUG then
+			return program(...)
+		end
 		local result = table.pack(pcall(program, ...))
 		if result[1] then
 			return table.unpack(result, 2, result.n)
@@ -138,26 +144,6 @@ for k, v in component.list() do -- TODO: check if letter is over Z
 	end
 end
 
-kernel = {}
-setmetatable(kernel, {
-	__index = function(table, key)
-		if rawget(table, key) then
-			return rawget(table, key)
-		end
-		if require("filesystem").exists("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua") then
-			local data, err = loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
-			if data ~= nil then
-				data = data()
-			else
-				error(err)
-			end
-			rawset(table, key, data)
-			return table[key]
-		end
-	end,
-	__newindex = function() end
-})
-
 loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
@@ -178,7 +164,6 @@ loadfile = function(path)
 end
 
 local ok, err = xpcall(function()
-	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/Kernel/Startup/" .. k)

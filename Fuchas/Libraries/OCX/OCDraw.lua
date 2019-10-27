@@ -17,9 +17,8 @@ function lib.drawContext(ctxn)
 		gpu.setForeground(0x000000)
 		gpu.setBackground(0xFFFFFF)
 		gpu.set(1, 1, "OCDraw Debug:")
-		gpu.set(1, 2, "OCDraw Requests : " .. #ctx.drawBuffer)
-		gpu.set(1, 3, "Active Draw Contexts: " .. #dc)
-		gpu.set(1, 4, "Active Processes: " .. shin32.getActiveProcesses())
+		gpu.set(1, 2, "Active Draw Contexts: " .. #dc)
+		gpu.set(1, 3, "Active Processes: " .. require("tasks").getActiveProcesses())
 	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type

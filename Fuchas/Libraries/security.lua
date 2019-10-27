@@ -1,8 +1,9 @@
 local lib = {}
 local permtable = {}
+local tasks = require("tasks")
 
 local function currentProcess()
-	local proc = shin32.getCurrentProcess()
+	local proc = tasks.getCurrentProcess()
 	if not permtable[proc.pid] then
 		permtable[proc.pid] = {}
 	end
@@ -10,7 +11,7 @@ local function currentProcess()
 end
 
 function lib.revoke(pid)
-	if shin32.getProcess(pid).status == "dead" then
+	if tasks.getProcess(pid).status == "dead" then
 		permtable[pid] = nil
 		return true
 	else
@@ -23,7 +24,7 @@ function lib.revoke(pid)
 end
 
 function lib.requestPermission(perm, pid)
-	if shin32.getCurrentProcess() == nil then -- system coroutine
+	if tasks.getCurrentProcess() == nil then -- system coroutine
 		-- only case where pid is used
 		permtable[pid] = {}
 		permtable[pid]["*"] = true
@@ -46,7 +47,7 @@ function lib.isRegistered(pid)
 end
 
 function lib.hasPermission(perm, pid)
-	if not pid and shin32.getCurrentProcess() == nil then
+	if not pid and tasks.getCurrentProcess() == nil then
 		return true
 	end
 	local proc = pid or currentProcess().pid

@@ -210,7 +210,7 @@ function filesystem.getAttributes(path, raw)
 				if dir:sub(dir:len(), dir:len()) ~= "/" then
 					dir = dir .. "/"
 				end
-				print(dir)
+				--print(dir)
 				issame = true
 			else
 				dir = filesystem.path(path)
@@ -334,6 +334,17 @@ end
 
 function filesystem.open(path, mode)
 	checkArg(1, path, "string")
+	local attributes = filesystem.getAttributes(path)
+	if attributes.protected and false then
+		if not require("security").hasPermission("file.protected") then
+			return nil, "not enough permissions"
+		end
+	end
+	if attributes.system and false then
+		if not require("security").hasPermission("critical.file.system") then
+			return nil, "not enough permissions"
+		end
+	end
 	mode = tostring(mode or "r")
 	checkArg(2, mode, "string")
 	assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
