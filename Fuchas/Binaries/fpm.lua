@@ -242,8 +242,27 @@ if args[1] == "install" then
 					if not ok then
 						print("Error downloading package: " .. err)
 					end
-					for _, v in pairs(e.dependencies) do
-						table.insert(toInstall, v)
+					for k, v in pairs(e.dependencies) do
+						if k == "fuchas" then
+							local fmajor = OSDATA.VERSION:sub(1,1)
+							local fminor = OSDATA.VERSION:sub(3,3)
+							local fpatch = OSDATA.VERSION:sub(5,5)
+
+							local major,minor,patch = v:sub(1,1),v:sub(3,3),'*'
+							if v:len() > 3 then patch = v:sub(5,5) end
+							if fmajor ~= major or fminor ~= minor then
+								print("Package " .. e.name .. " doesn't work with the current version of Fuchas.")
+								print("Made for " .. major .. "." .. minor .. "." .. patch)
+								print("Current Fuchas version: " .. fmajor .. "." .. fminor .. "." .. fpatch)
+							end
+							if patch ~= '*' and patch ~= fpatch then
+								print("Package " .. e.name .. " doesn't work with the current version of Fuchas.")
+								print("Made for " .. major .. "." .. minor .. "." .. patch)
+								print("Current Fuchas version: " .. fmajor .. "." .. fminor .. "." .. fpatch)
+							end
+						else
+							table.insert(toInstall, v)
+						end
 					end
 					print(e.name .. " installed")
 					isnt = true
