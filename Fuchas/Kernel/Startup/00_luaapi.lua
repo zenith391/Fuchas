@@ -84,7 +84,7 @@ function string.startsWith(src, s)
 end
 
 function string.endsWith(src, s)
-	return (string.sub(src, src:len()-s:len(), src:len()) == s)
+	return (string.sub(src, src:len()-s:len()+1, src:len()) == s)
 end
 
 function string.split(str, sep)

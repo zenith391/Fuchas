@@ -41,6 +41,11 @@ while run do
 	os.setenv("PWD_DRIVE", drive)
 	write(drive .. ":/" .. os.getenv("PWD") .. ">")
 	local l = sh.read()
+	local async = false
+	if string.endsWith(l, "&") then
+		l = l:sub(1, l:len()-1)
+		async = true
+	end
 	local args = sh.parseCL(l)
 	write(" \n")
 	if #args == 0 then
@@ -107,7 +112,9 @@ while run do
 					end, programArgs)
 				end
 			end)
-			proc:join()
+			if not async then
+				proc:join()
+			end
 			component.gpu.setForeground(0xFFFFFF)
 			component.gpu.setBackground(0x000000)
 		end, function(err)
