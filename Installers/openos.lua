@@ -9,7 +9,6 @@ local width, height = gpu.getResolution()
 local stage         = 1
 local selected      = 2
 local maxSelect     = 2
-local fileList      = nil
 local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local downloading   = ""
@@ -125,6 +124,23 @@ local function drawEntries()
 		gpu.setBackground(0x000000)
 		gpu.setForeground(0xFFFFFF)
 	end
+	if stage == 2 then
+		gpu.setBackground(0x000000)
+		if selected == 1 then
+			gpu.setBackground(0xFFFFFF)
+			gpu.setForeground(0x000000)
+		end
+		gpu.set(7, 11, "Stable branch")
+		gpu.setBackground(0x000000)
+		gpu.setForeground(0xFFFFFF)
+		if selected == 2 then
+			gpu.setBackground(0xFFFFFF)
+			gpu.setForeground(0x000000)
+		end
+		gpu.set(7, 12, "Dev branch (unstable)")
+		gpu.setBackground(0x000000)
+		gpu.setForeground(0xFFFFFF)
+	end
 end
 
 local function download(url)
@@ -154,6 +170,14 @@ local function drawStage()
 		drawEntries()
 	end
 	if stage == 2 then
+		gpu.set(5, 5, "Fuchas is separated in two branches: stable and dev")
+		gpu.set(5, 6, "The stable branch is the recommended one, it doesn't")
+		gpu.set(5, 7, "have latest features but is very stable. The dev branch")
+		gpu.set(5, 8, "have the latest features but is very buggy and not supported.")
+		drawBorder(6, 10, width - 12, 3)
+		drawEntries()
+	end
+	if stage == 3 then
 		if not doErase then
 			gpu.set(5, 4, "Information:")
 			gpu.set(5, 5, "Dual-boot will be effective on the hard drive,")
@@ -168,14 +192,14 @@ local function drawStage()
 			doErase = false
 		end
 	end
-	if stage == 3 then
+	if stage == 4 then
 		gpu.set(5, 5, "Fetching install files..")
 	end
-	if stage == 4 then
+	if stage == 5 then
 		gpu.set(5, 5, "Downloading..")
 		gpu.set(5, 6, downloading)
 	end
-	if stage == 5 then
+	if stage == 6 then
 		gpu.set(5, 5, "Done!")
 		gpu.set(5, 6, "Now restarting the computer..")
 		os.sleep(0.5)
@@ -209,22 +233,23 @@ end
 
 local doErase = false
 local function process()
+	if stage == 2 then
+		if selected == 2 then
+			repoURL = "https://raw.githubusercontent.com/zenith391/Fuchas/dev/"
+		end
+		selected = 1
+		stage = 3
+		drawStage()
+		os.sleep(5) -- let the user read
+		stage = 4
+		drawStage()
+		install()
+	end
 	if stage == 1 then
 		stage = 2
 		doErase = (selected == 1)
 		selected = 1
 		drawStage()
-		os.sleep(5) -- let the user read
-		stage = 3
-		drawStage()
-		
-		-- fetch
-		local f, err = load("return {" .. download(repoURL .. ".install") .. "}")
-		if err ~= nil then
-			error(err)
-		end
-		fileList = f()
-		install()
 	end
 end
 
