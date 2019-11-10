@@ -71,7 +71,7 @@ local function ext(stream)
 		dent.mtime = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		dent.namesize = readint(2)
 		dent.filesize = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
-		local name = stream.read(dent.namesize):sub(1, dent.namesize-1)
+		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
 		if (name == "TRAILER!!!") then
 			break
 		end
@@ -220,10 +220,15 @@ local function drawStage()
 end
 
 local function install()
-	local tmpCpio = internet.request(repoURL .. "release.cpio")
-	tmpCpio.finishConnect()
+	local tmpCpio = io.open("/fuchas.cpio", "w")
+	local ok, err = tmpCpio:write(download(repoURL .. "release.cpio"))
+	if not ok then
+		error("Could not download package: " .. err)
+	end
+	tmpCpio:close()
+	tmpCpio = io.open("/fuchas.cpio", "rb")
 	ext(tmpCpio)
-	tmpCpio.close()
+	tmpCpio:close()
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then
 		error(err)

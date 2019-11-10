@@ -2,7 +2,11 @@ local shell = require("shell")
 
 while true do
 	io.write(" > ")
-	local ck, err = load(shell.read(), "usercode")
+	local txt = shell.read()
+	if string.startsWith(txt, "=") then
+		txt = "return " .. txt:sub(2)
+	end
+	local ck, err = load(txt, "usercode")
 	io.write("\n ")
 	if ck == nil then
 		print(err)

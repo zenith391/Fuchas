@@ -1,6 +1,7 @@
 local user = {}
 local users = {}
 local security = require("security")
+local fs = require("filesystem")
 local hashes = {
 	sha256 = require("sha256")
 }
@@ -22,6 +23,22 @@ local function retrieveUsers()
 	end
 end
 
+function lib.getSharedUserPath()
+	return "A:/Users/Shared"
+end
+
+function lib.getUserPath()
+	if user == nil then
+		return lib.getSharedUserPath()
+	else
+		return "A:/Users/" .. user.name
+	end
+end
+
+function lib.getUser()
+	return user
+end
+
 function lib.login(username, passwd)
 	if not security.hasPermission("users.login") then
 		return false, "missing permission: users.login"
@@ -33,6 +50,7 @@ function lib.login(username, passwd)
 				local hash = algo(passwd)
 				if v.password == hash then
 					user = v
+					os.setenv("USER", user.name)
 					return true
 				else
 					return false, "invalid password"

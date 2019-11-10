@@ -26,6 +26,7 @@ function xml.parse(str)
 	local _tap = "" -- tag attribute propety (name)
 	local _tav = "" -- tag attribute value
 	local _tt = "" -- currently parsing text
+	local _utt = "" -- currently (unformated) parsing text
 	local _itap = false -- is parsing attribute property?
 	local _ta = {} -- currently parsing attributes
 	while i < #chars do
@@ -90,6 +91,7 @@ function xml.parse(str)
 				local textTag = {
 					name = "#text",
 					content = _tt,
+					unformattedContent = _utt,
 					attr = {},
 					childrens = {},
 					parent = currentTag
@@ -101,11 +103,19 @@ function xml.parse(str)
 			_te = false
 			_tn = ""
 			_tt = ""
+			_utt = ""
 			_ta = {}
 		end
-		if not _st and ch ~= ">" then
+		if not _st then
+			_utt = _utt .. ch
 			if ch ~= "\r" and ch ~= "\n" and ch ~= "\t" then
 				_tt = _tt .. ch
+			end
+			if _tt:sub(1, 1) == ">" then
+				_tt = ""
+			end
+			if _utt:sub(1, 1) == ">" then
+				_utt = ""
 			end
 		end
 		i = i + 1

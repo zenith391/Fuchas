@@ -2,19 +2,17 @@ local event = require("event")
 local mod = {}
 
 local activeProcesses = 0
-local currentProc = 0
+local currentProc = nil
 local processes = {}
 
 function mod.newProcess(name, func)
-	local pid = 0
-	while pid == 0 or processes[pid] ~= nil do
-		pid = math.floor(math.random() * 99999)
-	end
+	local pid = #processes+1
 	local proc = {
 		name = name,
 		func = func,
 		pid = pid,
 		status = "created",
+		exitHandlers = {},
 		closeables = {}, -- used for file streams
 		errorHandler = nil,
 		detach = function(self)
@@ -27,8 +25,14 @@ function mod.newProcess(name, func)
 			mod.waitFor(self)
 		end
 	}
+	local currProc = mod.getCurrentProcess()
+	if currProc ~= nil then
+		proc.env = currProc.env
+	else
+		proc.env = {}
+	end
 	processes[pid] = proc
-	if dll.getCurrentProcess() ~= nil then
+	if mod.getCurrentProcess() ~= nil then
 		proc.parent = mod.getCurrentProcess()
 	else -- else it's launched by system, so it's a system process
 		require("security").requestPermission("*", pid)
@@ -149,28 +153,28 @@ function mod.scheduler()
 	end
 end
 
-function dll.getCurrentProcess()
+function mod.getCurrentProcess()
 	return currentProc
 end
 
-function dll.getProcess(pid)
+function mod.getProcess(pid)
 	return processes[pid]
 end
 
-function dll.waitFor(proc)
+function mod.waitFor(proc)
 	while proc.status ~= "dead" do
 		coroutine.yield()
 	end
 end
 
-function dll.safeKill(proc)
+function mod.safeKill(proc)
 	if proc.safeKillHandler then
 		local doKill = proc.safeKillHandler()
 		if doKill then
-			dll.kill(proc)
+			mod.kill(proc)
 		end
 	else
-		dll.kill(proc, false)
+		mod.kill(proc, false)
 	end
 end
 

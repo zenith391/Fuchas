@@ -190,6 +190,8 @@ function filesystem.setAttributes(path, raw)
 	if node then
 		if node.setAttributes then
 			node.setAttributes(path, raw)
+		else
+			
 		end
 	end
 end
@@ -208,7 +210,7 @@ function filesystem.getAttributes(path, raw)
 				if dir:sub(dir:len(), dir:len()) ~= "/" then
 					dir = dir .. "/"
 				end
-				print(dir)
+				--print(dir)
 				issame = true
 			else
 				dir = filesystem.path(path)
@@ -247,13 +249,28 @@ function filesystem.getAttributes(path, raw)
 	if raw then
 		return attr
 	else
-		return {
-			readOnly = (bit32.band(attr, 1) == 1), -- always read-only
-			system = (bit32.band(attr, 2) == 2), -- read-only if not having correct permission
-			protected = (bit32.band(attr, 4) == 4), -- unaccessible if not having correct permission
-			hidden = (bit32.band(attr, 8) == 8), -- hidden
-			noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
-		}
+		if bit32 and bit32.band then
+			return {
+				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
+				system = (bit32.band(attr, 2) == 2), -- protected in Read
+				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
+				hidden = (bit32.band(attr, 8) == 8), -- hidden
+				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
+			}
+		elseif _VERSION ~= "Lua 5.2" then
+			return load([[
+				local attr = ...
+				return {
+					readOnly = ((attr & 1) == 1),
+					system = ((attr & 2) == 2),
+					protected = ((attr & 4) == 4),
+					hidden = ((attr & 8) == 8),
+					noExecute = ((attr & 16) == 16),
+				}
+			]])(attr)
+		else
+			return {}
+		end
 	end
 end
 
@@ -265,8 +282,9 @@ function filesystem.list(path)
 	end
 	local set = {}
 	local keys = {}
+	table.sort(result)
 	for _,name in ipairs(result) do
-		if name ~= ".dir" or true then
+		if name ~= ".dir" and type(name) == "string" then
 			local key = filesystem.canonical(name)
 			set[key] = name
 			table.insert(keys, key)
@@ -335,6 +353,17 @@ function filesystem.open(path, mode)
 	checkArg(2, mode, "string")
 	assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
 		"bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
+	local attributes = filesystem.getAttributes(path)
+	if attributes.protected then
+		if not require("security").hasPermission("file.protected") then
+			return nil, "not enough permissions"
+		end
+	end
+	if mode ~= "r" and mode ~= "rb" and attributes.system and package.loaded.security then
+		if not require("security").hasPermission("file.system") then
+			return nil, "not enough permissions"
+		end
+	end
 	local node, rest = findNode(path)
 	local segs = segments(path)
 	table.remove(segs, 1)
@@ -358,7 +387,7 @@ function filesystem.open(path, mode)
 		end
 	end
 	local cproc = nil
-	if shin32 then cproc = shin32.getCurrentProcess() end
+	if package.loaded.tasks then cproc = require("tasks").getCurrentProcess() end
 	local stream =
 	{
 		fs = node,

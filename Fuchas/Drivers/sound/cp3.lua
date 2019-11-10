@@ -4,7 +4,8 @@
 local drv = {}
 local t = 0
 local syn = false
-local sound = component.getPrimary("sound")
+local cp, sound = ...
+sound = cp.proxy(sound)
 
 -- Universal for all sound drivers
 function drv.appendFrequency(channel, time, freq)
@@ -12,6 +13,10 @@ function drv.appendFrequency(channel, time, freq)
 	sound.delay(time)
     t = t + time
 	return true
+end
+
+function drv.isCompatible()
+	return sound.type == "sound_card"
 end
 
 function drv.setADSR(ch, attack, decay, sustain, release)
@@ -89,4 +94,8 @@ function drv.getCapabilities()
     }
 end
 
-return component.isAvailable("sound"), "sound", drv
+function drv.getName()
+	return "Yanaki Sound Systems Drivers for MinoSound 244-X"
+end
+
+return drv

@@ -36,4 +36,58 @@
 		  6. Reboot<br></br>
 		  7. Enjoy Fuchas!
 	</text>
+	<br></br>
+	<canvas id="canvas" width=32 height=8></canvas>
+	<script lang="application/lua">
+		-- Code for drawing smile face.
+		local canvas = document.getElementById("canvas")
+		local x = 5
+		local y = 3
+		local color = 0
+		local descend = false
+		while true do
+			canvas.setBackground(color)
+			x = 5
+			y = 3
+			if descend then
+				color = color - 0x111111
+			else
+				color = color + 0x111111
+			end
+			if color >= 0xFFFFFF then
+				descend = true
+			elseif color == 0x000000 then
+				descend = false
+			end
+
+			-- Draw the eyes
+			canvas.fillRect(10, 1, 1, 1, ' ')
+			canvas.fillRect(14, 1, 1, 1, ' ')
+
+			-- Draw the left and middle part of the smile
+			while true do
+				canvas.fillRect(x, math.floor(y), 1, 1, ' ')
+				if x >= 12 then
+					break
+				end
+				x = x + 1
+				y = y + 0.5
+				--sleep(0.0)
+			end
+
+			-- Draw the right part of the smile
+			x = x + 1
+			y = y - 0.5
+			while true do
+				canvas.fillRect(x, math.floor(y), 1, 1, ' ')
+				if x >= 19 then
+					break
+				end
+				x = x + 1
+				y = y - 0.5
+				--sleep(0.0)
+			end
+			sleep(0.07)
+		end
+	</script>
 </ohml>

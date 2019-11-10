@@ -1,12 +1,10 @@
 -- Variables
-local internet      = component.internet
-local gpu           = component.gpu
-local event         = require("event")
-local filesystem    = require("filesystem")
-local width, height = gpu.getResolution()
+local internet = component.internet
+local event = require("event")
+local filesystem = require("filesystem")
+local shell = require("shell")
 local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
-local downloading   = ""
 
 -- AdorableCatgirl's uncpio
 local function ext(stream)
@@ -30,15 +28,17 @@ local function ext(stream)
 		end
 		return tmp
 	end
+
 	local function fwrite()
 		local dir = dent.name:match("(.+)/.*%.?.+")
 		if (dir) then
-			filesystem.makeDirectory("A:/" .. dir)
+			--filesystem.makeDirectory("A:/" .. dir)
 		end
-		local hand = io.open("A:/" .. dent.name, "w")
-		hand:write(stream:read(dent.filesize))
-		hand:close()
+		--local hand = io.open("A:/" .. dent.name, "w")
+		--hand:write(stream:read(dent.filesize))
+		--hand:close()
 	end
+
 	while true do
 		dent.magic = readint(2)
 		local rev = false
@@ -56,7 +56,6 @@ local function ext(stream)
 		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
 		if (name == "TRAILER!!!") then break end
 		dent.name = name
-		print("Downloading " .. name)
 		
 		if (dent.namesize % 2 ~= 0) then
 			stream:seek("cur", 1)
@@ -89,6 +88,8 @@ local function install()
 	if not filesystem.exists("A:/Temporary") then
 		filesystem.makeDirectory("A:/Temporary")
 	end
+	local sup = string.isUnicodeEnabled()
+	string.setUnicodeEnabled(false)
 	print("Downloading release..")
 	local cpio = download(repoURL .. "release.cpio")
 	local tmpCpio = io.open("A:/Temporary/fuchas.cpio", "w")
@@ -99,6 +100,7 @@ local function install()
 	ext(tmpCpio)
 	tmpCpio:close()
 	filesystem.remove("A:/Temporary/fuchas.cpio")
+	string.setUnicodeEnabled(sup)
 end
 
 print("Upgrading Fuchas (no new version check, always forced)")

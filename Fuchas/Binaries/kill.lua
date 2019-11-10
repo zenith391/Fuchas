@@ -1,4 +1,5 @@
 local shell = require("shell")
+local tasks = require("tasks")
 local args, options = shell.parse(...)
 
 if #args < 1 then
@@ -7,13 +8,13 @@ if #args < 1 then
 end
 
 local pid = tonumber(args[1])
-if shin32.getProcess(pid) == nil then
+if tasks.getProcess(pid) == nil then
 	print("No process with PID " .. pid)
 	return
 end
 
 if options.f or options.force then
-	shin32.kill(shin32.getProcess(pid), true)
+	tasks.kill(tasks.getProcess(pid), true)
 else
-	shin32.safeKill(shin32.getProcess(pid))
+	tasks.safeKill(tasks.getProcess(pid))
 end

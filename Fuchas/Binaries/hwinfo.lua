@@ -1,5 +1,4 @@
 local info = computer.getDeviceInfo()
-
 print("Software Info:")
 print("\tHas OEFI? " .. tostring(ifOr(computer.supportsOEFI(), "Yes", "No")))
 if computer.supportsOEFI() then

@@ -7,8 +7,16 @@ local _lower = string.lower
 local _upper = string.upper
 local uni = true -- experiemental feature (automatic unicode support)
 
-function string.setUnicodeSupport(u)
+function string.setUnicodeEnabled(u)
 	uni = u
+end
+
+function string.isUnicodeEnabled()
+	return uni
+end
+
+function string.toggleUnicode()
+	uni = not uni
 end
 
 function string.toCharArray(s)
@@ -76,7 +84,7 @@ function string.startsWith(src, s)
 end
 
 function string.endsWith(src, s)
-	return (string.sub(src, src:len()-s:len(), src:len()) == s)
+	return (string.sub(src, src:len()-s:len()+1, src:len()) == s)
 end
 
 function string.split(str, sep)
@@ -90,16 +98,34 @@ function string.split(str, sep)
 	return t
 end
 
+function table.getn(table)
+	local i = 0
+	for k, v in pairs(table) do
+		if type(k) == "number" then
+			i = math.max(i, k)
+		else
+			i = i + 1
+		end
+	end
+	return i
+end
+table.maxn = table.getn
+
 -- Convenient Lua extensions
 
 function try(func)
+	local fin = function(handler)
+		handler()
+	end
 	return {
 		catch = function(handler, filter)
 			local ok, ex = pcall(func)
 			if not ok then
 				handler(ex)
 			end
-		end
+			return fin
+		end,
+		finally = fin
 	}
 end
 
@@ -116,9 +142,11 @@ end
 --   print("Hello World")
 -- end).catch(function(ex)
 --   print("Error: " .. ex.trace)
+-- end).finally(function()
+--   print("Function ended")
 -- end)
 
-if _VERSION == "Lua 5.3" then
+if _VERSION ~= "Lua 5.2" then
     load([[
 	bit32 = {}
 	-- TODO complete
@@ -150,10 +178,10 @@ if _VERSION == "Lua 5.3" then
 		return ~x
 	end
 	function bit32.rshift(num, disp)
-		--return num >> disp
+		return num >> disp
 	end
 	function bit32.lshift(num, disp)
-		--return num << disp
+		return num << disp
 	end
 	function bit32.btest(...)
 		return bit32.band(...) ~= 0

@@ -1,9 +1,8 @@
 local args = ...
 
 local filesystem = require("filesystem")
-local gpu = component.getPrimary("gpu")
-local drive = shin32.getSystemVar("PWD_DRIVE")
-local pwd = shin32.getSystemVar("PWD")
+local drive = os.getenv("PWD_DRIVE")
+local pwd = os.getenv("PWD")
 local fullPath = drive .. ":/" .. pwd
 
 local current = filesystem.canonical(fullPath)
@@ -23,8 +22,13 @@ if canon:sub(1, 1) == '/' then
 	print(canon)
 end
 local newPath = canon .. args[1]
-if filesystem.exists(drive .. ":" .. filesystem.canonical(newPath)) then
-	shin32.setSystemVar("PWD", filesystem.canonical(newPath))
+local effectivePath = drive .. ":" .. filesystem.canonical(newPath)
+if filesystem.exists(effectivePath) and filesystem.isDirectory(effectivePath) then
+	os.setenv("PWD", filesystem.canonical(newPath))
 else
-	print(drive .. ":" .. newPath .. " doesn't exists.")
+	if not filesystem.exists(effectivePath) then
+		print(drive .. ":" .. newPath .. " doesn't exists.")
+	else
+		print(drive .. ":" .. newPath .. " isn't a directory.")
+	end
 end

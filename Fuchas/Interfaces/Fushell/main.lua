@@ -1,17 +1,18 @@
 local sh = require("shell")
 local cui = require("OCX/ConsoleUI")
 local fs = require("filesystem")
+local tasks = require("tasks")
 -- Avoid killing (safely) system process with a custom quit handler
-shin32.getCurrentProcess().safeKillHandler = function()
+tasks.getCurrentProcess().safeKillHandler = function()
 	io.stderr:write("cannot kill system process!\n")
 	return false
 end
 
-shin32.getCurrentProcess().childErrorHandler = function(proc, err)
+tasks.getCurrentProcess().childErrorHandler = function(proc, err)
 	io.stderr:write(tostring(err) .. "\n")
 end
 
-shin32.getCurrentProcess().permissionGrant = function(perm, pid)
+tasks.getCurrentProcess().permissionGrant = function(perm, pid)
 	local l = nil
 	while l ~= "N" and l ~= "Y" do
 		io.stdout:write("Grant permission \"" .. perm .. "\" to process? (Y/N) ")
@@ -28,18 +29,23 @@ local run = true
 sh.clear()
 -- splash
 print(string.rep("=-", 15))
-print(OSDATA.NAME .. " " .. OSDATA.VERSION .. " - Fuchas")
+print(_OSVERSION .. " - Fuchas")
 print("Welcome to Fuchas!")
 print("GitHub: https://github.com/zenith391/Fuchas")
 print(string.rep("-=", 15))
 
-shin32.setSystemVar("PWD", "")
+os.setenv("PWD", "")
 local drive = "A"
 while run do
 	while true do -- used for break (to act as "continue" in other other languages)
-	shin32.setSystemVar("PWD_DRIVE", drive)
-	write(drive .. ":/" .. shin32.getSystemVar("PWD") .. ">")
+	os.setenv("PWD_DRIVE", drive)
+	write(drive .. ":/" .. os.getenv("PWD") .. ">")
 	local l = sh.read()
+	local async = false
+	if string.endsWith(l, "&") then
+		l = l:sub(1, l:len()-1)
+		async = true
+	end
 	local args = sh.parseCL(l)
 	write(" \n")
 	if #args == 0 then
@@ -50,7 +56,7 @@ while run do
 		break
 	end
 	if args[1] == "pwd" then
-		print("Drive: " .. drive .. ", pwd = " .. shin32.getSystemVar("PWD"))
+		print("Drive: " .. drive .. ", pwd = " .. os.getenv("PWD"))
 		break
 	end
 	if args[1]:len() == 2 then
@@ -60,7 +66,7 @@ while run do
 				break
 			end
 			drive = args[1]:sub(1, 1)
-			shin32.setSystemVar("PWD", "")
+			os.setenv("PWD", "")
 			break
 		end
 	end
@@ -98,7 +104,7 @@ while run do
 				print(err)
 			end
 
-			local proc = shin32.newProcess("cli-" .. args[1], function()
+			local proc = tasks.newProcess(args[1], function()
 				if f ~= nil then
 					xpcall(f, function(err)
 						io.stderr:write(err .. "\n")
@@ -106,7 +112,9 @@ while run do
 					end, programArgs)
 				end
 			end)
-			proc:join()
+			if not async then
+				proc:join()
+			end
 			component.gpu.setForeground(0xFFFFFF)
 			component.gpu.setBackground(0x000000)
 		end, function(err)

@@ -1,20 +1,18 @@
 local filesystem = require("filesystem")
 local shell = require("shell")
-local gpu = component.getPrimary("gpu")
-local drive = shin32.getSystemVar("PWD_DRIVE")
-local pwd = shin32.getSystemVar("PWD")
+local gpu = require("driver").getDriver("gpu")
+local drive = os.getenv("PWD_DRIVE")
+local pwd = os.getenv("PWD")
 local fullPath = drive .. ":/" .. pwd
 local x = 1
-local vw, vh = gpu.getViewport()
+local vw, vh = gpu.getResolution()
 
 local args, ops = shell.parse(...)
 
 local list = filesystem.list(fullPath)
-
 print("List of " .. fullPath)
 for k, v in list do
 	local fp = filesystem.concat(filesystem.canonical(fullPath), k)
-	--print(fp)
 	local isdir = filesystem.isDirectory(fp)
 	if isdir then
 		gpu.setForeground(0x00FF00)

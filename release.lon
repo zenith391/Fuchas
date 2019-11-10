@@ -1,6 +1,20 @@
 {
-	version = "0.4.2",
+	version = "0.5.0",
 	changelog = [[
-		- Changelog coming soon in next update
+		- Removed "hello" command
+		- Added BSOD (well that's better than computer just crashing without a message)
+		- file:lines() now returns a table usable as iterator instdead of an iterator
+		- Started integrating GERTi network interface
+		- Added loopback network interface, usable with address "localhost"
+		- Every protocol now have a getAddress() method, it can returns nil if it can't get computer's address (e.g. IP)
+		- Aliases, you can use cp instdead of copy or del instdead of delete
+		- Improved edit program. Yet not finalized
+		- Remade how kernel works (and removed shin32)
+		- EFI2 is now updated and fully supported
+		- Added files and directories attributes.
+		- Replaced "reboot" with an alias to "power reboot"
+		- Added "print" and "term" command
+		- "edit" command partially working, as read-only
+		- Removed zorya-modules in profit of OEFI (v1 and v2.1)
 	]]
 }

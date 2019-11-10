@@ -2,32 +2,34 @@ local protocol = {}
 local loopBackBuffers = {}
 local loopBackSockets = {}
 local event = require("event")
+local tasks = require("tasks")
 
 function protocol.isProtocolAddress(addr)
 	return addr == "localhost"
 end
 
-function protocol.receive(port)
-	if loopBackSockets[port] then
-		if loopBackSockets[port].used then
-			return nil
-		else
-			loopBackSockets[port].used = true
-			return loopBackSockets[port]
-		end
-	else
-		return nil
-	end
+function protocol.cancelAsync(id)
+	tasks.getProcess(id):kill()
 end
 
 function protocol.listen(port)
 	while true do
 		if loopBackSockets[port] then
-			loopBackSockets[port].used = true
 			return loopBackSockets[port]
 		end
 		coroutine.yield()
 	end
+end
+
+function protocol.listenAsync(port, callback)
+	local proc = tasks.newProcess("lo-async", function()
+		while true do
+			if loopBackSockets[port] then
+				callback(loopBackSockets[port])
+			end
+			coroutine.yield()
+		end
+	end)
 end
 
 function protocol.getAddress()

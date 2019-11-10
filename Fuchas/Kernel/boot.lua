@@ -1,10 +1,13 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.5.0",
-	DEBUG = false
+	DEBUG = true
 }
 
 _G._OSVERSION = _G.OSDATA.NAME .. " " .. _G.OSDATA.VERSION
+if OSDATA.DEBUG then
+	_OSVERSION = _OSVERSION .. " (debug)"
+end
 
 local screen = nil
 for address in component.list("screen", true) do
@@ -28,10 +31,14 @@ if screen and gpu then
 	gpu.setForeground(0xFFFFFF)
 	gpu.fill(1, 1, w, h, " ")
 end
-function dofile(file)
+
+function dofile(file, ...)
 	local program, reason = loadfile(file)
 	if program then
-		local result = table.pack(pcall(program))
+		if OSDATA.DEBUG then
+			return program(...)
+		end
+		local result = table.pack(pcall(program, ...))
 		if result[1] then
 			return table.unpack(result, 2, result.n)
 		else
@@ -48,7 +55,7 @@ local x = 1
 function gy() -- temporary cursor Y accessor
 	return y
 end
-function write(msg, fore)
+local function write(msg, fore)
 	if not screen or not gpu then
 		return
 	end
@@ -80,9 +87,10 @@ function write(msg, fore)
 		end
 	end
 end
+_G.write = write
 
 function print(msg, fore)
-	write(msg .. "\n", fore)
+	write(tostring(msg) .. "\n", fore)
 end
 
 function os.sleep(n)
@@ -123,6 +131,9 @@ local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAd
 if not g then
 	print("Error while mounting A drive: " .. h)
 end
+_G.package.loaded.event = assert(loadfile("/Fuchas/Libraries/event.lua"))()
+_G.package.loaded.tasks = assert(loadfile("/Fuchas/Libraries/tasks.lua"))()
+_G.package.loaded.security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
 
 print("(4/5) Mounting all drives..")
 local letter = string.byte('A')
@@ -136,24 +147,10 @@ for k, v in component.list() do -- TODO: check if letter is over Z
 	end
 end
 
--- kernel = {}
--- setmetatable(kernel, {
--- 	__index = function(table, key)
--- 		if table[key] then
--- 			return table[key]
--- 		end
--- 		if require("filesystem").exists("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua") then
--- 			local data = _G.loadfile("A:/Fuchas/Kernel/Kernel/" .. key .. ".lua")
--- 			table[key] = data()
--- 			return table[key]
--- 		end
--- 	end
--- })
-
-_G.loadfile = function(path)
+loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
-		if _G.OSDATA.DEBUG then
+		if OSDATA.DEBUG then
 			error(reason)
 		else
 			return nil, reason
@@ -170,7 +167,6 @@ _G.loadfile = function(path)
 end
 
 local ok, err = xpcall(function()
-	_G.shin32 = require("shin32")
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/Kernel/Startup/" .. k)
@@ -178,7 +174,7 @@ local ok, err = xpcall(function()
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
 		local computer = (computer or package.loaded.computer)
-		if io and package and package.loaded and package.loaded.shell then
+		if io and package and package.loaded and package.loaded.shell and false then
 			pcall(function()
 				require("shell").setCursor(1, 1)
 			end) -- in case shell is the erroring library
@@ -191,7 +187,7 @@ end, function(err)
 		write([[A problem has been detected and Fuchas
 has shutdown to prevent damage
 to your computer.
- 
+
 ]] .. err .. " \n \n " .. [[
 If this is the first time you've seen
 this BSOD screen, restart your
@@ -208,10 +204,12 @@ computer problem as a reply.]])
 				y = require("shell").getY()
 			end)
 		end
+		return traceback
 end)
 
 local computer = (computer or package.loaded.computer)
-local t0 = computer.uptime() + 10
+local t0 = computer.uptime() + 30
+--gpu.set(1, y+3, "Error: " .. err)
 gpu.set(1, y+4, "Press any key to reboot now.")
 while computer.uptime() <= t0 do
 	gpu.fill(1, y+2, 160, 1, " ")

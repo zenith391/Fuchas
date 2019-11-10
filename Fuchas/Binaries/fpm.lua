@@ -1,10 +1,12 @@
--- Sources are PIPBOYS (Package Installation & Packeter for Beautiful and Ordered Young Software)
+-- Sources are PIPBOYS (Package Installs & Packets for Beautiful and Ordered Young Software)
 -- Installer is FPM (Fuchas Package Manager)
 
 local liblon = require("liblon")
 local fs = require("filesystem")
 local driver = require("driver")
-local shared = shin32.getSharedUserPath()
+local gpu = driver.gpu
+local internet = driver.internet
+local shared = require("users").getSharedUserPath()
 local githubGet = "https://raw.githubusercontent.com/"
 local shell = require("shell")
 local args, options = shell.parse(...)
@@ -65,7 +67,7 @@ local function searchSource(source)
 		--if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
 		--	fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
 		--end
-		txt = driver.internet.readFully(githubGet .. source .. "/master/programs.lon")
+		txt = internet.readFully(githubGet .. source .. "/master/programs.lon")
 		--local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
 		--stream:write(txt)
 		--stream:close()
@@ -85,22 +87,22 @@ local function downloadPackage(src, name, pkg)
 	for k, v in pairs(pkg.files) do
 		local dest = fs.canonical(v) .. "/" .. k
 		io.stdout:write("\tDownloading " .. k .. "..  ")
-		local txt = driver.internet.readFully(githubGet .. src .. "/master/" .. k)
+		local txt = internet.readFully(githubGet .. src .. "/master/" .. k)
 		if txt == "" then
-			local fg = component.gpu.getForeground()
-			component.gpu.setForeground(0xFF0000)
+			local _, fg = gpu.getColor()
+			gpu.setForeground(0xFF0000)
 			print("NOT FOUND!")
 			print("\tDOWNLOAD ABORTED")
-			component.gpu.setForeground(fg)
+			gpu.setForeground(fg)
 			return
 		end
 		local s = fs.open(dest, "w")
 		s:write(txt)
 		s:close()
-		local fg = component.gpu.getForeground()
-		component.gpu.setForeground(0x00FF00)
+		local _, fg = gpu.getColor()
+		gpu.setForeground(0x00FF00)
 		print("OK!")
-		component.gpu.setForeground(fg)
+		gpu.setForeground(fg)
 	end
 	packages[name] = pkg
 	save()
@@ -139,10 +141,10 @@ if args[1] == "remove" then
 					local dest = fs.canonical(dir) .. "/" .. f
 					io.stdout:write("Removing " .. f .. "..  ")
 					fs.remove(dest)
-					local fg = component.gpu.getForeground()
-					component.gpu.setForeground(0xFF0000)
+					local _, fg = gpu.getColor()
+					gpu.setForeground(0xFF0000)
 					print("REMOVED!")
-					component.gpu.setForeground(fg)
+					gpu.setForeground(fg)
 				end
 				packages[k] = nil
 				save()
@@ -153,7 +155,7 @@ if args[1] == "remove" then
 end
 
 if args[1] == "update" then
-	if not component.isAvailable("internet") then
+	if not internet then
 		io.stderr:write("Internet card required!")
 		return
 	end
@@ -209,7 +211,7 @@ end
 
 if args[1] == "install" then
 	local toInstall = {}
-	if not component.isAvailable("internet") then
+	if not internet then
 		io.stderr:write("Internet card required!")
 		return
 	end
@@ -235,13 +237,27 @@ if args[1] == "install" then
 		for k, e in pairs(v) do
 			for _, i in pairs(toInstall) do
 				if k == i then
+					for k, v in pairs(e.dependencies) do
+						if k == "fuchas" then
+							local fmajor = OSDATA.VERSION:sub(1,1)
+							local fminor = OSDATA.VERSION:sub(3,3)
+							local fpatch = OSDATA.VERSION:sub(5,5)
+
+							local major,minor,patch = v:sub(1,1),v:sub(3,3),'*'
+							if v:len() > 3 then patch = v:sub(5,5) end
+							if fmajor ~= major or fminor ~= minor or (patch ~= '*' and patch ~= fpatch) then
+								print("Package " .. e.name .. " doesn't work with the current version of Fuchas.")
+								print("It is made for version " .. v .. ", but the current version is " .. OSDATA.VERSION)
+								return
+							end
+						else
+							table.insert(toInstall, v)
+						end
+					end
 					print("Installing " .. e.name)
 					local ok, err = pcall(downloadPackage, src, k, e)
 					if not ok then
 						print("Error downloading package: " .. err)
-					end
-					for _, v in pairs(e.dependencies) do
-						table.insert(toInstall, v)
 					end
 					print(e.name .. " installed")
 					isnt = true

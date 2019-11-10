@@ -1,7 +1,7 @@
 local lib = {}
 local ui = require("OCX/OCUI")
 local draw = require("OCX/OCDraw")
-local gpu = component.gpu
+local gpu = require("driver").gpu
 local windows = {}
 local desktop = {}
 local config = {
@@ -15,11 +15,10 @@ local function titleBar(win)
 		if not self.context then -- init context if not yet
 			self:open()
 		end
-		self.canvas.fillRect(0, 0, win.width, 1, 0xCCCCCC)
-		self.canvas.fillRect(0, 1, win.width, win.height - 1, 0x2D2D2D)
-		self.canvas.drawText(1, 0, win.title, 0xFFFFFF)
-		self.canvas.drawText(win.width - 5, 0, "⣤ ⠶", 0xFFFFFF)
-		self.canvas.drawText(win.width - 1, 0, "X", 0xFF0000)
+		self.canvas.fillRect(1, 1, win.width, 1, 0xCCCCCC)
+		self.canvas.drawText(2, 1, win.title, 0xFFFFFF)
+		self.canvas.drawText(win.width - 5, 1, "⣤ ⠶", 0xFFFFFF)
+		self.canvas.drawText(win.width - 1, 1, "X", 0xFF0000)
 		draw.drawContext(self.context)
 	end
 	return comp
@@ -36,15 +35,22 @@ function lib.newWindow()
 		dirty = true,
 		focused = false,
 		undecorated = false,
+		visible = false,
 		container = ui.container(),
 		id = #windows+1,
 		show = function(self)
 			desktop[self.id] = self
+			self.visible = true
+			lib.drawDesktop()
 		end,
 		hide = function(self)
-			desktop[self.id] = self
+			desktop[self.id] = nil
+			self.visible = false
 			self.titleBar:dispose()
 			self.container:dispose()
+			gpu.setColor(0xAAAAAA)
+			gpu.fill(self.x, self.y, self.width, self.height)
+			lib.drawDesktop()
 		end
 	}
 	obj.titleBar = titleBar(obj)
@@ -59,7 +65,7 @@ end
 function lib.moveWindow(win, x, y)
 	local ox = win.x
 	local oy = win.y
-	local rw, rh = gpu.getViewport()
+	local rw, rh = gpu.getResolution()
 	
 	local tx, ty = x - win.x, y - win.y
 	if ox+win.width+1 > rw or oy+win.height+1 > rh then
@@ -67,20 +73,20 @@ function lib.moveWindow(win, x, y)
 		win.y = y
 		lib.drawWindow(win)
 	else
-		gpu.setForeground(0x000000)
-		gpu.set(1, 1, tostring(ox))
+		--gpu.setForeground(0x000000)
+		--gpu.set(1, 1, tostring(ox))
 		gpu.copy(ox, oy, win.width+1, win.height+1, tx, ty)
 	end
-	gpu.setBackground(0xAAAAAA)
+	gpu.setColor(0xAAAAAA)
 	if tx > 0 then
-		gpu.fill(ox, oy, tx, win.height+1, " ")
+		gpu.fill(ox, oy, tx, win.height+1)
 	else
-		gpu.fill(ox+win.width, oy, -tx, win.height+1, " ")
+		gpu.fill(ox+win.width, oy, -tx, win.height+1)
 	end
 	if ty > 0 then
-		gpu.fill(ox, oy-1, win.width, ty, " ")
+		gpu.fill(ox, oy-1, win.width, ty)
 	else
-		gpu.fill(ox, oy+win.height, win.width+1, -ty, " ")
+		gpu.fill(ox, oy+win.height, win.width+1, -ty)
 	end
 	win.x = x
 	win.y = y

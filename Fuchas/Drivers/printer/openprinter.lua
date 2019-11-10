@@ -1,7 +1,8 @@
 local drv = {}
 local out = nil
 local outbuf = ""
-local printer = component.getPrimary("openprinter")
+local cp, printer = ...
+printer = cp.proxy(printer)
 
 function drv.out()
 	if out == nil then
@@ -34,6 +35,10 @@ function drv.out()
 	end
 end
 
+function drv.isCompatible()
+	return printer and printer.type == "openprinter"
+end
+
 function drv.getName()
 	return "OpenPrinter (" .. printer.address:sub(1, 3) .. ")"
 end
@@ -42,4 +47,4 @@ function drv.getRank()
 	return 1
 end
 
-return component.isAvailable("openprinter"), "printer", drv
+return drv

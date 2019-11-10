@@ -39,7 +39,7 @@ print("Setting up virtual environment, expect high memory usage")
 local bootAddress = "5c6c151a-59af-4a0b-be4f-1d639c2b9014"
 
 local function computerAPI()
-	local comp = computer
+	local comp = _G.computer
 	comp.getBootAddress = function()
 		return bootAddress
 	end
@@ -49,7 +49,7 @@ end
 local function setupEnvironment()
 	local env = {
 		computer = computerAPI(),
-		component = _G.component,
+		component = _G.component.unrestricted,
 		math = _G.math,
 		coroutine = _G.coroutine,
 		bit32 = _G.bit32,
@@ -57,7 +57,6 @@ local function setupEnvironment()
 		table = _G.table,
 		unicode = _G.unicode,
 		debug = _G.debug,
-		io = {},
 
 		assert = _G.assert,
 		error = _G.error,
@@ -78,6 +77,9 @@ local function setupEnvironment()
 		type = _G.type,
 		xpcall = _G.xpcall
 	}
+	if _VERSION == "Lua 5.3" then
+		env.utf8 = _G.utf8
+	end
 	return env
 end
 
@@ -87,33 +89,39 @@ local function startMachine(env)
 	local init = initFile:read("a")
 	initFile:close()
 
-	print("Loading function..")
-	env.oldg = _G
-	_G = env
-	_ENV._OSVERSION = "Fuchas OpenOS"
-	local start = load(init, "openos_init", "bt", _G)
-	--local start = load(init)
-	print("Starting")
-	xpcall(start, function(err)
-		io.stderr:write("Error with OpenOS: " .. err .. "\n")
-		io.stderr:write(debug.traceback())
-
-		print(_G._OSVERSION)
-	end)
-	_G = env.oldg
+	print("Loading function")
+	local start = load(init, "openos_init", "bt", env)
+	print("Starting..")
+	--xpcall(start, function(err)
+	--	io.stderr:write("Error with OpenOS: " .. err .. "\n")
+	--	io.stderr:write(debug.traceback())
+	--end)
+	start()
 end
 
-local env = setupEnvironment()
-
-print("Current process: " .. shin32.getCurrentProcess().pid)
-print("Current coroutine: " .. tostring(coroutine.running()))
+print("Process: " .. shin32.getCurrentProcess().pid)
+print("Process coroutine: " .. tostring(coroutine.running()))
 print("Exiting coroutine..") -- used to avoid OpenOS finding itself in a coroutine that isn't an OpenOS process
 -- also make longer stacktraces (due to having all of it since computer start)
+local ret = nil
 local ret = coroutine.yield(function()
-	print("Current process: " .. ifOr(shin32.getCurrentProcess() ~= nil, shin32.getCurrentProcess().pid, "none"))
-	print("Current coroutine: " .. tostring(coroutine.running()))
-	startMachine(env)
+	print("Main coroutine: " .. tostring(coroutine.running()))
+	os.sleep(1)
+	local env = setupEnvironment()
+	local ok, err = xpcall(startMachine, function(err)
+		print(err)
+		print(debug.traceback())
+		return err
+	end, env)
+	print(err)
+	while true do
+		require("event").pull()
+	end
 	return false, "ok"
 end)
 
-print("Returned " .. ret)
+if ret ~= "ok" then
+	print("Execution failed: " .. ret)
+else
+	print("Execution finished")
+end

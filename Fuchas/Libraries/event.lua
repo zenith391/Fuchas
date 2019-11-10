@@ -56,7 +56,7 @@ end
 computer.pullSignal = function(...)
 	if kbd == nil then kbd = require("keyboard") end
 	local event_data
-	if shin32.getCurrentProcess() == nil then
+	if require("tasks").getCurrentProcess() == nil then
 		event_data = table.pack(handlers(...))
 		event.exechandlers(event_data)
 	else

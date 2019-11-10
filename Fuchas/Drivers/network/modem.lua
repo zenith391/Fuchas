@@ -8,14 +8,31 @@ function protocol.isProtocolAddress(addr)
 	return addr:len() == 36 -- todo: more checks
 end
 
+function protocol.cancelAsync(id)
+	event.cancel(id)
+end
+
+function protocol.listenAsync(port, callback)
+	local f = nil
+	f = function(_,_,sender,p,data)
+		if p == port then
+			local sock = protocol.open(sender, p)
+			sock.rbuf = data
+			callback(sock)
+			event.ignore("modem_message", f)
+		end
+	end
+	return event.listen("modem_message", f)
+end
+
 function protocol.listen(port)
 	local modem = component.modem
 	local sock = {}
 	modem.open(port)
 	while true do
-		local sig = table.pack(event.pull())
+		local sig = table.pack(event.pull("modem_message"))
 		local name, sender, p = sig[1], sig[3], sig[4]
-		if name == "modem_message" and p == port then
+		if p == port then
 			sock = protocol.open(sender, p)
 			sock.rbuf = sig[5]
 			break
@@ -26,6 +43,10 @@ end
 
 function protocol.getAddress()
 	return component.list("modem")()
+end
+
+function protocol.getAddresses()
+	return {protocol.getAddress()}
 end
 
 function protocol.open(addr, dport)
@@ -60,9 +81,5 @@ function protocol.open(addr, dport)
 		end
 	}
 end
-
-event.listen("modem_message", function(_, sender, port)
-
-end)
 
 return "modem", protocol

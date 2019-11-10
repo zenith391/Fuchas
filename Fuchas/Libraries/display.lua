@@ -50,7 +50,7 @@ event.listen("key_down", function()
 		if kbd.isShiftPressed() then
 			for i=1, 7 do
 				if kbd.isPressed(0x3A + i) then
-					
+					lib.switch(i)
 				end
 			end
 		end
