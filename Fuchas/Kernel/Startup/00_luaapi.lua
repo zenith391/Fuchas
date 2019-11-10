@@ -146,7 +146,7 @@ end
 --   print("Function ended")
 -- end)
 
-if not bit32 then
+if _VERSION ~= "Lua 5.2" then
     load([[
 	bit32 = {}
 	-- TODO complete

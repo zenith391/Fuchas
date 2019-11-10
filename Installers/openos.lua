@@ -32,12 +32,7 @@ local function ext(stream)
 	local function readint(amt)
 		local tmp = 0
 		for i=1, amt do
-			local char = stream.read(1)
-			while char == nil or char == '' do
-				char = stream.read(1)
-				os.sleep()
-			end
-			tmp = bit32.bor(tmp, bit32.lshift(string.byte(char), ((i-1)*8)))
+			tmp = bit32.bor(tmp, bit32.lshift(string.byte(stream:read(1)), ((i-1)*8)))
 		end
 		return tmp
 	end
@@ -47,14 +42,7 @@ local function ext(stream)
 			filesystem.makeDirectory("/" .. dir)
 		end
 		local hand = io.open("/" .. dent.name, "w")
-		local fn = ""
-		local i = 0
-		while i < dent.filesize do
-			local str = stream.read(dent.filesize-i)
-			fn = fn .. str
-			i = i + str:len()
-		end
-		hand:write(fn)
+		hand:write(stream:read(dent.filesize))
 		hand:close()
 	end
 	while true do
@@ -71,7 +59,7 @@ local function ext(stream)
 		dent.mtime = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		dent.namesize = readint(2)
 		dent.filesize = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
-		local name = stream.read(dent.namesize):sub(1, dent.namesize-1)
+		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
 		if (name == "TRAILER!!!") then
 			break
 		end
@@ -83,13 +71,13 @@ local function ext(stream)
 		gpu.set(5, 6, name)
 		
 		if (dent.namesize % 2 ~= 0) then
-			while stream.read(1) == '' do end
+			stream:seek("cur", 1)
 		end
 		if (bit32.band(dent.mode, 32768) ~= 0) then
 			fwrite()
 		end
 		if (dent.filesize % 2 ~= 0) then
-			while stream.read(1) == '' do end
+			stream:seek("cur", 1)
 		end
 	end
 end
@@ -220,10 +208,16 @@ local function drawStage()
 end
 
 local function install()
-	local tmpCpio = internet.request(repoURL .. "release.cpio")
-	tmpCpio.finishConnect()
+	local tmpCpio = io.open("/fuchas.cpio", "w")
+	local ok, err = tmpCpio:write(download(repoURL .. "release.cpio"))
+	if not ok then
+		error("Could not download package: " .. err)
+	end
+	tmpCpio:close()
+	tmpCpio = io.open("/fuchas.cpio", "rb")
 	ext(tmpCpio)
-	tmpCpio.close()
+	tmpCpio:close()
+	filesystem.remove("/fuchas.cpio")
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then
 		error(err)

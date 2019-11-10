@@ -249,13 +249,28 @@ function filesystem.getAttributes(path, raw)
 	if raw then
 		return attr
 	else
-		return {
-			readOnly = (bit32.band(attr, 1) == 1), -- always read-only
-			system = (bit32.band(attr, 2) == 2), -- protected in Read
-			protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
-			hidden = (bit32.band(attr, 8) == 8), -- hidden
-			noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
-		}
+		if bit32 and bit32.band then
+			return {
+				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
+				system = (bit32.band(attr, 2) == 2), -- protected in Read
+				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
+				hidden = (bit32.band(attr, 8) == 8), -- hidden
+				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
+			}
+		elseif _VERSION ~= "Lua 5.2" then
+			return load([[
+				local attr = ...
+				return {
+					readOnly = ((attr & 1) == 1),
+					system = ((attr & 2) == 2),
+					protected = ((attr & 4) == 4),
+					hidden = ((attr & 8) == 8),
+					noExecute = ((attr & 16) == 16),
+				}
+			]])(attr)
+		else
+			return {}
+		end
 	end
 end
 
