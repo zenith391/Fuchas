@@ -33,6 +33,35 @@ function net.listen(port, protocol)
 	return nil
 end
 
+-- Allow listening on multiple protocols.
+-- Protocols using same components might both generate events or break.
+function net.listenAsync(port, protocols, callback)
+	if not sec.hasPermission("network.listen") then
+		error("no permission: network.listen")
+	end
+	if type(protocols) ~= "table" then
+		protocols = {protocols}
+	end
+	local pts = {}
+	for k, v in pairs(net.protocolList()) do
+		for _, protocol in pairs(protocols) do
+			if k == protocol then
+				table.insert(pts, protocol)
+			end
+		end
+	end
+	local ids = {}
+	for _, v in pairs(pts) do
+		ids[v] = v.listenAsync(port, function(socket)
+			for k, v in pairs(ids) do
+				k.cancelAsync(v)
+			end
+			callback(socket)
+		end)
+	end
+	return nil
+end
+
 function net.protocolList()
 	if protocols == nil then
 		protocols = {}

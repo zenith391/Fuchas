@@ -1,9 +1,9 @@
-computer.supportsOEFI = function()
-	return false
-end
-
 local cp = component or package.loaded.component
 local pc = computer or package.loaded.computer
+
+pc.supportsOEFI = function()
+	return false
+end
 
 local loadfile = load([[return function(file)
 	local pc,cp = computer or package.loaded.computer, component or package.loaded.component
@@ -39,7 +39,7 @@ while true do
 	if id == "key_down" then
 		if ch == 28 then
 			_G.loadfile = loadfile
-			loadfile("Fuchas/Boot/boot.lua")() -- TODO: change in 0.5
+			loadfile("Fuchas/Kernel/boot.lua")()
 			break
 		elseif ch == 24 then
 			loadfile("/lib/core/boot.lua")(loadfile)

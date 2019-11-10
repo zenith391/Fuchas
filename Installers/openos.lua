@@ -29,10 +29,15 @@ local function ext(stream)
 		filesize = 0
 	}
 	
-	local function readint(amt, rev)
+	local function readint(amt)
 		local tmp = 0
 		for i=1, amt do
-			tmp = bit32.bor(tmp, bit32.lshift(string.byte(stream:read(1)), ((i-1)*8)))
+			local char = stream.read(1)
+			while char == nil or char == '' do
+				char = stream.read(1)
+				os.sleep()
+			end
+			tmp = bit32.bor(tmp, bit32.lshift(string.byte(char), ((i-1)*8)))
 		end
 		return tmp
 	end
@@ -42,7 +47,14 @@ local function ext(stream)
 			filesystem.makeDirectory("/" .. dir)
 		end
 		local hand = io.open("/" .. dent.name, "w")
-		hand:write(stream:read(dent.filesize))
+		local fn = ""
+		local i = 0
+		while i < dent.filesize do
+			local str = stream.read(dent.filesize-i)
+			fn = fn .. str
+			i = i + str:len()
+		end
+		hand:write(fn)
 		hand:close()
 	end
 	while true do
@@ -59,8 +71,7 @@ local function ext(stream)
 		dent.mtime = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		dent.namesize = readint(2)
 		dent.filesize = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
-		gpu.set(5, 7, "Size: " .. tostring(dent.filesize))
-		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
+		local name = stream.read(dent.namesize):sub(1, dent.namesize-1)
 		if (name == "TRAILER!!!") then
 			break
 		end
@@ -72,13 +83,13 @@ local function ext(stream)
 		gpu.set(5, 6, name)
 		
 		if (dent.namesize % 2 ~= 0) then
-			stream:seek("cur", 1)
+			while stream.read(1) == '' do end
 		end
 		if (bit32.band(dent.mode, 32768) ~= 0) then
 			fwrite()
 		end
 		if (dent.filesize % 2 ~= 0) then
-			stream:seek("cur", 1)
+			while stream.read(1) == '' do end
 		end
 	end
 end
@@ -202,32 +213,24 @@ local function drawStage()
 	if stage == 6 then
 		gpu.set(5, 5, "Done!")
 		gpu.set(5, 6, "Now restarting the computer..")
-		os.sleep(0.5)
+		os.sleep(3)
 		require("computer").shutdown(true)
 		run = false
 	end
 end
 
 local function install()
-	local cpio = download(repoURL .. "release.cpio")
-	local tmpCpioPath = "/fuchas.cpio"
-	local tmpCpio = io.open(tmpCpioPath, "w")
-	local ok, err = tmpCpio:write(cpio)
-	if not ok then
-		error("Could not download CPIO: " .. err)
-	end
-	tmpCpio:close()
-	tmpCpio = io.open(tmpCpioPath, "rb")
+	local tmpCpio = internet.request(repoURL .. "release.cpio")
+	tmpCpio.finishConnect()
 	ext(tmpCpio)
-	tmpCpio:close()
-	filesystem.remove("/fuchas.cpio")
+	tmpCpio.close()
 	local buf, err = io.open("/init.lua", "w")
 	if buf == nil then
 		error(err)
 	end
 	buf:write(download(repoURL .. "dualboot_init.lua"))
 	buf:close()
-	stage = 5
+	stage = 6
 	drawStage()
 end
 

@@ -9,9 +9,9 @@ end
 
 local function sync(off)
 	if tape.getPosition then pos = tape.getPosition() end
-	if pos ~= offset then
-		tape.seek(offset - pos)
-		pos = offset
+	if pos ~= off then
+		tape.seek(off - pos)
+		pos = off
 	end
 end
 

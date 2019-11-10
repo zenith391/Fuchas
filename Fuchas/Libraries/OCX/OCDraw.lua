@@ -1,4 +1,4 @@
-local gpu = component.getPrimary("gpu")
+local gpu = require("driver").gpu
 local rw, rh = gpu.getResolution()
 
 local lib = {}
@@ -14,11 +14,10 @@ end
 function lib.drawContext(ctxn)
 	local ctx = dc[ctxn]
 	if doDebug then
-		gpu.setForeground(0x000000)
-		gpu.setBackground(0xFFFFFF)
-		gpu.set(1, 1, "OCDraw Debug:")
-		gpu.set(1, 2, "Active Draw Contexts: " .. #dc)
-		gpu.set(1, 3, "Active Processes: " .. require("tasks").getActiveProcesses())
+		gpu.setColor(0xFFFFFF)
+		gpu.drawText(1, 1, "OCDraw Debug:", 0)
+		gpu.drawText(1, 2, "Active Draw Contexts: " .. #dc, 0)
+		gpu.drawText(1, 3, "Active Processes: " .. require("tasks").getActiveProcesses(), 0)
 	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
@@ -28,19 +27,36 @@ function lib.drawContext(ctxn)
 		local height = v.height
 		local color = v.color
 		if t == "fillRect" and x <= rw and y <= rh then
-			gpu.setBackground(color)
-			gpu.fill(x, y, width, height, " ")
+			gpu.setColor(color)
+			gpu.fill(x, y, width, height)
 		end
 		if t == "drawText" and x <= rw and y <= rh then
 			local back = v.color2
 			if not back then _, _, back = gpu.get(x, y) end
-			gpu.setForeground(color)
-			gpu.setBackground(back)
-			gpu.set(x, y, v.text)
+			gpu.setColor(back)
+			gpu.drawText(x, y, v.text, color)
 		end
 		if t == "copy" then
 			local x2, y2 = i.x2, i.y2
 			gpu.copy(x, y, width, height, x2 - x, y2 - y)
+		end
+		if t == "drawOval" then
+			gpu.setColor(color)
+			if gpu.drawOval then
+				gpu.drawOval(x, y, width, height)
+			else
+				x=math.ceil(x+width/2)
+				local cos, sin = math.cos, math.sin
+				local lx, ly = 0,0
+				for i=0,180 do
+					local sx, sy = cos(i) * width, sin(i) * height / 2
+					sx=math.floor(sx); sy=math.floor(sy);
+					if lx ~= sx or ly ~= sy then
+						lx = sx; ly = sy
+						gpu.fill(x+sx, y+sy, 1, 1)
+					end
+				end
+			end
 		end
 	end
 	ctx.drawBuffer = {}
@@ -142,6 +158,28 @@ function lib.canvas(ctxn)
 		draw.type = "drawText"
 		draw.text = text
 		table.insert(ctx.drawBuffer, draw)
+	end
+	cnv.drawOval = function(x, y, width, height, color)
+		local ctx = dc[ctxn]
+		if x + width > ctx.width+1 then
+			width = ctx.width - x+1
+		end
+		if y + height > ctx.height+1 then
+			height = ctx.height - y+1
+		end
+		x = x + ctx.x
+		y = y + ctx.y
+		local draw = {}
+		draw.x = x
+		draw.y = y
+		draw.width = width
+		draw.height = height
+		draw.color = color
+		draw.type = "drawOval"
+		table.insert(ctx.drawBuffer, draw)
+	end
+	cnv.drawCircle = function(x, y, radius, color)
+		cnv.drawOval(x, y, radius, radius, color)
 	end
 	return cnv
 end

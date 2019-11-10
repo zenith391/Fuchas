@@ -24,14 +24,14 @@ do
 			if not self.context then
 				self:open()
 			end
-			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
+			self.canvas.fillRect(1, 1, self.width, self.height, 0)
 			self.canvas.drawText(10, 1, "Fuchas", 0xFFFFFF)
 			draw.drawContext(self.context)
 		end
 		comp.listeners["defocus"] = function(name, self, new)
 			startMenu:hide()
 		end
-		comp.background = 0x2D2D2D
+		comp.background = 0xFFFFFF
 		startMenu.container = comp
 	end
 end
@@ -52,6 +52,7 @@ do
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
 			self.canvas.drawText(2, 1, "Fuchas", 0)
+			self.canvas.drawText(self.width-13, 1, "No Connection", 0xFFFFFF)
 			draw.drawContext(self.context) -- finally draw
 		end
 		comp.listeners["touch"] = function(name, addr, x, y, button)
@@ -72,6 +73,21 @@ end
 
 do
 	test.title = "Test Window"
+	do
+		local comp = ui.component()
+		comp.render = function(self)
+			if not self.context then
+				self:open()
+			end
+			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
+			self.canvas.drawOval(1, 1, 10, 10, 0xFFFFFF)
+			--self.canvas.drawOval(5, 5, 10, 10, 0xFFFFFF)
+			--self.canvas.drawOval(10, 10, 10, 10, 0xFFFFFF)
+			self.canvas.drawOval(15, self.height-5, 10, 10, 0xFFFFFF)
+			draw.drawContext(self.context)
+		end
+		test.container = comp
+	end
 	test:show()
 end
 
