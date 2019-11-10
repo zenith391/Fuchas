@@ -1,7 +1,7 @@
 local lib = {}
 local ui = require("OCX/OCUI")
 local draw = require("OCX/OCDraw")
-local gpu = component.gpu
+local gpu = require("driver").gpu
 local windows = {}
 local desktop = {}
 local config = {
@@ -48,8 +48,8 @@ function lib.newWindow()
 			self.visible = false
 			self.titleBar:dispose()
 			self.container:dispose()
-			gpu.setBackground(0xAAAAAA)
-			gpu.fill(self.x, self.y, self.width, self.height, " ")
+			gpu.setColor(0xAAAAAA)
+			gpu.fill(self.x, self.y, self.width, self.height)
 			lib.drawDesktop()
 		end
 	}
@@ -65,7 +65,7 @@ end
 function lib.moveWindow(win, x, y)
 	local ox = win.x
 	local oy = win.y
-	local rw, rh = gpu.getViewport()
+	local rw, rh = gpu.getResolution()
 	
 	local tx, ty = x - win.x, y - win.y
 	if ox+win.width+1 > rw or oy+win.height+1 > rh then
@@ -77,16 +77,16 @@ function lib.moveWindow(win, x, y)
 		--gpu.set(1, 1, tostring(ox))
 		gpu.copy(ox, oy, win.width+1, win.height+1, tx, ty)
 	end
-	gpu.setBackground(0xAAAAAA)
+	gpu.setColor(0xAAAAAA)
 	if tx > 0 then
-		gpu.fill(ox, oy, tx, win.height+1, " ")
+		gpu.fill(ox, oy, tx, win.height+1)
 	else
-		gpu.fill(ox+win.width, oy, -tx, win.height+1, " ")
+		gpu.fill(ox+win.width, oy, -tx, win.height+1)
 	end
 	if ty > 0 then
-		gpu.fill(ox, oy-1, win.width, ty, " ")
+		gpu.fill(ox, oy-1, win.width, ty)
 	else
-		gpu.fill(ox, oy+win.height, win.width+1, -ty, " ")
+		gpu.fill(ox, oy+win.height, win.width+1, -ty)
 	end
 	win.x = x
 	win.y = y

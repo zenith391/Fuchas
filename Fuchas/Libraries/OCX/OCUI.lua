@@ -1,7 +1,7 @@
 -- Shared GUI components for any interfaces (Concert and Androoid)
 
 local draw = require("OCX/OCDraw")
-local width, height = component.gpu.getResolution()
+local width, height = require("driver").gpu.getResolution()
 local lib = {}
 
 function lib.getWidth()

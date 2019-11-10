@@ -81,9 +81,7 @@ do
 			end
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.drawOval(1, 1, 10, 10, 0xFFFFFF)
-			--self.canvas.drawOval(5, 5, 10, 10, 0xFFFFFF)
-			--self.canvas.drawOval(10, 10, 10, 10, 0xFFFFFF)
-			self.canvas.drawOval(15, self.height-5, 10, 10, 0xFFFFFF)
+			--self.canvas.drawOval(15, self.height-5, 10, 10, 0xFFFFFF)
 			draw.drawContext(self.context)
 		end
 		test.container = comp
