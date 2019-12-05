@@ -264,6 +264,8 @@ end
 function lib.read()
 	local c = ""
 	local s = ""
+	local curVisible = true
+	local changeVis = false
 	local event = require("event")
 	displayCursor()
 	while c ~= '\r' do -- '\r' == Enter
@@ -287,6 +289,7 @@ function lib.read()
 						write(c)
 						displayCursor()
 					end
+					changeVis = false
 				end
 			end
 		elseif a == "paste_trigger" then
@@ -297,8 +300,17 @@ function lib.read()
 				s = s .. txt
 				write(txt)
 				displayCursor()
+				changeVis = false
 			end
 		end
+		if curVisible and changeVis then
+			hideCursor()
+			curVisible = false
+		elseif changeVis then
+			displayCursor()
+			curVisible = true
+		end
+		changeVis = true
 	end
 	return s
 end
