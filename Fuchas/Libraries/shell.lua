@@ -275,15 +275,15 @@ function lib.read()
 				c = string.char(d)
 				if c ~= '\r' then
 					if d == 8 then -- backspace
-						if s:len() > 0 then
+						if string.len(s) > 0 then
 							hideCursor()
-							s = s:sub(1, s:len() - 1)
+							s = string.sub(s, 1, string.len(s) - 1)
 							cursor.x = cursor.x - 1
 							write(" ")
 							cursor.x = cursor.x - 1
 							displayCursor()
 						end
-					else
+					elseif d > 0x1F and d ~= 0x7F then
 						hideCursor()
 						s = s .. c
 						write(c)
@@ -310,7 +310,10 @@ function lib.read()
 			displayCursor()
 			curVisible = true
 		end
-		changeVis = true
+		if not changeVis then
+			changeVis = true
+			curVisible = true
+		end
 	end
 	return s
 end

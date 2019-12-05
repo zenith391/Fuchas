@@ -35,7 +35,7 @@ function string.len(str)
 	if uni then
 		return unicode.wlen(str)
 	else
-		return _len(str)
+		return _wlen(str)
 	end
 end
 
