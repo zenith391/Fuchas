@@ -2,7 +2,8 @@ local gpu = require("driver").gpu
 local rw, rh = gpu.getResolution()
 
 local lib = {}
-local dc = {}
+
+local dc = {} -- Draw Contexts
 
 local doDebug = OSDATA.DEBUG -- warning costs a lot of GPU call budget
 
@@ -11,8 +12,52 @@ function lib.closeContext(ctx)
 	dc[ctx] = nil
 end
 
+function lib.targetDriver(target)
+	local d = {}
+	d = {
+		fg=0, bg=0,
+		get = function(x, y)
+			return target.data[(y-1)*target.width+(x-1)]
+		end,
+		fillChar = function(x, y, w, h, ch)
+			for i=x, x+w do
+				for j=y, y+h do
+					target.data[(y-1)*target.width+(x-1)] = {ch, d.fg, d.bg}
+				end
+			end
+		end,
+		drawText = function(x, y, text, f)
+			if f then
+				d.fg = f
+			end
+			for i=1, #text do
+				target.data[(y-1)*target.width+(x-1)] = {text:sub(i,i), d.fg, d.bg}
+			end
+		end,
+		fill = function(x, y, w, h, f)
+			if f then
+				d.fg = f
+			end
+			d.fillChar(x, y, w, h, ' ')
+		end,
+		getResolution = function()
+			return target.width, target.height
+		end,
+		setForeground = function(rgb)
+			d.fg = rgb
+		end,
+		setColor = function(rgb)
+			d.bg = rgb
+		end
+	}
+	return d
+end
+
 function lib.drawContext(ctxn)
 	local ctx = dc[ctxn]
+	if ctx.target then
+		local gpu = lib.targetDriver(ctx.target)
+	end
 	if doDebug then
 		gpu.setColor(0xFFFFFF)
 		gpu.drawText(1, 1, "OCDraw Debug:", 0)
@@ -38,6 +83,36 @@ function lib.drawContext(ctxn)
 			if not back then _, _, back = gpu.get(x, y) end
 			gpu.setColor(back)
 			gpu.drawText(x, y, v.text, color)
+		end
+		if t == "renderTarget" then
+			local img = v.img
+			for j=1, img.height do
+				local str = ""
+				local bg = -1
+				local fg = -1
+				local sx = 0
+				for i=1, img.width do
+					local piece = img.data[(j-1)*img.width+(i-1)]
+					str = str .. piece[1]
+					local changed = false
+					if fg ~= piece[2] then
+						fg = piece[2]
+						gpu.setForeground(fg)
+						changed = true
+					end
+					if bg ~= piece[3] then
+						bg = piece[3]
+						gpu.setColor(bg)
+						changed = true
+					end
+					if changed then
+						gpu.drawText(x+sx, y+j, str)
+						str = ""
+						sx = i
+					end
+				end
+				gpu.drawText(x+sx, y+j, str)
+			end
 		end
 		if t == "copy" then
 			local x2, y2 = i.x2, i.y2
@@ -80,6 +155,31 @@ function lib.newContext(x, y, width, height, braille)
 	ctx.drawBuffer = {}
 	dc[#dc+1] = ctx
 	return #dc
+end
+
+function lib.getTarget(ctx)
+	return dc[ctx].target
+end
+
+function lib.newTarget(width, height)
+	local data = {} -- not storing the data in a map will allow for less memory usage
+	for i=1, width do
+		for j=1, height do
+			data[(j-1)*width+(i-1)] = {' ', 0, 0};
+		end
+	end
+	return {
+		width = width,
+		height = height,
+		data = data
+	}
+end
+
+function lib.setTarget(ctx, target)
+	if target == "display" or target == 0 then
+		target = nil
+	end
+	dc[ctx].target = target
 end
 
 function lib.setContextSize(ctx, width, height)
@@ -179,6 +279,23 @@ function lib.canvas(ctxn)
 		draw.height = height
 		draw.color = color
 		draw.type = "drawOval"
+		table.insert(ctx.drawBuffer, draw)
+	end
+	cnv.renderTarget = function(x, y, img)
+		local ctx = dc[ctxn]
+		if x + img.width > ctx.width+1 then
+			x = ctx.width - img.width
+		end
+		if y + img.height > ctx.height+1 then
+			y = ctx.height - img.height
+		end
+		x = x + ctx.x
+		y = y + ctx.y
+		local draw = {}
+		draw.x = x
+		draw.y = y
+		draw.img = img
+		draw.type = "renderTarget"
 		table.insert(ctx.drawBuffer, draw)
 	end
 	cnv.drawCircle = function(x, y, radius, color)

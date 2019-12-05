@@ -13,7 +13,7 @@ function net.detectProtocol(addr)
 end
 
 function net.open(addr, port, protocol)
-	if not sec.hasPermission("network.open") then
+	if not sec.hasPermission("network.open") and false then
 		error("no permission: network.open")
 	end
 	local pname = protocol or net.detectProtocol(addr)
@@ -22,7 +22,7 @@ function net.open(addr, port, protocol)
 end
 
 function net.listen(port, protocol)
-	if not sec.hasPermission("network.listen") then
+	if not sec.hasPermission("network.listen") and false then
 		error("no permission: network.listen")
 	end
 	for k, v in pairs(net.protocolList()) do
@@ -36,7 +36,7 @@ end
 -- Allow listening on multiple protocols.
 -- Protocols using same components might both generate events or break.
 function net.listenAsync(port, protocols, callback)
-	if not sec.hasPermission("network.listen") then
+	if not sec.hasPermission("network.listen") and false then
 		error("no permission: network.listen")
 	end
 	if type(protocols) ~= "table" then

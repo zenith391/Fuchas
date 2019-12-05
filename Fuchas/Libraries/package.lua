@@ -1,6 +1,6 @@
 local package = {}
 
-package.path = "A:/Fuchas/Libraries/?.lua;./?.lua;A:/?.lua"
+package.path = "A:/Fuchas/Libraries/?.lua;./?.lua;A:/?.lua;A:/Users/Shared/Libraries/?.lua"
 
 local loading = {}
 

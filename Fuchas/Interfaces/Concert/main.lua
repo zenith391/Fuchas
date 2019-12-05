@@ -74,13 +74,21 @@ end
 do
 	test.title = "Test Window"
 	do
+		local offBuf = draw.newTarget(10, 10)
+		local offBufCtx = draw.newContext(0, 0, 10, 10, 0)
+		draw.setTarget(offBufCtx, offBuf)
+		local offBufCnv = draw.canvas(offBufCtx)
+		offBufCnv.drawOval(1, 1, 10, 10, 0xFFFFFF)
+		draw.drawContext(offBufCtx)
+
 		local comp = ui.component()
 		comp.render = function(self)
 			if not self.context then
 				self:open()
 			end
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
-			self.canvas.drawOval(1, 1, 10, 10, 0xFFFFFF)
+			--self.canvas.drawOval(1, 1, 10, 10, 0xFFFFFF)
+			self.canvas.renderTarget(1, 1,  offBuf)
 			--self.canvas.drawOval(15, self.height-5, 10, 10, 0xFFFFFF)
 			draw.drawContext(self.context)
 		end

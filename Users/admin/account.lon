@@ -1,0 +1,5 @@
+{
+	name = "admin",
+	password = "17a6f84f0508fe4b37c66aa73686dfd2ca61e020203e92eb9acca93c6eb57f8213d4dd274b6080ef72accb3822b167d404ac30f213afeada0cb9b75872f04b67",
+	security = "sha3-512"
+}

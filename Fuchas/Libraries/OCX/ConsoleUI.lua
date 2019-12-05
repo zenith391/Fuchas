@@ -1,10 +1,9 @@
-local gpu = component.proxy(component.list("gpu")())
+local gpu = require("driver").gpu
 local width, height = gpu.getResolution()
 local lib = {}
 
 function lib.clear(color)
-	gpu.setBackground(color)
-	gpu.fill(1, 1, width, height, " ")
+	gpu.fill(1, 1, width, height, color)
 end
 
 function lib.getWidth()
@@ -18,14 +17,14 @@ function lib.getHeight()
 end
 
 function lib.drawBorder(x, y, width, height)
-	gpu.set(x, y, "╔")
-	gpu.set(x + width, y, "╗")
-	gpu.fill(x + 1, y, width - 1, 1, "═")
-	gpu.fill(x + 1, y + height, width - 1, 1, "═")
-	gpu.set(x, y + height, "╚")
-	gpu.set(x + width, y + height, "╝")
-	gpu.fill(x, y + 1, 1, height - 1, "║")
-	gpu.fill(x + width, y + 1, 1, height - 1, "║")
+	gpu.drawText(x, y, "╔")
+	gpu.drawText(x + width, y, "╗")
+	gpu.fillChar(x + 1, y, width - 1, 1, "═")
+	gpu.fillChar(x + 1, y + height, width - 1, 1, "═")
+	gpu.drawText(x, y + height, "╚")
+	gpu.drawText(x + width, y + height, "╝")
+	gpu.fillChar(x, y + 1, 1, height - 1, "║")
+	gpu.fillChar(x + width, y + 1, 1, height - 1, "║")
 end
 
 function lib.component()
@@ -36,7 +35,7 @@ function lib.component()
 	comp.width = 0
 	comp.height = 0
 	comp.renderBorder = function()
-		gpu.setBackground(comp.background)
+		gpu.setColor(comp.background)
 		gpu.setForeground(0xFFFFFF)
 		lib.drawBorder(comp.x, comp.y, comp.width, comp.height)
 	end
@@ -51,7 +50,7 @@ function lib.label(text)
 	comp.text = text
 	comp.render = function()
 		gpu.setForeground(comp.foreground)
-		gpu.setBackground(comp.background)
+		gpu.setColor(comp.background)
 		gpu.set(comp.x, comp.y, comp.text)
 	end
 	return comp
@@ -106,18 +105,18 @@ function lib.progressBar(maxProgress)
 	pb.maxProgress = maxProgress
 	pb.foreground = 0x00FF00
 	pb.render = function()
-		gpu.setBackground(pb.background)
+		gpu.setColor(pb.background)
 		gpu.setForeground(0xFFFFFF)
-		gpu.fill(pb.x + 1, pb.y + 1, pb.width - 1, pb.height - 1, " ")
+		gpu.fill(pb.x + 1, pb.y + 1, pb.width - 1, pb.height - 1)
 		
 		if pb.dirty == true then
-			gpu.fill(pb.x, pb.y, pb.width, pb.height, " ")
+			gpu.fill(pb.x, pb.y, pb.width, pb.height)
 			pb.renderBorder()
 			pb.dirty = false
 		end
 		
 		gpu.setForeground(pb.foreground)
-		gpu.fill(pb.x + 1, pb.y + 1, (pb.progress / pb.maxProgress) * pb.width - 1, pb.height - 1, "█")
+		gpu.fillChar(pb.x + 1, pb.y + 1, (pb.progress / pb.maxProgress) * pb.width - 1, pb.height - 1, "█")
 	end
 	return pb
 end
@@ -133,13 +132,13 @@ function lib.textField()
 				focused = false
 			end
 		end
-		gpu.setBackground(comp.background)
+		gpu.setColor(comp.background)
 		gpu.setForeground(comp.foreground)
 		if focused then
-			gpu.setBackground(0xEEEEEE)
+			gpu.setColor(0xEEEEEE)
 		end
-		gpu.fill(comp.x, comp.y, comp.width, 1, " ")
-		gpu.set(comp.x, comp.y, comp.text)
+		gpu.fill(comp.x, comp.y, comp.width, 1)
+		gpu.drawText(comp.x, comp.y, comp.text)
 	end
 	comp.event = function(pack)
 		gpu.setForeground(0xFFFFFF)
@@ -174,11 +173,11 @@ function lib.button(text)
 	btn.foreground = 0xFFFFFF
 	btn.height = 1
 	btn.render = function()
-		gpu.setBackground(btn.background)
+		gpu.setColor(btn.background)
 		gpu.setForeground(0xFFFFFF)
 		btn.width = string.len(btn.text)
-		gpu.fill(btn.x, btn.y, string.len(btn.text), 1, " ")
-		gpu.set(btn.x, btn.y, btn.text)
+		gpu.fill(btn.x, btn.y, string.len(btn.text), 1)
+		gpu.drawText(btn.x, btn.y, btn.text)
 		btn.dirty = false
 	end
 	btn.ontouch = nil

@@ -11,10 +11,11 @@ local tasks = require("tasks")
 for k, v in pairs(fs.unmanagedFilesystems()) do
 	for addr, _ in component.list("drive") do
 		if fs.isValid(addr) then
-			fs.mountDrive(fs.asFilesystem(addr), "U")
+			fs.mountDrive(fs.asFilesystem(addr), fs.freeDriveLetter())
 		end
 	end
 end
+
 -- User
 if not fs.exists("A:/Users/Shared") then
 	fs.makeDirectory("A:/Users/Shared")
@@ -23,8 +24,8 @@ end
 require("shell").setCursor(1, 1)
 tasks.newProcess("System Interface", function()
 	local f, err = xpcall(function()
+		require("users").login("guest") -- no password required
 		dofile("A:/Fuchas/autorun.lua") -- system variables autorun
-		os.setenv("USER", "Guest")
 		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
 		if l == nil then
 			error(err)
