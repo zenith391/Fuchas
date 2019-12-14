@@ -6,7 +6,8 @@ local aliases = {
 	["ls"] = "dir",
 	["ps"] = "pl",
 	["reboot"] = "power reboot",
-	["shutdown"] = "power off"
+	["shutdown"] = "power off",
+	["cls"] = "clear"
 }
 
 local fs = require("filesystem")
@@ -129,7 +130,7 @@ function lib.setCursor(col, row)
 end
 
 function lib.clear()
-	require("OCX/ConsoleUI").clear(0x000000)
+	driver.gpu.fill(1, 1, 160, 50, 0)
 	lib.setCursor(1, 1)
 end
 

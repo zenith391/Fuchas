@@ -2,9 +2,14 @@ local user = nil
 local users = {}
 local security = require("security")
 local fs = require("filesystem")
+local bin = require("sha3").bin
 local hashes = {
-	["sha3-256"] = require("sha3").sha256,
-	["sha3-512"] = require("sha3").sha512
+	["sha3-256"] = function(input)
+		return bin.stohex(require("sha3").sha3.sha256(input))
+	end,
+	["sha3-512"] = function(input)
+		return bin.stohex(require("sha3").sha3.sha512(input))
+	end
 }
 local lib = {}
 

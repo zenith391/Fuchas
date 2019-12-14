@@ -1,6 +1,6 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.5.0",
+	VERSION = "0.5.1",
 	DEBUG = true
 }
 

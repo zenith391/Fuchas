@@ -27,4 +27,5 @@ if res == nil then
 	return
 end
 
+security.requestPermission("*")
 loadfile(res)(args)

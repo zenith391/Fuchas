@@ -12,9 +12,7 @@ local config = {
 local function titleBar(win)
 	local comp = ui.component()
 	comp.render = function(self)
-		if not self.context then -- init context if not yet
-			self:open()
-		end
+		self:initRender()
 		self.canvas.fillRect(1, 1, win.width, 1, 0xCCCCCC)
 		self.canvas.drawText(2, 1, win.title, 0xFFFFFF)
 		self.canvas.drawText(win.width - 5, 1, "⣤ ⠶", 0xFFFFFF)
@@ -24,13 +22,13 @@ local function titleBar(win)
 	return comp
 end
 
-function lib.newWindow()
+function lib.newWindow(width, height, title)
 	local obj = {
-		title = "",
+		title = title or "",
 		x = 20,
 		y = 10,
-		width = 40,
-		height = 10,
+		width = width or 40,
+		height = height or 10,
 		moved = false,
 		dirty = true,
 		focused = false,
@@ -46,8 +44,8 @@ function lib.newWindow()
 		hide = function(self)
 			desktop[self.id] = nil
 			self.visible = false
-			self.titleBar:dispose()
-			self.container:dispose()
+			self.titleBar:dispose(true)
+			self.container:dispose(true)
 			gpu.setColor(0xAAAAAA)
 			gpu.fill(self.x, self.y, self.width, self.height)
 			lib.drawDesktop()
@@ -60,6 +58,17 @@ end
 
 function lib.desktop()
 	return desktop
+end
+
+function lib.clearDesktop()
+	for k, v in pairs(desktop) do
+		if v.titleBar then
+			v.titleBar:dispose(true)
+		end
+		v.container:dispose(true)
+	end
+	desktop = {}
+	windows = {}
 end
 
 function lib.moveWindow(win, x, y)

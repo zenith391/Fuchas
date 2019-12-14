@@ -25,7 +25,9 @@ function drv.out()
 				end
 			end,
 			flush = function(self)
-				printer.writeln(outbuf)
+				if outbuf ~= nil then
+					printer.writeln(outbuf)
+				end
 			end,
 			print = function(self)
 				self.flush()

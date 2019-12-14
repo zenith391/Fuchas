@@ -50,10 +50,6 @@ function lib.retrieve()
 	return clipboard
 end
 
-event.listen("shutdown", function()
-	-- TODO: save to file
-end)
-
 event.listen("key_down", function()
 	if clibpoard ~= nil and require("keyboard").isCtrlPressed() and require("keyboard").isPressed(65) then
 		computer.pushSignal("paste_trigger", computer.uptime())

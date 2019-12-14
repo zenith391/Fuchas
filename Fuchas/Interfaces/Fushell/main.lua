@@ -109,7 +109,7 @@ while run do
 				if f ~= nil then
 					xpcall(f, function(err)
 						io.stderr:write(err .. "\n")
-						io.stderr:write(debug.traceback() .. "\n")
+						io.stderr:write(debug.traceback(nil, 2) .. "\n")
 					end, programArgs)
 				end
 			end)

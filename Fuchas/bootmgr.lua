@@ -24,8 +24,8 @@ end
 require("shell").setCursor(1, 1)
 tasks.newProcess("System Interface", function()
 	local f, err = xpcall(function()
-		require("users").login("guest") -- no password required
 		dofile("A:/Fuchas/autorun.lua") -- system variables autorun
+		require("users").login("guest") -- no password required
 		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
 		if l == nil then
 			error(err)
