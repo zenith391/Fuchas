@@ -6,9 +6,13 @@ local aliases = {
 	["ls"] = "dir",
 	["ps"] = "pl",
 	["reboot"] = "power reboot",
-	["shutdown"] = "power off"
+	["shutdown"] = "power off",
+	["cls"] = "clear"
 }
+
 local fs = require("filesystem")
+local driver = require("driver")
+local clipboard = require("clipboard")
 local stdout = io.stdout
 
 local cursor = {
@@ -64,7 +68,7 @@ function lib.enableANSI()
 			cursor.y = 1
 			gpu.fill(1, 1, 160, 50, " ")
 		end
-		
+
 		if val:find("\n") then
 			for line in val:gmatch("([^\n]+)") do
 				if lib.getY() == h then
@@ -126,7 +130,7 @@ function lib.setCursor(col, row)
 end
 
 function lib.clear()
-	require("OCX/ConsoleUI").clear(0x000000)
+	driver.gpu.fill(1, 1, 160, 50, 0)
 	lib.setCursor(1, 1)
 end
 
@@ -164,11 +168,11 @@ function lib.resolve(path)
 	table.insert(paths, os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD"))
 	local exts = string.split(os.getenv("PATHEXT"), ";")
 	table.insert(exts, "")
-	
+
 	if fs.exists(p) then
 		return p
 	end
-	
+
 	for _, pt in pairs(paths) do
 		pt = fs.canonical(pt)
 		for _, ext in pairs(exts) do
@@ -178,7 +182,7 @@ function lib.resolve(path)
 			end
 		end
 	end
-	
+
 	return nil
 end
 
@@ -211,7 +215,7 @@ end
 function lib.parseCL(cl)
 	local args = {}
 	local ca = string.toCharArray(cl)
-	
+
 	local istr = false
 	local arg = ""
 	for i = 1, #ca do
@@ -242,33 +246,74 @@ function lib.parseCL(cl)
 		end
 		table.insert(args, arg)
 	end
-	
+
 	return args
+end
+
+local function readEventFilter(name)
+	return name == "key_down" or name == "paste_trigger"
+end
+
+local function displayCursor()
+	driver.gpu.drawText(cursor.x, cursor.y, "_")
+end
+
+local function hideCursor()
+	driver.gpu.fill(cursor.x, cursor.y, 1, 1, 0x000000)
 end
 
 function lib.read()
 	local c = ""
 	local s = ""
+	local curVisible = true
+	local changeVis = false
 	local event = require("event")
+	displayCursor()
 	while c ~= '\r' do -- '\r' == Enter
-		local a, b, d = event.pull("key_down")
+		local a, b, d = event.pullFiltered(1, readEventFilter)
 		if a == "key_down" then
 			if d ~= 0 then
 				c = string.char(d)
 				if c ~= '\r' then
 					if d == 8 then -- backspace
-						if s:len() > 0 then
-							s = s:sub(1, s:len() - 1)
+						if string.len(s) > 0 then
+							hideCursor()
+							s = string.sub(s, 1, string.len(s) - 1)
 							cursor.x = cursor.x - 1
 							write(" ")
 							cursor.x = cursor.x - 1
+							displayCursor()
 						end
-					else
+					elseif d > 0x1F and d ~= 0x7F then
+						hideCursor()
 						s = s .. c
 						write(c)
+						displayCursor()
 					end
+					changeVis = false
 				end
 			end
+		elseif a == "paste_trigger" then
+			local clip = clipboard.paste()
+			if clip.type == "text/string" then
+				hideCursor()
+				local txt = clip.object
+				s = s .. txt
+				write(txt)
+				displayCursor()
+				changeVis = false
+			end
+		end
+		if curVisible and changeVis then
+			hideCursor()
+			curVisible = false
+		elseif changeVis then
+			displayCursor()
+			curVisible = true
+		end
+		if not changeVis then
+			changeVis = true
+			curVisible = true
 		end
 	end
 	return s

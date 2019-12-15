@@ -1,7 +1,8 @@
 local sh = require("shell")
-local cui = require("OCX/ConsoleUI")
 local fs = require("filesystem")
 local tasks = require("tasks")
+local driver = require("driver")
+
 -- Avoid killing (safely) system process with a custom quit handler
 tasks.getCurrentProcess().safeKillHandler = function()
 	io.stderr:write("cannot kill system process!\n")
@@ -108,15 +109,15 @@ while run do
 				if f ~= nil then
 					xpcall(f, function(err)
 						io.stderr:write(err .. "\n")
-						io.stderr:write(debug.traceback() .. "\n")
+						io.stderr:write(debug.traceback(nil, 2) .. "\n")
 					end, programArgs)
 				end
 			end)
 			if not async then
 				proc:join()
 			end
-			component.gpu.setForeground(0xFFFFFF)
-			component.gpu.setBackground(0x000000)
+			driver.gpu.setForeground(0xFFFFFF)
+			driver.gpu.setColor(0x000000)
 		end, function(err)
 			print(debug.traceback(err))
 		end)

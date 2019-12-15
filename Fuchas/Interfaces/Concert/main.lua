@@ -4,10 +4,13 @@ local event = require("event")
 local draw = require("OCX/OCDraw")
 local ui = require("OCX/OCUI")
 
+wins.clearDesktop()
+
 local ctx = draw.newContext(1, 1, 160, 50)
 local canvas = draw.canvas(ctx)
 local test = wins.newWindow()
 local startMenu = wins.newWindow()
+local startMenuEntries = {{"Settings", "A:/Fuchas/Interfaces/Concert/csettings.lua"}}
 local taskBar = wins.newWindow()
 local focusedWin = nil
 local selectedWin = nil
@@ -21,15 +24,30 @@ do
 	do
 		local comp = ui.component()
 		comp.render = function(self)
-			if not self.context then
-				self:open()
-			end
-			self.canvas.fillRect(1, 1, self.width, self.height, 0)
+			self:initRender()
+			self.canvas.fillRect(1, 1, self.width, 1, 0)
+			self.canvas.fillRect(1, 2, self.width, self.height-1, 0x222222)
 			self.canvas.drawText(10, 1, "Fuchas", 0xFFFFFF)
+			for k, v in pairs(startMenuEntries) do
+				local name = v[1]
+				local y = 2 + k
+				self.canvas.drawText(2, y, name, 0xFFFFFF)
+			end
 			draw.drawContext(self.context)
 		end
 		comp.listeners["defocus"] = function(name, self, new)
 			startMenu:hide()
+		end
+		comp.listeners["touch"] = function(name, _, x, y, button)
+			if button == 0 then
+				for k, v in pairs(startMenuEntries) do
+					local name = v[1]
+					local cy = 1 + k
+					if x > comp.x+1 and x < comp.x+1+name:len() and y == comp.y+cy then
+						dofile(v[2])
+					end
+				end
+			end
 		end
 		comp.background = 0xFFFFFF
 		startMenu.container = comp
@@ -46,9 +64,7 @@ do
 	do
 		local comp = ui.component()
 		comp.render = function(self)
-			if not self.context then -- init context if not yet
-				self:open()
-			end
+			self:initRender()
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
 			self.canvas.drawText(2, 1, "Fuchas", 0)
@@ -69,24 +85,6 @@ do
 		end
 		taskBar.container = comp
 	end
-end
-
-do
-	test.title = "Test Window"
-	do
-		local comp = ui.component()
-		comp.render = function(self)
-			if not self.context then
-				self:open()
-			end
-			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
-			self.canvas.drawOval(1, 1, 10, 10, 0xFFFFFF)
-			--self.canvas.drawOval(15, self.height-5, 10, 10, 0xFFFFFF)
-			draw.drawContext(self.context)
-		end
-		test.container = comp
-	end
-	test:show()
 end
 
 local function drawBackDesktop(dontDraw)

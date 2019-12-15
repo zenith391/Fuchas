@@ -24,11 +24,24 @@ function lib.revoke(pid)
 end
 
 function lib.requestPermission(perm, pid)
-	if tasks.getCurrentProcess() == nil then -- system coroutine
-		-- only case where pid is used
-		permtable[pid] = {}
-		permtable[pid]["*"] = true
+	if tasks.getCurrentProcess() == nil then
 		return
+	end
+	if package.loaded.users then
+		local user = package.loaded.users.getUser()
+		if user ~= nil then
+			local fileStream = io.open("A:/Fuchas/admins.lon")
+			local adminFile = require("liblon").loadlon(fileStream)
+			fileStream:close()
+			for k, v in pairs(adminFile) do
+				if v == user.name then
+					permtable[currentProcess().pid] = {
+						["*"] = true
+					}
+					return
+				end
+			end
+		end
 	end
 	local proc = currentProcess().parent
 	if proc.permissionGrant then

@@ -13,6 +13,8 @@ function mod.newProcess(name, func)
 		pid = pid,
 		status = "created",
 		exitHandlers = {},
+		events = {},
+		operation = nil, -- the current async operation
 		closeables = {}, -- used for file streams
 		errorHandler = nil,
 		detach = function(self)
@@ -23,6 +25,9 @@ function mod.newProcess(name, func)
 		end,
 		join = function(self)
 			mod.waitFor(self)
+		end,
+		commitOperation = function(self, op)
+			self.operation = op
 		end
 	}
 	local currProc = mod.getCurrentProcess()
@@ -47,7 +52,7 @@ local function systemEvent(pack)
 		if pack[3] == "filesystem" then
 			local letter = fs.freeDriveLetter()
 			if letter ~= nil then -- if nil, then cannot mount another drive
-				fs.mountDrive(component.proxy(pack[2]), "B")
+				fs.mountDrive(component.proxy(pack[2]), letter)
 			end
 		end
 	end
@@ -92,6 +97,7 @@ function mod.scheduler()
 			p.thread = coroutine.create(p.func)
 			activeProcesses = activeProcesses + 1
 			p.status = "ready"
+			p.func = nil
 		end
 		if coroutine.status(p.thread) == "dead" then
 			mod.kill(p, true)
@@ -103,6 +109,7 @@ function mod.scheduler()
 						p.status = "ready"
 					elseif computer.uptime() >= p.timeout then
 						p.status = "ready"
+						p.timeout = nil
 					end
 				end
 			end
@@ -128,6 +135,7 @@ function mod.scheduler()
 					end
 				end
 				if ret then
+					-- function return has been replaced by operations
 					if type(ret) == "function" then
 						currentProc = p
 						local cont, val = true, nil
@@ -148,6 +156,15 @@ function mod.scheduler()
 						end
 					end
 				end
+			end
+			if p.operation and type(p.operation) == "function" then
+				-- Function returns: continue (boolean)
+				currentProc = p
+				if not p.operation() then
+					p.operation = nil
+					p.status = "ready"
+				end
+				currentProc = nil
 			end
 		end
 	end

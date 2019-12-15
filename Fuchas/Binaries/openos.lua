@@ -99,7 +99,7 @@ local function startMachine(env)
 	start()
 end
 
-print("Process: " .. shin32.getCurrentProcess().pid)
+print("Process: " .. require("tasks").getCurrentProcess().pid)
 print("Process coroutine: " .. tostring(coroutine.running()))
 print("Exiting coroutine..") -- used to avoid OpenOS finding itself in a coroutine that isn't an OpenOS process
 -- also make longer stacktraces (due to having all of it since computer start)

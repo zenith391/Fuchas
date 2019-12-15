@@ -1,4 +1,4 @@
--- Driver for Computronics's Sound Card (I call it CP3)
+-- Driver for Computronics's Sound Card (called CP3)
 -- TODO: Support CP1 (Beep Card)
 --       and CP2 (Noise Card)
 local drv = {}
@@ -7,7 +7,6 @@ local syn = false
 local cp, sound = ...
 sound = cp.proxy(sound)
 
--- Universal for all sound drivers
 function drv.appendFrequency(channel, time, freq)
 	sound.setFrequency(freq)
 	sound.delay(time)
@@ -66,8 +65,6 @@ function drv.getMaxChannels()
 	return 8
 end
 
--- Specific to sound card
-
 function drv.setVolume(channel, volume)
 	if not volume then
 		volume = channel
@@ -80,8 +77,8 @@ function drv.setVolume(channel, volume)
 	end
 end
 
-function drv.getRank() -- used by "driver" library to choose best driver
-	return 4 -- 1: PC speaker, 2: CP1, 3: CP2
+function drv.getRank()
+	return 4
 end
 
 function drv.getCapabilities()

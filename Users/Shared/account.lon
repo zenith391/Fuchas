@@ -1,5 +1,5 @@
 {
-	username = "guest",
-	security = "none",
-	level = 0
+	name = "guest",
+	pathName = "Shared",
+	security = "none"
 }

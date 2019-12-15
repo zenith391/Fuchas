@@ -14,6 +14,7 @@ end
 
 function protocol.listenAsync(port, callback)
 	local f = nil
+	modem.open(port)
 	f = function(_,_,sender,p,data)
 		if p == port then
 			local sock = protocol.open(sender, p)

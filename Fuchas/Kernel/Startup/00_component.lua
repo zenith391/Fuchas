@@ -73,7 +73,12 @@ function cp.removeVComponent(addr)
 end
 
 function cp.isAvailable(type)
-	return cp.list(type)() ~= nil
+	for k, v in pairs(cp.list(type)) do
+		if v == type then
+			return true
+		end
+	end
+	return false
 end
 
 function cp.getPrimary(type)
@@ -103,13 +108,10 @@ function cp.setPrimary(type, addr)
 	primaries[type] = addr
 end
 
-local cp = component
 setmetatable(cp, {
 	__index = function(self, key)
 		if cp.getPrimary(key) ~= nil then
 			return cp.getPrimary(key)
-		else
-			return cp[key]
 		end
 	end,
 	-- component.gpu: Return component.getPrimary("gpu") if available
@@ -127,7 +129,7 @@ component = setmetatable({}, {
 	__index = function(self, key)
 		local sec = require("security")
 		if sec.hasPermission("critical.component.get") then
-			if cp == "unrestricted" then
+			if key == "unrestricted" then
 				return cp
 			end
 			return cp[key]
