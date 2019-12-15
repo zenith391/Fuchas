@@ -1,20 +1,18 @@
 {
-	version = "0.5.0",
+	version = "0.5.1",
 	changelog = [[
-		- Removed "hello" command
-		- Added BSOD (well that's better than computer just crashing without a message)
-		- file:lines() now returns a table usable as iterator instdead of an iterator
-		- Started integrating GERTi network interface
-		- Added loopback network interface, usable with address "localhost"
-		- Every protocol now have a getAddress() method, it can returns nil if it can't get computer's address (e.g. IP)
-		- Aliases, you can use cp instdead of copy or del instdead of delete
-		- Improved edit program. Yet not finalized
-		- Remade how kernel works (and removed shin32)
-		- EFI2 is now updated and fully supported
-		- Added files and directories attributes.
-		- Replaced "reboot" with an alias to "power reboot"
-		- Added "print" and "term" command
-		- "edit" command partially working, as read-only
-		- Removed zorya-modules in profit of OEFI (v1 and v2.1)
+		- Added a clipboard library that can use OC's clipboard event alongside Fuchas generated events with Ctrl+V.
+		- Events are pulled from a per-process queue, also allow to push events only to a certain process.
+		- OCDraw supports render targets, those are use as a target for the drawing and can be shown, they are basically just images.
+		- Unicode support in Fushell and "shell" library.
+		- CSettings program
+		- Ability to launch programs from Concert
+		- Increase startup speed (with Voodoo3 magic)
+		- Full support of the UAC system.
+		- Interfaces start with no permission and must login (as command in Fushell) to a admin account to have permissions
+		- Decreased Fuchas size by deleting some unused files
+		- Added process operations, they are like sub-processes that can end whenever they want (these are not threads!)
+		- Fixed many technical issues
+		- Removed AwesomeCatgirl
 	]]
 }
