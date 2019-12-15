@@ -132,7 +132,7 @@ function io.createStdOut()
 				sh.setY(sh.getY() - 1)
 			end
 			gpu.set(sh.getX(), sh.getY(), val)
-			sh.setX(sh.getX() + val:len())
+			sh.setX(sh.getX() + string.len(val))
 		end
 		return true
 	end

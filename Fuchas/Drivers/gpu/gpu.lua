@@ -48,9 +48,9 @@ function drv.fillChar(x, y, w, h, ch)
 	comp.fill(x, y, w, h, ch)
 end
 
-function drv.fill(x, y, w, h, fg)
-	if fg then
-		comp.setForeground(fg)
+function drv.fill(x, y, w, h, bg)
+	if bg then
+		comp.setBackground(bg)
 	end
 	drv.fillChar(x, y, w, h, ' ')
 end

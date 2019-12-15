@@ -1,6 +1,7 @@
 local driver = {}
 local loading = {}
 local loaded = {}
+local cachedDrivers = {}
 
 local cp = ... -- only package to receive arguments
 local fs = require("filesystem")
@@ -45,7 +46,8 @@ local function findBestDriver(type, addr)
 		if fs.exists(dir) then
 			for path, _ in fs.list(dir) do
 				if not fs.isDirectory(dir .. path) then
-					local drv = dofile(dir .. path, cp, addr)
+					local drv = cachedDrivers[dir .. path .. addr] or dofile(dir .. path, cp, addr)
+					cachedDrivers[dir .. path .. addr] = drv
 					if drv.isCompatible() then
 						if sel == nil then
 							sel = drv
@@ -79,7 +81,7 @@ function driver.getDriver(type, addr)
 		loaded[type] = {}
 		loaded[type]["default"] = getDefaultDriver(type)
 	end
-	if not loaded[type][addr] then
+	if addr ~= "default" and not loaded[type][addr] then
 		loaded[type][addr] = findBestDriver(type, addr)
 	end
 	return loaded[type][addr]

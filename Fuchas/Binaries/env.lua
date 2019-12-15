@@ -10,8 +10,8 @@ else
 	if pos then
 		local name = args[1]:sub(1,pos-1)
 		local val = args[1]:sub(pos+1)
-		print(name)
-		print(val)
+		print("Set " .. name .. " to " .. val)
+		os.setenv(name, val)
 	else
 		if os.getenv(args[1]) then
 			print(tostring(os.getenv(args[1])))

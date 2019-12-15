@@ -28,12 +28,12 @@ function string.toCharArray(s)
 end
 
 function string.width(...)
-	return unicode.charWidth(...)
+	return unicode.wlen(...)
 end
 
 function string.len(str)
 	if uni then
-		return unicode.wlen(str)
+		return unicode.len(str)
 	else
 		return _len(str)
 	end

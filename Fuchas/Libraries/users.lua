@@ -1,9 +1,15 @@
-local user = {}
+local user = nil
 local users = {}
 local security = require("security")
 local fs = require("filesystem")
+local bin = require("sha3").bin
 local hashes = {
-	sha256 = require("sha256")
+	["sha3-256"] = function(input)
+		return bin.stohex(require("sha3").sha3.sha256(input))
+	end,
+	["sha3-512"] = function(input)
+		return bin.stohex(require("sha3").sha3.sha512(input))
+	end
 }
 local lib = {}
 
@@ -15,9 +21,9 @@ local function retrieveUsers()
 			configStream:close()
 			table.insert(users, {
 				name = config.name,
+				pathName = config.pathName,
 				password = config.password,
 				security = config.security,
-                level = config.level
 			})
 		end
 	end
@@ -31,7 +37,7 @@ function lib.getUserPath()
 	if user == nil then
 		return lib.getSharedUserPath()
 	else
-		return "A:/Users/" .. user.name
+		return "A:/Users/" .. user.pathName or user.name
 	end
 end
 
@@ -39,15 +45,30 @@ function lib.getUser()
 	return user
 end
 
+-- Logouts and set account to guest (Shared).
+function lib.logout()
+	if user ~= nil then
+		if not not security.hasPermission("users.logout") then
+			return false, "missing permission: users.logout"
+		end
+	end
+	user = nil
+	os.setenv("USER", "guest")
+	return true
+end
+
 function lib.login(username, passwd)
-	if not security.hasPermission("users.login") then
-		return false, "missing permission: users.login"
+	if user ~= nil and not security.hasPermission("users.logout") then
+		local ok, reason = lib.logout()
+		if not ok then
+			return ok, reason
+		end
 	end
 	for _, v in pairs(users) do
 		if v.name == username then
 			if v.security ~= "none" and hashes[v.security] then
 				local algo = hashes[v.security]
-				local hash = algo(passwd)
+				local hash = algo("$@^PO!°]" .. passwd) -- salt + passwd; salt against rainbow tables
 				if v.password == hash then
 					user = v
 					os.setenv("USER", user.name)
@@ -55,6 +76,10 @@ function lib.login(username, passwd)
 				else
 					return false, "invalid password"
 				end
+			elseif v.security == "none" then
+				user = v
+				os.setenv("USER", user.name)
+				return true
 			end
 		end
 	end

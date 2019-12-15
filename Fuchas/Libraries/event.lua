@@ -53,6 +53,17 @@ function event.exechandlers(event_data)
 	end
 end
 
+computer.pushProcessSignal = function(pid, name, ...)
+	local cproc = pid
+	if type(cproc) == "number" then
+		require("tasks").getProcess(pid)
+	else
+		return false, "invalid process/pid"
+	end
+	table.insert(cproc.events, table.pack(name, ...))
+	return true
+end
+
 computer.pullSignal = function(...)
 	if kbd == nil then kbd = require("keyboard") end
 	local event_data
@@ -60,7 +71,12 @@ computer.pullSignal = function(...)
 		event_data = table.pack(handlers(...))
 		event.exechandlers(event_data)
 	else
-		event_data = coroutine.yield("pull_event", ...) or {nil, n = 1}
+		local cproc = require("tasks").getCurrentProcess()
+		if #cproc.events ~= 0 then
+			event_data = table.remove(cproc.events, 1)
+		else
+			event_data = coroutine.yield("pull_event", ...) or {nil, n = 1}
+		end
 	end
 	if kbd.isCtrlPressed() then
 		if kbd.isPressed(46) then
@@ -79,20 +95,20 @@ end
 local function createPlainFilter(name, ...)
   local filter = table.pack(...)
   if name == nil and filter.n == 0 then
-    return nil
+	return nil
   end
 
   return function(...)
-    local signal = table.pack(...)
-    if name and not (type(signal[1]) == "string" and signal[1]:match(name)) then
-      return false
-    end
-    for i = 1, filter.n do
-      if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
-        return false
-      end
-    end
-    return true
+	local signal = table.pack(...)
+	if name and not (type(signal[1]) == "string" and signal[1]:match(name)) then
+	  return false
+	end
+	for i = 1, filter.n do
+	  if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
+		return false
+	  end
+	end
+	return true
   end
 end
 
@@ -101,37 +117,37 @@ function event.pullFiltered(...)
   local seconds, filter
 
   if type(args[1]) == "function" then
-    filter = args[1]
+	filter = args[1]
   else
-    checkArg(1, args[1], "number", "nil")
-    checkArg(2, args[2], "function", "nil")
-    seconds = args[1]
-    filter = args[2]
+	checkArg(1, args[1], "number", "nil")
+	checkArg(2, args[2], "function", "nil")
+	seconds = args[1]
+	filter = args[2]
   end
 
   local deadline = seconds and (computer.uptime() + seconds) or math.huge
   repeat
-    local closest = deadline
-    for _,handler in pairs(handlers) do
-      closest = math.min(handler.timeout, closest)
-    end
-    local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
-    if signal.n > 0 then
-      if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
-        return table.unpack(signal, 1, signal.n)
-      end
-    end
+	local closest = deadline
+	for _,handler in pairs(handlers) do
+	  closest = math.min(handler.timeout, closest)
+	end
+	local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
+	if signal.n > 0 then
+	  if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
+		return table.unpack(signal, 1, signal.n)
+	  end
+	end
   until computer.uptime() >= deadline
 end
 
 function event.pull(...)
   local args = table.pack(...)
   if type(args[1]) == "string" then
-    return event.pullFiltered(createPlainFilter(...))
+	return event.pullFiltered(createPlainFilter(...))
   else
-    checkArg(1, args[1], "number", "nil")
-    checkArg(2, args[2], "string", "nil")
-    return event.pullFiltered(args[1], createPlainFilter(select(2, ...)))
+	checkArg(1, args[1], "number", "nil")
+	checkArg(2, args[2], "string", "nil")
+	return event.pullFiltered(args[1], createPlainFilter(select(2, ...)))
   end
 end
 
@@ -139,9 +155,9 @@ function event.listen(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
   for _, handler in pairs(handlers) do
-    if handler.key == name and handler.callback == callback then
-      return false
-    end
+	if handler.key == name and handler.callback == callback then
+	  return false
+	end
   end
   return event.register(name, callback, math.huge, math.huge)
 end
@@ -149,8 +165,8 @@ end
 function event.cancel(timerId)
   checkArg(1, timerId, "number")
   if event.handlers[timerId] then
-    event.handlers[timerId] = nil
-    return true
+	event.handlers[timerId] = nil
+	return true
   end
   return false
 end
@@ -159,10 +175,10 @@ function event.ignore(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
   for id, handler in pairs(event.handlers) do
-    if handler.key == name and handler.callback == callback then
-      event.handlers[id] = nil
-      return true
-    end
+	if handler.key == name and handler.callback == callback then
+	  event.handlers[id] = nil
+	  return true
+	end
   end
   return false
 end

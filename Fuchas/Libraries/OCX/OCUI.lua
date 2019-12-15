@@ -24,15 +24,22 @@ function lib.component()
 	comp.foreground = 0xFFFFFF
 	comp.listeners = {}
 	comp.dirty = true
-	comp.open = function(self)
-		self:dispose()
-		self.context = draw.newContext(self.x, self.y, self.width, self.height)
-		self.canvas = draw.canvas(self.context)
+	comp.initRender = function(self)
+		if self.context == nil then
+			self:dispose()
+			self.context = draw.newContext(self.x, self.y, self.width, self.height)
+			self.canvas = draw.canvas(self.context)
+		end
 	end
-	comp.dispose = function(self)
+	comp.dispose = function(self, recursive)
 		if self.context then
 			draw.closeContext(self.context)
 			self.context = nil
+		end
+		if recursive and self.childrens then
+			for k, v in pairs(self.childrens) do
+				v:dispose()
+			end
 		end
 	end
 	return comp
@@ -47,10 +54,7 @@ function lib.container()
 	end
 	
 	comp.render = function(self)
-		-- container doesn't need a draw context
-		if not self.context then -- init context if not yet
-			self:open()
-		end
+		self:initRender()
 		self.canvas.fillRect(1, 1, self.width, self.height, self.background) -- draw text
 		draw.drawContext(self.context) -- finally draw
 		for _, c in pairs(self.childrens) do
@@ -76,9 +80,7 @@ function lib.label(text)
 	local comp = lib.component()
 	comp.text = text or "Label"
 	comp.render = function(self)
-		if not self.context then -- init context if not yet
-			self:open()
-		end
+		self:initRender()
 		self.canvas.drawText(1, 1, self.text, self.foreground, self.background) -- draw text
 		draw.drawContext(self.context) -- finally draw
 	end
@@ -90,10 +92,7 @@ function lib.progressBar(maxProgress)
 	pb.progress = 0
 	pb.foreground = 0x00FF00
 	pb.render = function(self)
-		if not self.context then
-			self:open()
-		end
-		
+		self:initRender()
 	end
 	return pb
 end
