@@ -41,7 +41,9 @@ while run do
 	while true do -- used for break (to act as "continue" in other other languages)
 	os.setenv("PWD_DRIVE", drive)
 	write(drive .. ":/" .. os.getenv("PWD") .. ">")
-	local l = sh.read()
+	local l = sh.read({
+		["autocompleteFile"] = true
+	})
 	local async = false
 	if string.endsWith(l, "&") then
 		l = l:sub(1, l:len()-1)

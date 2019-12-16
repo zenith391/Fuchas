@@ -262,7 +262,10 @@ local function hideCursor()
 	driver.gpu.fill(cursor.x, cursor.y, 1, 1, 0x000000)
 end
 
-function lib.read()
+function lib.read(options)
+	if not options then
+		options = {}
+	end
 	local c = ""
 	local s = ""
 	local curVisible = true
@@ -271,6 +274,7 @@ function lib.read()
 	displayCursor()
 	while c ~= '\r' do -- '\r' == Enter
 		local a, b, d = event.pullFiltered(1, readEventFilter)
+		local sp = string.split(s, " ")
 		if a == "key_down" then
 			if d ~= 0 then
 				c = string.char(d)
@@ -289,6 +293,29 @@ function lib.read()
 						s = s .. c
 						write(c)
 						displayCursor()
+					elseif d == 0x09 then
+						if options.autocompleteFile then
+							local path = os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD")
+							--if not fs.exists(path .. sp[#sp]) then
+							--	if fs.exists(fs.path(path .. sp[#sp])) then
+							--		path = fs.path(path .. sp[#sp])
+							--	end
+							--end
+							local seg = fs.segments(sp[#sp])
+							local s = table.remove(seg)
+							if #seg > 0 then path = path .. table.concat(seg, "/") end
+							seg = fs.segments(sp[#sp])
+							for k, v in pairs(fs.list(path)) do
+								if string.startsWith(v, seg[#seg]) then
+									local _, e = string.find(v, seg[#seg])
+									hideCursor()
+									local npart = v:sub(e+1, v:len())
+									s = s .. npart
+									write(npart)
+									displayCursor()
+								end
+							end
+						end
 					end
 					changeVis = false
 				end
