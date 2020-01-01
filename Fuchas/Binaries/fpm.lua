@@ -17,7 +17,7 @@ if not fs.exists(shared .. "/fpm-packages.lon") then
 	packages = {
 		["fpm"] = {
 			files = {
-				["Fuchas/Binaries/fpm.lua"] = "A:"
+				["Fuchas/Binaries/fpm.lua"] = "A:/Fuchas/Binaries/fpm.lua"
 			},
 			dependencies = {},
 			name = "Fuchas Package Manager",
@@ -83,9 +83,13 @@ local function searchSource(source)
 	return out
 end
 
-local function downloadPackage(src, name, pkg)
+local function downloadPackage(src, name, pkg, ver)
 	for k, v in pairs(pkg.files) do
-		local dest = fs.canonical(v) .. "/" .. k
+		v = v:grep("{userpath}", shared) -- TODO: if -g flag, it is Shared, otherwise current user
+		local dest = fs.canonical(v)
+		if ver == 1 then
+			dest = fs.canonical(v) .. "/" .. k
+		end
 		io.stdout:write("\tDownloading " .. k .. "..  ")
 		local txt = internet.readFully(githubGet .. src .. "/master/" .. k)
 		if txt == "" then
@@ -109,7 +113,7 @@ local function downloadPackage(src, name, pkg)
 end
 
 if args[1] == "help" then
-	print("FPM Help:")
+	print("Help:")
 	print("\thelp                  : Shows this help message")
 	print("\tinstall [package name]: Install the following package.")
 	print("\tremove  [package name]: Removes the following package.")
@@ -182,16 +186,16 @@ if args[1] == "update" then
 		print("  Source: " .. v)
 		packageList[v] = searchSource(v)
 	end
-	local isnt = false
 	for src, v in pairs(packageList) do
 		for k, e in pairs(v) do
 			for _, i in pairs(toInstall) do
 				if k == i then
-					if e.revision == packages[args[2]].revision then
+					local ver = e["_version"] or 1
+					if e.revision >= packages[args[2]].revision then
 						print(e.name .. " is up-to-date")
 					else
 						print("Updating " .. e.name)
-						local ok, err = pcall(downloadPackage, src, k, e)
+						local ok, err = pcall(downloadPackage, src, k, e, ver)
 						if not ok then
 							print("Error downloading package: " .. err)
 						end
@@ -204,11 +208,6 @@ if args[1] == "update" then
 	return
 end
 
-if args[1] == "recalc" then
-	print("Feature not yet available!")
-	return
-end
-
 if args[1] == "install" then
 	local toInstall = {}
 	if not internet then
@@ -217,6 +216,7 @@ if args[1] == "install" then
 	end
 	for i=2,#args do
 		table.insert(toInstall, args[i])
+
 	end
 	for k, _ in pairs(packages) do
 		for _, i in pairs(toInstall) do
@@ -236,7 +236,8 @@ if args[1] == "install" then
 	for src, v in pairs(packageList) do
 		for k, e in pairs(v) do
 			for _, i in pairs(toInstall) do
-				if k == i then
+				if k == i then -- if it's one of the package we want to install
+					local ver = e["_version"] or 1
 					for k, v in pairs(e.dependencies) do
 						if k == "fuchas" then
 							local fmajor = OSDATA.VERSION:sub(1,1)
@@ -255,7 +256,7 @@ if args[1] == "install" then
 						end
 					end
 					print("Installing " .. e.name)
-					local ok, err = pcall(downloadPackage, src, k, e)
+					local ok, err = pcall(downloadPackage, src, k, e, ver)
 					if not ok then
 						print("Error downloading package: " .. err)
 					end

@@ -1,7 +1,8 @@
 {
+	["_version"] = 2,
 	["fpm"] = {
 		files = {
-			["Fuchas/Binaries/fpm.lua"] = "A:"
+			["Fuchas/Binaries/fpm.lua"] = "A:/Fuchas/Binaries/fpm.lua"
 		},
 		dependencies = {},
 		name = "Fuchas Package Manager",

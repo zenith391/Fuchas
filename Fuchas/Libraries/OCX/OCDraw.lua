@@ -53,6 +53,26 @@ function lib.targetDriver(target)
 	return d
 end
 
+-- Will remove double buffer of any context
+function lib.requestMemory()
+	for k, v in pairs(dc) do
+		if v.doubleBuffer then
+			v.doubleBuffer = nil
+		end
+	end
+end
+
+function lib.requestDoubleBuffer(ctxn)
+	local ctx = dc[ctxn]
+	ctx.doubleBuffer = {}
+	for cx=1, ctx.width do
+		for cy=1, ctx.height do
+			local ch, fore, back = gpu.get(ctx.x+cx, ctx.y+cy)
+			ctx.doubleBuffer[y*ctx.width+x] = {ch, fore, back}
+		end
+	end
+end
+
 function lib.drawContext(ctxn)
 	local ctx = dc[ctxn]
 	if ctx.target then
