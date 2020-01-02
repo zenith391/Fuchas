@@ -269,7 +269,8 @@ function filesystem.getAttributes(path, raw)
 				}
 			]])(attr)
 		else
-			return {}
+			return {} -- unsafe, but only way as we're on Lua 5.2 and we don't have bit32.
+			-- Breaking compatibility (using OS arguments) is recommended if on Lua 5.3
 		end
 	end
 end

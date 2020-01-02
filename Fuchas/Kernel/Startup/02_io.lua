@@ -176,77 +176,11 @@ write = io.write
 
 function io.open(filename, mode)
 	if not fs.isDirectory(filename) then
-		local file = {}
 		local h, err = fs.open(filename, mode)
 		if not h then
 			return nil, err
-		else
-			file.h = h
 		end
-		file.close = function(self)
-			self.h.close(self.h)
-		end
-		file.write = function (self, val)
-			return self.h.write(self.h, val)
-		end
-		file.read = function(self, f)
-			--return coroutine.yield(function(val) -- task for later
-				if not f then
-					f = "a"
-				end
-				
-				if f == "a" or f == "*a" then -- the * before a or l and others is deprecated in Lua 5.3
-					local s = ""
-					while true do
-						local r = file.h:read(math.huge)
-						if r == nil then
-							break
-						end
-						s = s .. r
-					end
-					return s
-				end
-				
-				if f == "l" or f == "*l" then
-					local s = ""
-					while true do
-						local r = file.h:read(1)
-						if r == nil then
-							if s == "" then
-								return nil
-							else
-								break
-							end
-						end
-						if r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
-							return s
-						end
-						s = s .. r
-					end
-					return s
-				end
-				return nil, "invalid mode"
-			--end)
-		end
-		file.lines = function(self, f)
-			local tab = {}
-			while true do
-				local line = self.read(self, "l")
-				if line == nil then
-					break
-				end
-				table.insert(tab, line)
-			end
-			local i = 0
-			setmetatable(tab, {
-				__call = function()
-					i = i + 1
-				if i <= n then return tab[i] end
-				end
-			})
-			return tab
-		end
-		return file
+		return require("buffer").from(h)
 	end
-	return nil
+	return nil, "is directory"
 end

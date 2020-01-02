@@ -146,7 +146,7 @@ end
 --   print("Function ended")
 -- end)
 
-if _VERSION ~= "Lua 5.2" then
+if _VERSION ~= "Lua 5.2" and not OSDATA.CONFIG["NO_52_COMPAT"] then
     load([[
 	bit32 = {}
 	-- TODO complete

@@ -12,6 +12,9 @@ function mod.newProcess(name, func)
 		func = func,
 		pid = pid,
 		status = "created",
+		cpuTime = 0,
+		lastCpuTime = 0,
+		cpuPercentage = 0,
 		exitHandlers = {},
 		events = {},
 		operation = nil, -- the current async operation
@@ -83,16 +86,18 @@ function mod.scheduler()
 		error("only system can use shin32.scheduler()")
 	end
 	
-	-- System Event Handling
+	local measure = computer.uptime
 	local lastEvent = table.pack(event.handlers(0))
 	if not systemEvent(lastEvent) then
 		lastEvent = nil -- if not propagating
 	end
-	if lastEvent[1] ~= nil then
+	if lastEvent and lastEvent[1] then
 		event.exechandlers(lastEvent)
 	end
 	
+	local totalStart = measure()
 	for k, p in pairs(processes) do
+		local start = measure()
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
 			activeProcesses = activeProcesses + 1
@@ -166,6 +171,17 @@ function mod.scheduler()
 				end
 				currentProc = nil
 			end
+		end
+		local e = measure()
+		p.lastCpuTime = math.floor(e*1000 - start*1000) -- in milliseconds
+		p.cpuTime = p.cpuTime + p.lastCpuTime
+	end
+	local totalEnd = measure()
+	local time = math.floor(totalEnd*1000 - totalStart*1000)
+
+	for k, p in pairs(processes) do
+		if time ~= 0 then
+			p.cpuPercentage = p.lastCpuTime / time * 100
 		end
 	end
 end

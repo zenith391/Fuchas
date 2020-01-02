@@ -5,4 +5,5 @@ computer.supportsOEFI = function()
 end
 
 loadfile = oefi.loadfile
+os_arguments = ...
 loadfile("Fuchas/Kernel/boot.lua")()

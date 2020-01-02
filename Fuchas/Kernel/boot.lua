@@ -1,8 +1,51 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.5.1",
-	DEBUG = true
+	DEBUG = true,
+	CONFIG = {
+		NO_52_COMPAT = false -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
+	}
 }
+
+if os_arguments then -- arguments passed by a boot loader
+	-- Max security arguments: --no-debug --no-lua52-compat
+	for k, v in pairs(os_arguments) do
+		if v == "--no-lua52-compat" then
+			if _VERSION == "Lua 5.2" then
+				error("Cannot set '--no-lua52-compat' on a Lua 5.2 computer")
+			end
+			OSDATA.CONFIG["NO_52_COMPAT"] = true
+		end
+		
+		if v == "--no-debug" then
+			OSDATA.DEBUG = false
+		end
+
+		if v == "--debug" then
+			OSDATA.DEBUG = true
+		end
+
+		if v == "--boot-address" then
+			local bootAddr = os_arguments[k+1]
+			if not bootAddr then
+				error("missing argument to '--boot-address'")
+			end
+			if computer.supportsOEFI() then
+				local oefiLib = oefi or ...
+				if oefiLib.getAPIVersion() > 1 and oefiLib.getBootAddress then
+					oefiLib.getBootAddress = function()
+						return bootAddr
+					end
+					oefi = oefiLib
+				end
+			end
+			computer.getBootAddress = function()
+				return bootAddr
+			end
+		end
+	end
+	os_arguments = nil
+end
 
 _G._OSVERSION = _G.OSDATA.NAME .. " " .. _G.OSDATA.VERSION
 if OSDATA.DEBUG then
@@ -101,8 +144,7 @@ function os.sleep(n)
 end
 
 print("(1/5) Loading 'package' library..")
-local package = dofile("/Fuchas/Libraries/package.lua")
-_G.package = package
+_G.package = dofile("/Fuchas/Libraries/package.lua")
 _G.package.loaded.component = component
 _G.package.loaded.computer = computer
 print("(2/5) Checking OEFI compatibility..")
