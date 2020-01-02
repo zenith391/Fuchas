@@ -33,6 +33,13 @@ print(string.rep("=-", 15))
 print(_OSVERSION .. " - Fuchas")
 print("Welcome to Fuchas!")
 print("GitHub: https://github.com/zenith391/Fuchas")
+if computer.getArchitecture() == "Lua 5.2" then
+	for k, v in pairs(computer.getArchitectures()) do
+		if v == "Lua 5.3" then
+			print("/!\\ Please switch to Lua 5.3 on your CPU or APU")
+		end
+	end
+end
 print(string.rep("-=", 15))
 
 os.setenv("PWD", "")
