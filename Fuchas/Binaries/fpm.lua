@@ -84,6 +84,19 @@ local function searchSource(source)
 end
 
 local function downloadPackage(src, name, pkg, ver)
+	local arch = computer.getArchitecture()
+	if pkg.archFiles then -- if have architecture-dependent files
+		if pkg.archFiles[arch] then
+			for k, v in pairs(pkg.archFiles[arch]) do
+				for l, w in pairs(pkg.files) do
+					if v == w then -- same target
+						pkg.files[l] = nil
+						pkg.files[k] = v
+					end
+				end
+			end
+		end
+	end
 	for k, v in pairs(pkg.files) do
 		v = v:grep("{userpath}", shared) -- TODO: if -g flag, it is Shared, otherwise current user
 		local dest = fs.canonical(v)
