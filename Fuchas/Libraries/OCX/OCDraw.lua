@@ -8,6 +8,9 @@ local dc = {} -- Draw Contexts
 local doDebug = OSDATA.DEBUG -- warning costs a lot of GPU call budget
 
 function lib.closeContext(ctx)
+	if not dc[ctx] then
+		return
+	end
 	lib.drawContext(ctx)
 	dc[ctx] = nil
 end

@@ -62,6 +62,7 @@ end
 
 function lib.clearDesktop()
 	for k, v in pairs(desktop) do
+		v.visible = false
 		if v.titleBar then
 			v.titleBar:dispose(true)
 		end
@@ -129,6 +130,12 @@ function lib.drawWindow(win)
 		draw.setContextSize(win.container.context, win.width, ch)
 	end
 	win.container:render()
+
+	for _, w in pairs(desktop) do
+		if w.x > win.x and w.y > win.y and w.x+w.width<win.x+win.width and w.y+w.height<win.y+win.height then
+			w.dirty = true
+		end
+	end
 end
 
 function lib.drawDesktop()

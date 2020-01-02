@@ -220,7 +220,12 @@ function mod.kill(proc)
 	for k, v in pairs(proc.closeables) do
 		v:close()
 	end
-	processes[proc.pid] = nil
+	--processes[proc.pid] = nil
+	table.remove(processes, proc.pid)
+	-- update PID
+	for k,v in pairs(processes) do
+		v.pid = k
+	end
 	if currentProc == proc then
 		coroutine.yield()
 	end

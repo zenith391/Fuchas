@@ -10,7 +10,10 @@ local ctx = draw.newContext(1, 1, 160, 50)
 local canvas = draw.canvas(ctx)
 local test = wins.newWindow()
 local startMenu = wins.newWindow()
-local startMenuEntries = {{"Settings", "A:/Fuchas/Interfaces/Concert/csettings.lua"}}
+local startMenuEntries = {
+	{"Settings", "A:/Fuchas/Interfaces/Concert/csettings.lua"},
+	{"Task Manager", "A:/Fuchas/Interfaces/Concert/csysguard.lua"}
+}
 local taskBar = wins.newWindow()
 local focusedWin = nil
 local selectedWin = nil
@@ -111,6 +114,7 @@ local function screenEvent(name, addr, x, y, button, player)
 		if selectedWin ~= nil then
 			--wins.moveWindow(selectedWin, x, y)
 			selectedWin.x = x; selectedWin.y = y
+			selectedWin.dirty = true
 			drawBackDesktop()
 			wins.drawDesktop()
 		end

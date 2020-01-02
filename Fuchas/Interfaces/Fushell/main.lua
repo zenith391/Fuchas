@@ -26,24 +26,32 @@ tasks.getCurrentProcess().permissionGrant = function(perm, pid)
 		return false
 	end
 end
-local run = true
+
+local rw, rh = driver.gpu.getResolution()
+
+local function printCentered(str)
+	write(string.rep(" ", math.floor(rw/2-str:len()/2)))
+	print(str)
+end
+
 sh.clear()
 -- splash
-print(string.rep("=-", 15))
-print(_OSVERSION .. " - Fuchas")
-print("Welcome to Fuchas!")
-print("GitHub: https://github.com/zenith391/Fuchas")
-if computer.getArchitecture() == "Lua 5.2" then
+print(string.rep("=-", math.floor(rw/2)))
+printCentered(_OSVERSION .. " - Fuchas")
+printCentered("Welcome to Fuchas!")
+printCentered("GitHub: https://github.com/zenith391/Fuchas")
+if computer.getArchitecture() == "Lua 5.2" or true then
 	for k, v in pairs(computer.getArchitectures()) do
 		if v == "Lua 5.3" then
-			print("/!\\ Please switch to Lua 5.3 on your CPU or APU")
+			printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
 		end
 	end
 end
-print(string.rep("-=", 15))
+print(string.rep("-=", math.floor(rw/2)))
 
 os.setenv("PWD", "")
 local drive = "A"
+local run = true
 while run do
 	while true do -- used for break (to act as "continue" in other other languages)
 	os.setenv("PWD_DRIVE", drive)

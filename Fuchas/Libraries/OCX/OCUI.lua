@@ -1,4 +1,4 @@
--- Shared GUI components for any interfaces (Concert and Androoid)
+-- Shared GUI components for any interfaces (Concert and Androad)
 
 local draw = require("OCX/OCDraw")
 local width, height = require("driver").gpu.getResolution()
@@ -26,7 +26,6 @@ function lib.component()
 	comp.dirty = true
 	comp.initRender = function(self)
 		if self.context == nil then
-			self:dispose()
 			self.context = draw.newContext(self.x, self.y, self.width, self.height)
 			self.canvas = draw.canvas(self.context)
 		end
@@ -38,7 +37,7 @@ function lib.component()
 		end
 		if recursive and self.childrens then
 			for k, v in pairs(self.childrens) do
-				v:dispose()
+				v:dispose(true)
 			end
 		end
 	end
