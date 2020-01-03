@@ -250,7 +250,7 @@ if args[1] == "install" then
 		for k, e in pairs(v) do
 			for _, i in pairs(toInstall) do
 				if k == i then -- if it's one of the package we want to install
-					local ver = e["_version"] or 1
+					local ver = v["_version"] or 1
 					for k, v in pairs(e.dependencies) do
 						if k == "fuchas" then
 							local fmajor = OSDATA.VERSION:sub(1,1)
