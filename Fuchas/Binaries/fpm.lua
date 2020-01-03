@@ -203,7 +203,7 @@ if args[1] == "update" then
 		for k, e in pairs(v) do
 			for _, i in pairs(toInstall) do
 				if k == i then
-					local ver = e["_version"] or 1
+					local ver = v["_version"] or 1
 					if e.revision >= packages[args[2]].revision then
 						print(e.name .. " is up-to-date")
 					else
