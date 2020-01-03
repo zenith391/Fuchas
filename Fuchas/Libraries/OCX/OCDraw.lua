@@ -107,7 +107,7 @@ function lib.drawContext(ctxn)
 		gpu.drawText(1, 1, "OCDraw Debug:", 0)
 		gpu.drawText(1, 2, "Active Draw Contexts: " .. #dc, 0)
 		gpu.drawText(1, 3, "Active Processes: " .. require("tasks").getActiveProcesses(), 0)
-		local usedMem = math.floor((computer.freeMemory() - computer.totalMemory()) / 1024)
+		local usedMem = math.floor((computer.totalMemory() - computer.freeMemory()) / 1024)
 		local totalMem = math.floor(computer.totalMemory() / 1024)
 		gpu.drawText(1, 4, "RAM: " .. usedMem .. "/" .. totalMem .. " KiB")
 	end

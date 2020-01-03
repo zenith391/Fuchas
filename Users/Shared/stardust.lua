@@ -23,7 +23,7 @@ if path == nil then
 end
 
 local env = {
-	computer = require("stardust/computer")
+	computer = require("stardust/computer"),
 	component = _G.component.unrestricted,
 	math = _G.math,
 	coroutine = _G.coroutine,

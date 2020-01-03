@@ -98,7 +98,7 @@ local function downloadPackage(src, name, pkg, ver)
 		end
 	end
 	for k, v in pairs(pkg.files) do
-		v = v:grep("{userpath}", shared) -- TODO: if -g flag, it is Shared, otherwise current user
+		v = v:gsub("{userpath}", shared) -- TODO: if -g flag, it is Shared, otherwise current user
 		local dest = fs.canonical(v)
 		if ver == 1 then
 			dest = fs.canonical(v) .. "/" .. k
