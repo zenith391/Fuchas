@@ -135,7 +135,7 @@ function mod.scheduler()
 						p.errorHandler(ret)
 					else
 						if not handleProcessError(ret, p) then
-							shin32.kill(p)
+							mod.kill(p)
 						end
 					end
 				end

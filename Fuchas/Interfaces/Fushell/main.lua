@@ -40,7 +40,7 @@ print(string.rep("=-", math.floor(rw/2)))
 printCentered(_OSVERSION .. " - Fuchas")
 printCentered("Welcome to Fuchas!")
 printCentered("GitHub: https://github.com/zenith391/Fuchas")
-if computer.getArchitecture() == "Lua 5.2" or true then
+if computer.getArchitecture() == "Lua 5.2" then
 	for k, v in pairs(computer.getArchitectures()) do
 		if v == "Lua 5.3" then
 			printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
