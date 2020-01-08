@@ -3,7 +3,7 @@ local rw, rh = gpu.getResolution()
 local lib = {}
 local dc = {} -- Draw Contexts
 
-local doDebug = OSDATA.DEBUG and false -- warning costs a lot of GPU call budget
+local doDebug = OSDATA.DEBUG -- warning costs a lot of GPU call budget
 
 function lib.closeContext(ctx)
 	if not dc[ctx] then
@@ -231,6 +231,11 @@ function lib.setContextSize(ctx, width, height)
 	local c = dc[ctx]
 	c.width = width
 	c.height = height
+end
+
+function lib.getContextBounds(ctx)
+	local c = dc[ctx]
+	return c.x, c.y, c.width, c.height
 end
 
 function lib.moveContext(ctx, x, y)

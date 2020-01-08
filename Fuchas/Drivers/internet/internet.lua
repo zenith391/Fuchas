@@ -10,7 +10,7 @@ function spec.getName()
 	return "EnderNet Conformity 2000"
 end
 
-function drv.isCompatible(address)
+function spec.isCompatible(address)
 	return cp.proxy(address).type == "internet"
 end
 

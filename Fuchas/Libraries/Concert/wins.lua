@@ -6,7 +6,7 @@ local windows = {}
 local desktop = {}
 local config = {
 	COPY_WINDOW_OPTI = false,
-	DIRTY_WINDOW_OPTI = false
+	DIRTY_WINDOW_OPTI = true
 }
 
 local function titleBar(win)
@@ -30,7 +30,7 @@ function lib.newWindow(width, height, title)
 		width = width or 40,
 		height = height or 10,
 		moved = false,
-		dirty = true,
+		dirty = false,
 		focused = false,
 		undecorated = false,
 		visible = false,
@@ -39,10 +39,10 @@ function lib.newWindow(width, height, title)
 		show = function(self)
 			desktop[self.id] = self
 			self.visible = true
+			self.dirty = true
 			lib.drawDesktop()
 		end,
 		hide = function(self)
-			desktop[self.id] = nil
 			self.visible = false
 			self.titleBar:dispose(true)
 			self.container:dispose(true)
@@ -108,10 +108,6 @@ function lib.drawWindow(win)
 		win.titleBar.y = win.y
 		win.titleBar.height = 1
 		win.titleBar.width = win.width
-		if win.titleBar.context then
-			draw.moveContext(win.titleBar.context, win.x, win.y)
-			draw.setContextSize(win.titleBar.context, win.width, 1)
-		end
 		win.titleBar:render()
 	end
 	
@@ -125,14 +121,10 @@ function lib.drawWindow(win)
 	win.container.y = cy
 	win.container.height = ch
 	win.container.width = win.width
-	if win.container.context then
-		draw.moveContext(win.container.context, win.x, cy)
-		draw.setContextSize(win.container.context, win.width, ch)
-	end
 	win.container:render()
 
 	for _, w in pairs(desktop) do
-		if w.x > win.x and w.y > win.y and w.x+w.width<win.x+win.width and w.y+w.height<win.y+win.height then
+		if w.x<win.x+win.width and w.x+w.width>win.x or w.y<win.y+win.height or w.y+w.height>win.y then
 			w.dirty = true
 		end
 	end
@@ -140,9 +132,13 @@ end
 
 function lib.drawDesktop()
 	for _, win in pairs(desktop) do
-		if win.dirty then
+		if win.visible and win.dirty then
+			print(win.title .. " is title")
+			print("draw")
 			lib.drawWindow(win)
 			if config.DIRTY_WINDOW_OPTI then win.dirty = false end
+		else
+			print("not draw")
 		end
 	end
 end

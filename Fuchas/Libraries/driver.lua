@@ -46,7 +46,7 @@ local function findBestDriver(type, addr)
 		if fs.exists(dir) then
 			for path, _ in fs.list(dir) do
 				if not fs.isDirectory(dir .. path) then
-					local spec = driverSpecs[dir..path] or dofile(dir .. path, cp, addr)
+					local spec = driverSpecs[dir..path] or dofile(dir .. path, cp)
 					driverSpecs[dir..path] = spec
 					if spec.isCompatible(addr) then
 						if sel == nil then
@@ -61,10 +61,11 @@ local function findBestDriver(type, addr)
 			end
 		end
 	end
-
-	local drv = sel.new(addr)
-	drv.spec = sel
-	return drv
+	if sel ~= nil then
+		local drv = sel.new(addr)
+		drv.spec = sel
+		return drv
+	end
 end
 
 local function getDefaultDriver(type)

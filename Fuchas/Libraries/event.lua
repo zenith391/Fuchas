@@ -6,6 +6,10 @@ local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
 
 function event.register(key, callback, interval, times, opt_handlers)
+	local pid
+	if require("tasks").getCurrentProcess() then
+		pid = require("tasks").getCurrentProcess().pid
+	end
 	local handler =
 	{
 		key = key,
@@ -56,7 +60,7 @@ end
 computer.pushProcessSignal = function(pid, name, ...)
 	local cproc = pid
 	if type(cproc) == "number" then
-		require("tasks").getProcess(pid)
+		cproc = require("tasks").getProcess(pid)
 	else
 		return false, "invalid process/pid"
 	end

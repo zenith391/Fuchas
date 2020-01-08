@@ -1,16 +1,25 @@
+local ALWAYS_INCR_PID = true -- to avoid PIDs pointing to the wrong process
+
 local event = require("event")
 local mod = {}
 
 local activeProcesses = 0
+local incr = 1
 local currentProc = nil
 local processes = {}
 
 function mod.newProcess(name, func)
-	local pid = #processes+1
+	local pid
+	if ALWAYS_INCR_PID then
+		pid = incr
+		incr = incr + 1
+	else
+		pid = #processes+1
+	end
 	local proc = {
 		name = name,
 		func = func,
-		pid = pid,
+		pid = pid, -- reliable pointer to process that help know if a process is dead
 		status = "created",
 		cpuTime = 0,
 		lastCpuTime = 0,
@@ -220,12 +229,14 @@ function mod.kill(proc)
 	for k, v in pairs(proc.closeables) do
 		v:close()
 	end
-	--processes[proc.pid] = nil
-	table.remove(processes, proc.pid)
+	processes[proc.pid] = nil
+
+	-- Removing from tables help keep an array and not an hash table but conflicts with the purpose of PIDs
+	--table.remove(processes, proc.pid)
 	-- update PID
-	for k,v in pairs(processes) do
-		v.pid = k
-	end
+	--for k,v in pairs(processes) do
+	--	v.pid = k
+	--end
 	if currentProc == proc then
 		coroutine.yield()
 	end
