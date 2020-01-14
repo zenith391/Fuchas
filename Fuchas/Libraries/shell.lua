@@ -302,7 +302,7 @@ function lib.read(options)
 							--	end
 							--end
 							local seg = fs.segments(sp[#sp])
-							local s = table.remove(seg)
+							local st = table.remove(seg)
 							if #seg > 0 then path = path .. table.concat(seg, "/") end
 							seg = fs.segments(sp[#sp])
 							for k, v in pairs(fs.list(path)) do
@@ -313,6 +313,7 @@ function lib.read(options)
 									s = s .. npart
 									write(npart)
 									displayCursor()
+									break
 								end
 							end
 						end

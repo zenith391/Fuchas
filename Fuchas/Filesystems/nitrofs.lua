@@ -5,11 +5,11 @@ local freeID = -1
 
 local fs = {}
 local SS = 512
-local SO = 512 -- add 1 for the 1-number base
+local SO = 513
 
 local function getName(id)
 	local a = id * SS + SO
-	local name = driver.readBytes(a + 5, 32)
+	local name = driver.readBytes(a+5, 32)
 	local str = ""
 	for i=1, 32 do
 		if name[i] == 0 then
@@ -28,28 +28,27 @@ end
 
 local function getType(id)
 	local a = id * SS + SO
-	return readBytes(a, 1, true)
+	return driver.readByte(a)
 end
 
 --- Warning! num counts from 0
 local function setChildren(id, num, ctype, cid)
 	local a = id * SS + SO
-	driver.writeBytes(a + 40 + (num*3), {string.byte(ctype), table.unpack(io.tounum(cid, 2, true))})
+	driver.writeBytes(a + 41 + (num*2), io.tounum(cid, 2, false))
 end
 
 local function setChildrenNum(id, num)
 	local a = id * SS + SO
-	driver.writeBytes(a + 38, io.tounum(num, 2, true))
+	driver.writeBytes(a + 39, io.tounum(num, 2, false))
 end
 
 local function getChildrens(id)
 	local a = id * SS + SO
-	local num = io.fromunum(driver.readBytes(a + 38, 2, true), true, 2)
+	local num = io.fromunum(driver.readBytes(a + 39, 2, true), false, 2)
 	local childs = {}
 	for i=1, num do
 		table.insert(childs, {
-			directory = (driver.readBytes(a + 39 + (i-1)*3, 1, true) == 'D'),
-			id = io.fromunum(driver.readBytes(a + 41 + (i-1)*3, 2), true, 2)
+			id = io.fromunum(driver.readBytes(a + 41 + (i-1)*2, 2), false, 2)
 		})
 	end
 	return childs
@@ -129,7 +128,7 @@ function fs.format()
 	local str = string.rep('\0', 512)
 	driver.writeBytes(0, str)
 	driver.writeBytes(0, "NTRFS1")
-	driver.writeBytes(7, "FUCHAS")
+	driver.writeBytes(6, "FCHS")
 	writeEntry("D", 0, 0)
 	setName(0, "/")
 	return true
@@ -195,7 +194,7 @@ function fs.exists(path)
 end
 
 function fs.isValid()
-	local head = driver.readBytes(0, 6, true)
+	local head = driver.readBytes(1, 6, true)
 	return head == "NTRFS1"
 end
 

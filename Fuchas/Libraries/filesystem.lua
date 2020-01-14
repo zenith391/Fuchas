@@ -280,6 +280,8 @@ function filesystem.list(path)
 	local result = {}
 	if node then
 		result = node.list(rest)
+	else
+		error("no drive found for " .. tostring(path))
 	end
 	local set = {}
 	local keys = {}

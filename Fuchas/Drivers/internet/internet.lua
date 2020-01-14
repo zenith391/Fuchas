@@ -43,8 +43,7 @@ function spec.new(address)
 		h.close()
 		return buf
 	end
-
 	return drv
 end
 
-return drv 
+return spec 
