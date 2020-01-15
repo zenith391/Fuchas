@@ -1,0 +1,17 @@
+local addr = "cd1e106a-8a84-4004-883c-4b993203fab7"
+local drv = require("driver").getDriver("drive")
+local nitro = dofile("A:/Fuchas/Filesystems/nitrofs.lua", drv)
+
+xpcall(function()
+	print("Formatting..")
+	nitro.format()
+	print("Done!")
+	print("create bin")
+	nitro.makeDirectory("bin")
+	print("create lib")
+	nitro.makeDirectory("lib")
+	nitro.makeDirectory("lib/ntrfs")
+end, function(err)
+	print(err)
+	print(debug.traceback())
+end)

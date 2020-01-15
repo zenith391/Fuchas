@@ -1,0 +1,5 @@
+{
+	name = "guest",
+	pathName = "Shared",
+	security = "none"
+}

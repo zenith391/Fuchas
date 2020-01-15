@@ -1,0 +1,14 @@
+{
+	["fpm"] = {
+		["version"] = "bundled",
+		["authors"] = "zenith391",
+		["description"] = "Download what you're using to download this. Downloadception",
+		["dependencies"] = {
+		},
+		["name"] = "Fuchas Package Manager",
+		["revision"] = 0,
+		["files"] = {
+			["Fuchas/Binaries/fpm.lua"] = "A:"
+		}
+	}
+}

@@ -1,0 +1,9 @@
+-- Fuchas EFI2 source code
+
+computer.supportsOEFI = function()
+	return true
+end
+
+loadfile = oefi.loadfile
+os_arguments = ...
+loadfile("Fuchas/Kernel/boot.lua")()
