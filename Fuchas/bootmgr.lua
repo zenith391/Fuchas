@@ -1,12 +1,8 @@
 -- Bootstrap for Fuchas interface.
 local fs = require("filesystem")
-
--- Bootstrap routine
-
 local drv = require("driver")
 local tasks = require("tasks")
 
--- Initialization
 -- Unmanaged drives
 for k, v in pairs(fs.unmanagedFilesystems()) do
 	for addr, _ in component.list("drive") do
@@ -26,12 +22,17 @@ tasks.newProcess("System Interface", function()
 	local f, err = xpcall(function()
 		dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 		require("users").login("guest") -- no password required
-		local l, err = loadfile("A:/Fuchas/Interfaces/Fushell/main.lua")
+		local path = "A:/Fuchas/Interfaces/" .. OSDATA.CONFIG["DEFAULT_INTERFACE"] .. "/main.lua"
+		if not fs.exists(path) then
+			error("No such interface: " .. path)
+		end
+		local l, err = loadfile(path)
 		if l == nil then
 			error(err)
 		end
 		return l()
 	end, function(err)
+		io.stderr:write("System Crash!")
 		io.stderr:write(err)
 		io.stderr:write(debug.traceback(" ", 1))
 		error(err)

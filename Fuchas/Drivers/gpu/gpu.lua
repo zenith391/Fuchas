@@ -61,7 +61,12 @@ function spec.new(address)
 	end
 
 	function drv.fillChar(x, y, w, h, ch)
-		comp.fill(x, y, w, h, ch)
+		-- Driver-level optimization
+		if h == 1 and ch == " " then
+			comp.set(x, y, ch:rep(w))
+		else
+			comp.fill(x, y, w, h, ch)
+		end
 	end
 
 	function drv.fill(x, y, w, h, bg)

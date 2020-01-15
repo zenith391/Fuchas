@@ -10,7 +10,7 @@ end
 
 local path = shell.resolve(args[1])
 if path == nil then
-	io.stderr:write("Cannot resolve " .. path .. "\n")
+	io.stderr:write("Cannot resolve " .. args[1] .. "\n")
 	return
 end
 

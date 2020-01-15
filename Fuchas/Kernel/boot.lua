@@ -3,7 +3,8 @@ _G.OSDATA = {
 	VERSION = "0.5.1",
 	DEBUG = true,
 	CONFIG = {
-		NO_52_COMPAT = false -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
+		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
+		DEFAULT_INTERFACE = "Fushell"
 	}
 }
 
@@ -42,6 +43,14 @@ if os_arguments then -- arguments passed by a boot loader
 			computer.getBootAddress = function()
 				return bootAddr
 			end
+		end
+
+		if v == "--interface" then
+			local itf = os_arguments[k+1]
+			if not itf then
+				error("missing argument to '--interface'")
+			end
+			OSDATA.CONFIG.DEFAULT_INTERFACE = itf
 		end
 	end
 	os_arguments = nil
