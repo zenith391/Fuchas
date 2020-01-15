@@ -1,4 +1,5 @@
 #!/bin/sh
+cd dest
 cd .efi/Source
 find . | cpio -oHbin > "../fuchas.efi2"
 cd ../..
