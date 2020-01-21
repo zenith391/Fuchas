@@ -1,3 +1,4 @@
+-- Very very simple XML library, misses a lot of features
 local xml = {}
 
 --- Tags are tables as follow:

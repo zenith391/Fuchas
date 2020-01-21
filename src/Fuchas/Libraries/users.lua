@@ -2,12 +2,14 @@ local user = nil
 local users = {}
 local security = require("security")
 local fs = require("filesystem")
-local bin = require("sha3").bin
 local hashes = {
+	-- lazy-loaded, Lua 5.2-ers cannot login to a password-protected account
 	["sha3-256"] = function(input)
+		local bin = require("sha3").bin
 		return bin.stohex(require("sha3").sha3.sha256(input))
 	end,
 	["sha3-512"] = function(input)
+		local bin = require("sha3").bin
 		return bin.stohex(require("sha3").sha3.sha512(input))
 	end
 }

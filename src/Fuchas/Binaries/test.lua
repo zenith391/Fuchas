@@ -4,13 +4,18 @@ local t = args[1] or "sound"
 local driver = drv[t]
 
 if driver == nil then
-	error("No component driver with type \"" + tostring(t) + "\"")
+	io.stderr:write("No component recognized with type \"" .. tostring(t) .. "\"\n")
+	return
 end
 
 print("Driver Name: " .. driver.spec.getName())
 if driver.getCapabilities then
 	print("Capabilitites:")
 	for k, v in pairs(driver.getCapabilities()) do
-		print("\t" .. k .. ": " .. tostring(v))
+		local b = v
+		if type(v) == "boolean" then
+			b = ifOr(v, "yes", "no")
+		end
+		print("\t" .. k .. ": " .. tostring(b))
 	end
 end

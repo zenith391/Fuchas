@@ -19,7 +19,7 @@ function mod.newProcess(name, func)
 	local proc = {
 		name = name,
 		func = func,
-		pid = pid, -- reliable pointer to process that help know if a process is dead
+		pid = pid, -- reliable pointer to process that help know if a process is dead; TODO: remove
 		status = "created",
 		cpuTime = 0,
 		lastCpuTime = 0,
@@ -27,7 +27,7 @@ function mod.newProcess(name, func)
 		exitHandlers = {},
 		events = {},
 		operation = nil, -- the current async operation
-		closeables = {}, -- used for file streams
+		closeables = {}, -- used for file streams; replaced iwth exitHandlers
 		errorHandler = nil,
 		detach = function(self)
 			self.parent = nil
@@ -229,6 +229,9 @@ function mod.kill(proc)
 	for k, v in pairs(proc.closeables) do
 		v:close()
 	end
+	for k, v in pairs(proc.exitHandlers) do
+		v()
+	end
 	processes[proc.pid] = nil
 
 	-- Removing from tables help keep an array and not an hash table but conflicts with the purpose of PIDs
@@ -238,7 +241,7 @@ function mod.kill(proc)
 	--	v.pid = k
 	--end
 	if currentProc == proc then
-		coroutine.yield()
+		coroutine.yield() -- process is dead and will now yield
 	end
 end
 

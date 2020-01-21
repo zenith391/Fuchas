@@ -1,5 +1,6 @@
 local filesystem = {}
 local drives = {}
+local noBit32 = OSDATA.CONFIG["NO_52_COMPAT"] -- cannot be changed by program as filesystem is initialized before any outside program.
 
 local function readAll(node, path)
 	local handle = node.open(path, "r")
@@ -367,6 +368,12 @@ function filesystem.open(path, mode)
 			return nil, "not enough permissions"
 		end
 	end
+	if mode ~= "r" and mode ~= "rb" then
+		local parts = segments(path)
+		if parts[#parts] == ".dir" then
+			return nil, "file not found"
+		end
+	end
 	local node, rest = findNode(path)
 	local segs = segments(path)
 	table.remove(segs, 1)
@@ -384,7 +391,7 @@ function filesystem.open(path, mode)
 	local function create_handle_method(key)
 		return function(self, ...)
 			if not self.handle then
-				return nil, "file is closed"
+				return nil, "file closed"
 			end
 			return self.fs[key](self.handle, ...)
 		end
@@ -401,9 +408,10 @@ function filesystem.open(path, mode)
 				self.fs.close(self.handle)
 				self.handle = nil
 				if self.proc ~= nil then
-					for k, v in pairs(self.proc.closeables) do
-						if v == self then
-							table.remove(self.proc.closeables, k)
+					for k, v in pairs(self.proc.exitHandlers) do
+						if v == exitHandler then
+							table.remove(self.proc.exitHandlers, k)
+							break
 						end
 					end
 				end
@@ -414,7 +422,10 @@ function filesystem.open(path, mode)
 	stream.seek = create_handle_method("seek")
 	stream.write = create_handle_method("write")
 	if stream.proc ~= nil then
-		table.insert(stream.proc.closeables, stream)
+		stream.exitHandler = function()
+			stream:close()
+		end
+		table.insert(stream.proc.exitHandlers, stream.exitHandler)
 	end
 	return stream
 end

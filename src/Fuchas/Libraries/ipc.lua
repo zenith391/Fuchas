@@ -1,5 +1,5 @@
---#define "FEATURE_IPC" ""
-@[[if FEATURE_IPC then]]
+---#define "FEATURE_IPC" ""
+@[[if svar.get("FEATURE_IPC") then]]
 -- IPC library using the useful per-process event
 -- Implements OETF #18 (Open Inter-Process Communication), doesn't respect it low-level receive with computer.pullSignal
 

@@ -106,17 +106,19 @@ function spec.new(address)
 	drv.palette = setmetatable({}, {
 		__index = function(table, key)
 			if type(key) == "number" then
-				if key > 0 and key <= drv.getPalettedColors() then
+				if key >= 0 and key < drv.getPalettedColors() then
 					return comp.getPaletteColor(key)
-				elseif key > drv.getPalettedColors() and key <= drv.getColors() then
+				elseif key >= drv.getPalettedColors() and key <= drv.getColors() then
 					return fullPalette[key] -- this can only be the default palette.
 				end
 			end
 		end,
 		__newindex = function(table, key, value)
 			if type(key) == "number" then
-				if key > 0 and key <= drv.getPalettedColors() then
+				if key >= 0 and key < drv.getPalettedColors() then
 					comp.setPaletteColor(key, value)
+				else
+					error("editable palette indexes are 0 <= k < 16")
 				end
 			end
 		end
@@ -124,10 +126,10 @@ function spec.new(address)
 
 	function drv.getCapabilities()
 	    return {
-	        paletteSize = getColors(),
+	        paletteSize = drv.getColors(),
 	        hasPalette = true,
 	        hasEditablePalette = true,
-	        editableColors = getPalettedColors(),
+	        editableColors = drv.getPalettedColors(),
 	        hardwareText = true
 	    }
 	end

@@ -2,7 +2,7 @@ local spec = {}
 local cp = ...
 
 function spec.isCompatible(address)
-	return component.proxy(address).type == "tape_drive"
+	return cp.proxy(address).type == "tape_drive"
 end
 
 function spec.getRank()

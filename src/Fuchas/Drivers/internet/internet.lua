@@ -43,6 +43,16 @@ function spec.new(address)
 		h.close()
 		return buf
 	end
+
+	function drv.getCapabilities()
+		return {
+			tcp = int.isTcpEnabled(),
+			udp = false,
+			http = int.isHttpEnabled(),
+			https = int.isHttpEnabled()
+		}
+	end
+
 	return drv
 end
 
