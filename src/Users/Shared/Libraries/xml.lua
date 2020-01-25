@@ -27,6 +27,7 @@ function xml.parse(str)
 	local _tap = "" -- tag attribute propety (name)
 	local _tav = "" -- tag attribute value
 	local _tt = "" -- currently parsing text
+	local _ttcdata = false -- is the current parsing text in a CDATA section? (<![CDATA ]]>)
 	local _utt = "" -- currently (unformated) parsing text
 	local _itap = false -- is parsing attribute property?
 	local _ta = {} -- currently parsing attributes
@@ -87,12 +88,11 @@ function xml.parse(str)
 				_tn = _tn .. ch
 			end
 		end
-		if ch == '<' then
+		if ch == '<' and not _ttcdata then
 			if _tt ~= "" then
 				local textTag = {
 					name = "#text",
 					content = _tt,
-					unformattedContent = _utt,
 					attr = {},
 					childrens = {},
 					parent = currentTag
@@ -111,19 +111,32 @@ function xml.parse(str)
 			_utt = _utt .. ch
 			if ch ~= "\r" and ch ~= "\n" and ch ~= "\t" then
 				_tt = _tt .. ch
+				if string.sub(_tt, string.len(_tt)-9) == "<![CDATA[" then -- minus length of <![CDATA[
+					_tt = string.sub(_tt, 1, string.len(_tt-9))
+					_ttcdata = true
+				end
+			else
+				if _ttcdata then
+					if string.sub(_tt, string.len(_tt)-3) == "]]>" then -- minus length of ]]>
+						_tt = string.sub(_tt, 1, string.len(_tt-3))
+						_ttcdata = false
+					else
+						_tt = _tt .. ch
+					end
+				end
 			end
 			if _tt:sub(1, 1) == ">" then
 				_tt = ""
 			end
-			if _utt:sub(1, 1) == ">" then
-				_utt = ""
-			end
 		end
 		i = i + 1
 	end
-          end)
+	if _ttcdata then
+		error("EOF in CDATA section, expected ]]>")
+	end
+    end) -- end of pcall
     if not ok then
-        error("could not parse line " .. tostring(line) .. ": " .. tostring(err))
+        error("error at line " .. tostring(line) .. ": " .. tostring(err))
     end
 	return rootTag
 end

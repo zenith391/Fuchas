@@ -7,9 +7,11 @@ local driver = require("driver")
 local gpu = driver.gpu
 local internet = driver.internet
 local shared = require("users").getSharedUserPath()
+local userPath = require("users").getUserPath()
 local githubGet = "https://raw.githubusercontent.com/"
 local shell = require("shell")
 local args, options = shell.parse(...)
+local global = options["g"] or options["global"]
 
 -- File checks
 local packages, repoList
@@ -58,27 +60,39 @@ local function save()
 	s:close()
 end
 
+local function loadLonSec(txt)
+	local ok, out = pcall(liblon.loadlon, txt)
+	if not ok then
+		io.stderr:write("    " .. out)
+	end
+	return ok, out
+end
+
 local function searchSource(source)
 	if not fs.exists("A:/Users/Shared/fpm-cache") then
 		fs.makeDirectory("A:/Users/Shared/fpm-cache")
 	end
 	local txt
-	if not fs.exists("A:/Users/Shared/fpm-cache/" .. source .. ".lon") or true then -- cache is disabled temporaly
-		--if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
-		--	fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
-		--end
+	if not fs.exists("A:/Users/Shared/fpm-cache/" .. source .. ".lon") or true then
+		if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
+			fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
+		end
 		txt = internet.readFully(githubGet .. source .. "/master/programs.lon")
-		--local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
-		--stream:write(txt)
-		--stream:close()
+		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
+		local lon = loadLonSec(txt)
+
+		stream:write(liblon.sertable(lon))
+		stream:close()
 	else
 		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
 		txt = stream:read("a")
 		stream:close()
 	end
-	local ok, out = pcall(liblon.loadlon, txt)
-	if not ok then
-		print("    " .. out)
+	local ok, out = loadLonSec(txt)
+	if out["expiresOn"] then
+		if os.time() >= out["expiresOn"] then
+			fs.remove("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
+		end
 	end
 	return out
 end
@@ -87,6 +101,7 @@ local function downloadPackage(src, name, pkg, ver)
 	local arch = computer.getArchitecture()
 	if pkg.archFiles then -- if have architecture-dependent files
 		if pkg.archFiles[arch] then
+			print("Selected package architecture " .. arch)
 			for k, v in pairs(pkg.archFiles[arch]) do
 				for l, w in pairs(pkg.files) do
 					if v == w then -- same target
@@ -98,7 +113,7 @@ local function downloadPackage(src, name, pkg, ver)
 		end
 	end
 	for k, v in pairs(pkg.files) do
-		v = v:gsub("{userpath}", shared) -- TODO: if -g flag, it is Shared, otherwise current user
+		v = v:gsub("{userpath}", ifOr(global, shared, userPath))
 		local dest = fs.canonical(v)
 		if ver == 1 then
 			dest = fs.canonical(v) .. "/" .. k
@@ -126,15 +141,18 @@ local function downloadPackage(src, name, pkg, ver)
 end
 
 if args[1] == "help" then
-	print("Help:")
-	print("\thelp                  : Shows this help message")
-	print("\tinstall [package name]: Install the following package.")
-	print("\tremove  [package name]: Removes the following package.")
-	print("\tupdate  [package name]: Update the following package.")
-	print("\tupgrade               : Updates all outdated packages")
-	print("\tlist                  : Lists installed packages")
-	--print("\trecalc: (use only if necessary) Clears the package list, then iterates through all")
-	--print("\t        the root directory (A:/) and add to the list any found package.")
+	print("Usage:")
+	print("\tfpm [-g] <help|install|remove|update|upgrade|list>")
+	print("Operations:")
+	print("\thelp                  : show this help message")
+	print("\tinstall [package name]: install the following package.")
+	print("\tremove  [package name]: remove the following package.")
+	print("\tupdate  [package name]: update the following package.")
+	print("\tupgrade               : update all outdated packages")
+	print("\tlist                  : list installed packages")
+	print("Flags:")
+	print("\t-g      : shortcut for --global")
+	print("\t--global: this flag put packages installing to user path to global user path")
 	return
 end
 
