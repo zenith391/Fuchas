@@ -79,8 +79,8 @@ local function searchSource(source)
 		end
 		txt = internet.readFully(githubGet .. source .. "/master/programs.lon")
 		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
-		local lon = loadLonSec(txt)
-
+		local _, lon = loadLonSec(txt)
+		lon["expiresOn"] = os.time() + 60
 		stream:write(liblon.sertable(lon))
 		stream:close()
 	else
@@ -89,9 +89,10 @@ local function searchSource(source)
 		stream:close()
 	end
 	local ok, out = loadLonSec(txt)
-	if out["expiresOn"] then
+	if out and out["expiresOn"] then
 		if os.time() >= out["expiresOn"] then
 			fs.remove("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
+			return searchSource(source)
 		end
 	end
 	return out

@@ -4,11 +4,30 @@ local lib = {}
 function lib.from(handle)
 	local stream = {}
 	stream.stream = handle
+	stream.buf = ""
+	stream.size = 128
 	stream.close = function(self)
 		self.stream:close()
 	end
 	stream.write = function (self, val)
-		return self.stream.write(self.h, val)
+		return self.stream:write(val)
+	end
+	stream.fillBuffer = function(self)
+		if self.buf:len() == 0 then
+			self.buf = self.stream:read(self.size)
+		end
+	end
+	stream.readBuffer = function(self, len)
+		local steps = len/self.size
+		local str = ""
+		for i=1, steps do
+			self.fillBuffer()
+			local part = self.buf:sub(1, len%self.size)
+			self.buf = self.buf:sub(len+1, self.buf:len()) -- cut the readed part
+			str = str .. part
+			len = len - len%self.size
+		end
+		return str
 	end
 	stream.read = function(self, f)
 		if not f then
@@ -25,9 +44,7 @@ function lib.from(handle)
 				s = s .. r
 			end
 			return s
-		end
-		
-		if f == "l" or f == "*l" then
+		elseif f == "l" or f == "*l" then
 			local s = ""
 			while true do
 				local r = self.stream:read(1)
@@ -44,6 +61,14 @@ function lib.from(handle)
 				s = s .. r
 			end
 			return s
+		elseif type(f) == "number" then
+			self.fillBuffer()
+			local out = ""
+			if f > self.size then
+
+			else
+
+			end
 		end
 		return nil, "invalid mode"
 	end
