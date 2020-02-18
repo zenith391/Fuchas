@@ -250,15 +250,7 @@ function filesystem.getAttributes(path, raw)
 	if raw then
 		return attr
 	else
-		if bit32 and bit32.band then
-			return {
-				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
-				system = (bit32.band(attr, 2) == 2), -- protected in Read
-				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
-				hidden = (bit32.band(attr, 8) == 8), -- hidden
-				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
-			}
-		elseif _VERSION ~= "Lua 5.2" then
+		if _VERSION ~= "Lua 5.2" then
 			return load([[
 				local attr = ...
 				return {
@@ -269,6 +261,14 @@ function filesystem.getAttributes(path, raw)
 					noExecute = ((attr & 16) == 16),
 				}
 			]])(attr)
+		elseif bit32 and bit32.band then
+			return {
+				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
+				system = (bit32.band(attr, 2) == 2), -- protected in Read
+				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
+				hidden = (bit32.band(attr, 8) == 8), -- hidden
+				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
+			}
 		else
 			return {} -- unsafe, but only way as we're on Lua 5.2 and we don't have bit32.
 			-- Breaking compatibility (using OS arguments) is recommended if on Lua 5.3

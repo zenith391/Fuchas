@@ -57,7 +57,7 @@ while run do
 	os.setenv("PWD_DRIVE", drive)
 	write(drive .. ":/" .. os.getenv("PWD") .. ">")
 	local l = sh.read({
-		["autocompleteFile"] = true
+		["autocomplete"] = sh.fileAutocomplete
 	})
 	local async = false
 	if string.endsWith(l, "&") then

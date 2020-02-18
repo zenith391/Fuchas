@@ -1,18 +1,20 @@
 {
-	version = "0.5.1",
+	version = "0.5.2",
 	changelog = [[
-		- Added a clipboard library that can use OC's clipboard event alongside Fuchas generated events with Ctrl+V.
-		- Events are pulled from a per-process queue, also allow to push events only to a certain process.
-		- OCDraw supports render targets, those are use as a target for the drawing and can be shown, they are basically just images.
-		- Unicode support in Fushell and "shell" library.
-		- CSettings program
-		- Ability to launch programs from Concert
-		- Increase startup speed (with Voodoo3 magic)
-		- Full support of the UAC system.
-		- Interfaces start with no permission and must login (as command in Fushell) to a admin account to have permissions
-		- Decreased Fuchas size by deleting some unused files
-		- Added process operations, they are like sub-processes that can end whenever they want (these are not threads!)
-		- Fixed many technical issues
-		- Removed AwesomeCatgirl
+		+ Shell autocompletion (beta)
+		+ OS arguments
+		+ "buffer" library for buffered streams
+		+ CPU metrics
+		+ Concert task manager
+		+ Architecture-dependent package files (different file depending on having Lua 5.2 or 5.3)
+		+ Warning displayed when Lua 5.3 is supported but not enabled
+		+ Optimization of OCDraw (merging)
+		+ New driver format (lesss file loading): faster startup time
+		+ Inter-Process Communication (IPC)
+		+ Now using LuaComp (allows optional features AT BUILD-TIME!)
+		+ FPM packages are installed on current user's directory by default.
+		+ New "-g" option in FPM for installing in shared/global user directory.
+		+ Fixed many technical issues
+		+ Removed AwesomeCatgirl
 	]]
 }

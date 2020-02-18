@@ -128,7 +128,7 @@ function fs.format()
 	local str = string.rep('\0', 512)
 	driver.writeBytes(0, str)
 	driver.writeBytes(0, "NTRFS1")
-	driver.writeBytes(6, "FCHS")
+	driver.writeBytes(6, "FCH1")
 	writeEntry("D", 0, 0)
 	setName(0, "/")
 	return true
@@ -193,7 +193,7 @@ function fs.exists(path)
 	end
 end
 
-function fs.isValid()
+function fs.isFormatted()
 	local head = driver.readBytes(1, 6, true)
 	return head == "NTRFS1"
 end

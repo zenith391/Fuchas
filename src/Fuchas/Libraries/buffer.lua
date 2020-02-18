@@ -62,13 +62,7 @@ function lib.from(handle)
 			end
 			return s
 		elseif type(f) == "number" then
-			self.fillBuffer()
-			local out = ""
-			if f > self.size then
-
-			else
-
-			end
+			return self:readBuffer(f)
 		end
 		return nil, "invalid mode"
 	end

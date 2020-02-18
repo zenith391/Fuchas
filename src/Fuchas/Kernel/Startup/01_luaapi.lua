@@ -5,7 +5,7 @@ local _sub = string.sub
 local _reserve = string.reverse
 local _lower = string.lower
 local _upper = string.upper
-local uni = true -- experiemental feature (automatic unicode support)
+local uni = true -- experimental feature (automatic unicode support)
 
 function string.setUnicodeEnabled(u)
 	uni = u
@@ -39,12 +39,20 @@ function string.len(str)
 	end
 end
 
+function string.rawlen(str)
+	return _len(str)
+end
+
 function string.sub(str, i, j)
 	if uni then
 		return unicode.sub(str, i, j)
 	else
 		return _sub(str, i, j)
 	end
+end
+
+function string.rawsub(str, i, j)
+	return _sub(str, i, j)
 end
 
 function string.char(...)
@@ -55,12 +63,16 @@ function string.char(...)
 	end
 end
 
-function string.reserve(str)
+function string.reverse(str)
 	if uni then
 		return unicode.reverse(str)
 	else
 		return _reverse(str)
 	end
+end
+
+function string.rawreverse(str)
+	return _reverse(str)
 end
 
 function string.upper(str)
@@ -75,7 +87,7 @@ function string.lower(str)
 	if uni then
 		return unicode.lower(str)
 	else
-		return _upper(str)
+		return _lower(str)
 	end
 end
 
@@ -117,16 +129,24 @@ function try(func)
 	local fin = function(handler)
 		handler()
 	end
-	return {
+	local this = {}
+	this = {
 		catch = function(handler, filter)
-			local ok, ex = pcall(func)
+			local ok, ex = xpcall(func, function(err)
+				local exception = {
+					trace = debug.traceback(nil, 2),
+					details = err
+				}
+				return exception
+			end)
 			if not ok then
 				handler(ex)
 			end
-			return fin
+			return this
 		end,
 		finally = fin
 	}
+	return this
 end
 
 function ifOr(bool, one, two)
@@ -141,7 +161,7 @@ end
 -- try(function()
 --   print("Hello World")
 -- end).catch(function(ex)
---   print("Error: " .. ex.trace)
+--   print("Error: " .. ex.details)
 -- end).finally(function()
 --   print("Function ended")
 -- end)

@@ -1,7 +1,7 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.5.1",
-	DEBUG = true,
+	VERSION = "0.5.2",
+	DEBUG = false,
 	CONFIG = {
 		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
 		DEFAULT_INTERFACE = "Fushell"
@@ -174,10 +174,10 @@ if computer.supportsOEFI() then
 		zorya = nil
 	end
 end
-print("(3/5) Loading 'filesystem' library..")
+print("(3/5) Loading filesystems")
 _G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
 _G.io = {} -- software-defined by shin32
-print("(4/5) Mounting A: filesystem.")
+print("(4/5) Mounting A: drive..")
 local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
 if not g then
 	print("Error while mounting A drive: " .. h)
@@ -193,10 +193,17 @@ for k, v in component.list() do -- TODO: check if letter is over Z
 		if v == "filesystem" then
 			letter = letter + 1
 			print("    Mouting " .. string.char(letter) .. " (managed)")
+			if string.char(letter) == "T" then
+				print("    Cannot continue mounting! Too much drives")
+				break
+			end
 			require("filesystem").mountDrive(component.proxy(k), string.char(letter))
 		end
 	end
 end
+
+print("(4/5) Mounting T: drive..")
+require("filesystem").mountDrive(component.proxy(computer.tmpAddress()), "T")
 
 loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")

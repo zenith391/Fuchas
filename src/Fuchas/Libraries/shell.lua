@@ -14,6 +14,7 @@ local fs = require("filesystem")
 local driver = require("driver")
 local clipboard = require("clipboard")
 local stdout = io.stdout
+local globalHistory = {}
 
 local cursor = {
 	x = 1,
@@ -262,6 +263,25 @@ local function hideCursor()
 	driver.gpu.fill(cursor.x, cursor.y, 1, 1, 0x000000)
 end
 
+function lib.fileAutocomplete(s, sp)
+	local path = os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD")
+	--if not fs.exists(path .. sp[#sp]) then
+	--	if fs.exists(fs.path(path .. sp[#sp])) then
+	--		path = fs.path(path .. sp[#sp])
+	--	end
+	--end
+	local seg = fs.segments(sp[#sp])
+	local st = table.remove(seg)
+	if #seg > 0 then path = path .. table.concat(seg, "/") end
+	seg = fs.segments(sp[#sp])
+	for k, v in pairs(fs.list(path)) do
+		if string.startsWith(v, seg[#seg]) then
+			local _, e = string.find(v, seg[#seg])
+			return v:sub(e+1, v:len())
+		end
+	end
+end
+
 function lib.read(options)
 	if not options then
 		options = {}
@@ -270,6 +290,7 @@ function lib.read(options)
 	local s = ""
 	local curVisible = true
 	local changeVis = false
+	local history = options.history or globalHistory
 	local event = require("event")
 	displayCursor()
 	while c ~= '\r' do -- '\r' == Enter
@@ -293,28 +314,15 @@ function lib.read(options)
 						s = s .. c
 						write(c)
 						displayCursor()
-					elseif d == 0x09 then
-						if options.autocompleteFile then
-							local path = os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD")
-							--if not fs.exists(path .. sp[#sp]) then
-							--	if fs.exists(fs.path(path .. sp[#sp])) then
-							--		path = fs.path(path .. sp[#sp])
-							--	end
-							--end
-							local seg = fs.segments(sp[#sp])
-							local st = table.remove(seg)
-							if #seg > 0 then path = path .. table.concat(seg, "/") end
-							seg = fs.segments(sp[#sp])
-							for k, v in pairs(fs.list(path)) do
-								if string.startsWith(v, seg[#seg]) then
-									local _, e = string.find(v, seg[#seg])
-									hideCursor()
-									local npart = v:sub(e+1, v:len())
-									s = s .. npart
-									write(npart)
-									displayCursor()
-									break
-								end
+					elseif d == 0x09 then -- horizontal tab
+						if options.autocomplete then
+							if type(options.autocomplete) == "table" then
+							else
+								local plus = options.autocomplete(s, sp)
+								hideCursor()
+								s = s .. plus
+								write(plus)
+								displayCursor()
 							end
 						end
 					end

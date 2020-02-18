@@ -18,6 +18,19 @@ function spec.new(address)
 	local outbuf = ""
 	printer = cp.proxy(address)
 
+	function drv.getStatistics()
+		return {
+			blackInkLevel = printer.getBlackInkLevel(),
+			colorInkLevel = printer.getColorInkLevel(),
+			inkLevel = printer.getBlackInkLevel() + printer.getColorInkLevel(),
+			maxBlackInkLevel = 4000,
+			maxColorInkLevel = 4000,
+			maxInkLevel = 8000,
+			paperLevel = printer.getPaperLevel(),
+			maxPaperLevel = 256
+		}
+	end
+
 	function drv.out()
 		if out == nil then
 			out = {

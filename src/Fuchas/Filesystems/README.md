@@ -1,22 +1,29 @@
 # Filesystems
 Here are all unmanaged drive filesystems supported by Fuchas.
-Note: Manually using filesystems api is non-recommended as they use local pathes instdead of absolute one
+Note: Manually using filesystems api is non-recommended as they use filesystem-relative paths instdead of absolute ones
 (like A:/test.txt, here it would be test.txt)
 
+## Words
+- Medium: drive, partition, or any other with random-access reads and writes compatible with filesystem's drive API (a tape, or tape partition)
+
+## Driver Structure
 Filesystems must return in the following order: their name, is the drive formatted with this filesystem, filesystem library
-## Library Structure
-The library must contains the following methods:
-- format(addr) - Formats the drive
-- asFilesystem(addr) - return this filesystem as a "filesystem" component (like if the drive was in Managed mode)
-- isDirectory(addr, path)
-- isFile(addr, path)
-- getMaxFileNameLength() - returns max length of a file name
-- exists(addr, path)
-- makeDirectory(addr, path)
-- isValid(addr) - returns `true` if the drive at addr is compatible with the formated filesystem (basically check signature)
+The driver must contains the following methods:
+- format() - Formats the drive
+- asFilesystem() - return this filesystem as a "filesystem" component (like if the drive was in Managed mode)
+- isDirectory(path)
+- isFile(path)
+- getMaxFileNameLength() - returns max length of a file name (name + dot + extension!)
+- exists(path)
+- makeDirectory(path)
+- size(allocated) - If allocated is false or not defined, returns the USED size of a file (error for directories!), otherwise returns the ALLOCATED size of an object (file/directory)
+- lastModified(path) - return the last time the object has been modified in Unix timestamp, returns -1 if feature not available.
+- createdAt(path) - return the time the object has been created in Unix timestamp, returns -1 if feature not available.
+- isFormatted(addr) - returns `true` if the drive at addr is formatted with the current filesystem (in most cases is equivalent to check the signature)
 - open(addr, path, mode) - return a *file object* with the mode or nil + error message if error, if mode is "w" and file doesn't exists, then create it
-Note: if a file is arleady opened and not yet closed, open(mode) will return nil with error message "file arleady opened",
+**WARNING**: if a file is already opened and not yet closed, open(mode) will return nil and "file already opened",
 this is made to avoid having files written while being read, which could cause several bugs
+
 ### Modes
 It can either be "r" for read-only or "w" for write-only (from start, not append)
 

@@ -16,11 +16,12 @@ while true do
 			if type(tab[1]) == "table" then
 				print(require("liblon").sertable(tab[1]))
 			else
-				print(table.unpack(tab))
+				print(table.concat(tab, "\t"))
 			end
 		end)
-		.catch(function(err)
-			print(err)
+		.catch(function(ex)
+			print(ex.details)
+			io.stderr:write(ex.trace)
 		end)
 	end
 end

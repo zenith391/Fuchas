@@ -39,7 +39,7 @@ function lib.getUserPath()
 	if user == nil then
 		return lib.getSharedUserPath()
 	else
-		return "A:/Users/" .. user.pathName or user.name
+		return "A:/Users/" .. (user.pathName or user.name)
 	end
 end
 
