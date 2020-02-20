@@ -1,5 +1,5 @@
 local spec = {}
-local SECTOR_IO_TRESHOLD = 5
+local SECTOR_IO_TRESHOLD = 500
 local cp = ...
 
 function spec.getRank()
@@ -20,7 +20,6 @@ function spec.new(address)
 	local drv = {}
 	local sectorCache = { -- sectors are cached for faster properties/content reading.
 		id = -1,
-		addr = "",
 		text = ""
 	}
 
@@ -34,15 +33,16 @@ function spec.new(address)
 
 	-- Should be used instdead of drv.readByte when possible, as it *can be* optimized
 	function drv.readBytes(off, len, asString)
+		if off < 1 then error("addresses are 1-based") end
 		local sectorId = math.ceil(off/512)
-		if sectorCache.id ~= sectorId or sectorCache.addr ~= addr then
+		if sectorCache.id ~= sectorId then
 			sectorCache.id = sectorId
-			sectorCache.addr = addr
 			sectorCache.text = drive.readSector(sectorId)
 		end
-		local bytes = table.pack(string.byte(sectorCache.text:sub(off%512, off%512+len)))
+		print(sectorCache.text)
+		local bytes = table.pack(string.byte(sectorCache.text:sub(off%512, off%512+1+len), 1, len))
 		if asString then
-			return string.char(table.unpack(bytes))
+			return sectorCache.text:sub(off%512, off%512+1+len)
 		else
 			return bytes
 		end
@@ -51,19 +51,28 @@ function spec.new(address)
 	-- Should be used instdead of drv.writeByte when possible, as it *can be* optimized
 	function drv.writeBytes(off, data, len)
 		if type(data) == "string" then
-			data = table.pack(string.byte(data, 1, string.len(data)))
+			data = string.toCharArray(data)
+			for i=1, #data do
+				data[i] = string.byte(data[i])
+			end
+		end
+		local sectorId = math.ceil(off/512)
+		if sectorCache.id == sectorId then
+			sectorCache.id = -1 -- invalidate cache because we're going to write it
 		end
 		if #data > SECTOR_IO_TRESHOLD then -- if it became more efficient to use sector i/o
 			local sector = math.ceil(off/512)
 			local offset = off%512
+			if offset == 1 then offset = 0 end
 			local sec = drive.readSector(sector)
-			sec = sec:sub(1, offset-1) .. string.char(table.unpack(data)) .. sec:sub(offset+#data+1)
+			sec = sec:sub(1, offset) .. string.char(table.unpack(data)) .. sec:sub(offset+#data+1)
 			drive.writeSector(sector, sec)
 		else
 			for i=1, #data do
-				drive.writeByte(off+i-1, data[i])
+				drive.writeByte(off+i-1-1, data[i])
 			end
 		end
+		coroutine.yield()
 	end
 
 	function drv.readByte(off)
@@ -71,7 +80,7 @@ function spec.new(address)
 	end
 
 	function drv.writeByte(off, val)
-		drive.writeByte(off, val)
+		drive.writeByte(off-1, val)
 	end
 
 	return drv

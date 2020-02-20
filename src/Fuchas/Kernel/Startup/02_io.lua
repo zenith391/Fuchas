@@ -67,6 +67,9 @@ function io.fromunum(data, littleEndian, count)
 			count = #data
 		end
 	end
+	if type(data) ~= "string" then
+		data = string.char(table.unpack(data))
+	end
 	
 	if count > 4 then
 		error("lua bit32 only supports 32-bit numbers")
@@ -83,14 +86,14 @@ function io.fromunum(data, littleEndian, count)
 		-- go beyond ‭4,294,967,295‬
 		local bytes, result = {string.byte(data or "\x00", 1, 4)}, 0
 		if littleEndian then
-			local i = #bytes -- just do it in inverse order
+			local i = #bytes -- just do it in reverse order
 			while i > 0 do
 				result = bit32.bor(bit32.lshift(result, 8), bytes[i])
 				i = i - 1
 			end
 		else
 			local i = 1
-			while i < #bytes do
+			while i <= #bytes do
 				result = bit32.bor(bit32.lshift(result, 8), bytes[i])
 				i = i + 1
 			end
