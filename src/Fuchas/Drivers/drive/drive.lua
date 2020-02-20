@@ -1,4 +1,5 @@
 local spec = {}
+local SECTOR_IO_TRESHOLD = 5
 local cp = ...
 
 function spec.getRank()
@@ -17,7 +18,6 @@ function spec.new(address)
 	drive = cp.proxy(address)
 
 	local drv = {}
-	local SECTOR_IO_TRESHOLD = 5
 	local sectorCache = { -- sectors are cached for faster properties/content reading.
 		id = -1,
 		addr = "",
@@ -61,7 +61,7 @@ function spec.new(address)
 			drive.writeSector(sector, sec)
 		else
 			for i=1, #data do
-				drive.writeByte(off+i-1-1, data[i])
+				drive.writeByte(off+i-1, data[i])
 			end
 		end
 	end
