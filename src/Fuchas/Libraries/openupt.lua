@@ -1,5 +1,41 @@
 -- Fuchas implementation of OpenUPT 1
 local lib = {}
+local uuid = require("uuid")
+
+-- Fuchas code for boot sector on newly formated drives
+local defaultBootCode = [[local cp = component
+local gpu, screen = cp.list("gpu")(), cp.list("screen")()
+if not gpu or not screen then
+	error("Non-System disk or drive inserted.")
+end
+gpu = cp.proxy(gpu)
+gpu.bind(screen)
+gpu.fill(1, 1, gpu.getResolution())
+gpu.setResolution(gpu.maxResolution())
+gpu.set(1, 1, "Non-System disk or drive inserted.")
+gpu.set(1, 2, "Press any key to reboot.")
+while true do
+	if computer.pullSignal() == "key_down" then
+		computer.shutdown(true)
+	end
+end]]
+
+local function toTextGUID(guid)
+	local result = ""
+	for k, v in pairs(guid) do
+		result = result .. string.format("%x", v)
+	end
+	return result
+end
+
+local function fromTextGUID(guid)
+	local arr = {}
+	for i=0, 7 do
+		local sub = guid:sub(1+i*2, 2+i*2)
+		table.insert(arr, tonumber(sub, 16))
+	end
+	return arr
+end
 
 function lib.readPartitionList(driver)
 	local partitions = {}
@@ -11,7 +47,7 @@ function lib.readPartitionList(driver)
 			["end"] = io.fromunum(driver.readBytes(off+5, 4), true),
 			type = driver.readBytes(off+9, 8, true),
 			flags = io.fromunum(driver.readBytes(off+17, 4), true),
-			guid = driver.readBytes(off+21, 8, true),
+			guid = toTextGUID(driver.readBytes(off+21, 8)),
 			label = driver.readBytes(off+33, 32, true)
 		}
 		if partition.type ~= "\x00\x00\x00\x00\x00\x00\x00\x00" then -- non-null FS type
@@ -46,15 +82,62 @@ function lib.partitionDriver(driver, partition)
 	}
 end
 
-function lib.writePartition(driver, partition)
+local guidSeed = 1
+function lib.randomGUID(noRandomSeed)
+	local guid = ""
+	if not noRandomSeed then
+		math.randomseed(math.ceil(os.clock() * 1024 / 7 * guidSeed + math.random(0, 5879)))
+		guidSeed = guidSeed + 139
+	end
+	for i=1, 8 do
+		local hex = string.format("%x", math.random(0, 0xFF))
+		if hex:len() == 1 then
+			hex = "0" .. hex
+		end
+		guid = guid .. hex
+	end
+	return guid
+end
+
+function lib.newPartition(id, start, pend, guid)
+	return {
+		id = id,
+		start = start or 0,
+		["end"] = pend or 0,
+		type = ("\x00"):rep(8),
+		flags = 0,
+		guid = guid or uuid.generate(), -- todo: make it binary!
+		label = ("\x00"):rep(32)
+	}
+end
+
+local function addTables(dst, src)
+	for k, v in ipairs(src) do
+		table.insert(dst, v)
+	end
+end
+
+-- partition number is ZERO-BASED
+function lib.writePartition(driver, partition, progressHandler)
 	local off = 25*512+partition.id*64
-	driver.writeBytes(off+1, "\x00":rep(64))
-	driver.writeBytes(off+1, io.tounum(partition.start, 4, true))
-	driver.writeBytes(off+5, io.tounum(partition.end, 4, true))
-	driver.writeBytes(off+9, partition.type)
-	driver.writeBytes(off+17, io.tounum(partition.flags, 4, true))
-	driver.writeBytes(off+21, partition.guid)
-	driver.writeBytes(off+33, partition.label)
+	local data = {}
+	addTables(data, io.tounum(partition.start, 4, true))
+	addTables(data, io.tounum(partition["end"], 4, true))
+	addTables(data, string.toByteArray(partition.type))
+	addTables(data, fromTextGUID(partition.guid))
+	addTables(data, string.toByteArray(partition.label:sub(1, 32)))
+	if progressHandler then progressHandler("Writing partition #" .. (partition.id+1)) end
+	driver.writeBytes(off+1, data)
+	--driver.writeBytes(off+1, ("\x00"):rep(64))
+end
+
+function lib.format(driver, progressHandler)
+	if progressHandler then progressHandler("Writing boot code") end
+	driver.writeBytes(1, defaultBootCode)
+	for i=0, 7 do
+		lib.writePartition(driver, lib.newPartition(i, 0, 0, "0000000000000000"), progressHandler)
+	end
+	if progressHandler then progressHandler("Done.") end
 end
 
 return lib

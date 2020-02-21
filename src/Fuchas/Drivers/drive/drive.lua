@@ -1,5 +1,5 @@
 local spec = {}
-local SECTOR_IO_TRESHOLD = 500
+local SECTOR_IO_TRESHOLD = 400
 local cp = ...
 
 function spec.getRank()
@@ -39,7 +39,6 @@ function spec.new(address)
 			sectorCache.id = sectorId
 			sectorCache.text = drive.readSector(sectorId)
 		end
-		print(sectorCache.text)
 		local bytes = table.pack(string.byte(sectorCache.text:sub(off%512, off%512+1+len), 1, len))
 		if asString then
 			return sectorCache.text:sub(off%512, off%512+1+len)

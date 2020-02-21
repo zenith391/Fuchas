@@ -21,10 +21,18 @@ end
 
 function string.toCharArray(s)
 	local chars = {}
-	for i = 1, #s do
-		table.insert(chars, s:sub(i, i))
+	for i = 1, string.len(s) do
+		table.insert(chars, string.sub(s, i, i))
 	end
 	return chars
+end
+
+function string.toByteArray(s)
+	local bytes = {}
+	for i = 1, string.rawlen(s) do
+		table.insert(bytes, string.byte(string.rawsub(s, i, i)))
+	end
+	return bytes
 end
 
 function string.width(...)

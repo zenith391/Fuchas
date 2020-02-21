@@ -20,7 +20,7 @@ The driver must contains the following methods:
 - lastModified(path) - return the last time the object has been modified in Unix timestamp, returns -1 if feature not available.
 - createdAt(path) - return the time the object has been created in Unix timestamp, returns -1 if feature not available.
 - isFormatted(addr) - returns `true` if the drive at addr is formatted with the current filesystem (in most cases is equivalent to check the signature)
-- open(addr, path, mode) - return a *file object* with the mode or nil + error message if error, if mode is "w" and file doesn't exists, then create it
+- open(path, mode) - return a *file object* with the mode or nil + error message if error, if mode is "w" and file doesn't exists, then create it
 **WARNING**: if a file is already opened and not yet closed, open(mode) will return nil and "file already opened",
 this is made to avoid having files written while being read, which could cause several bugs
 
