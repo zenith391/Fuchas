@@ -72,25 +72,25 @@ local function searchSource(source)
 		fs.makeDirectory("A:/Temporary/apm-cache")
 	end
 	local txt
-	if not fs.exists("A:/Temporary/apm-cache/" .. source .. ".lon") or true then
-		if not fs.exists(fs.path("A:/Temporary/apm-cache/" .. source)) then
-			fs.makeDirectory(fs.path("A:/Temporary/apm-cache/" .. source))
+	if not fs.exists("T:/apm-cache/" .. source .. ".lon") then
+		if not fs.exists(fs.path("T:/apm-cache/" .. source)) then
+			fs.makeDirectory(fs.path("T:/apm-cache/" .. source))
 		end
 		txt = internet.readFully(githubGet .. source .. "/master/programs.lon")
-		local stream = io.open("A:/Temporary/apm-cache/" .. source .. ".lon", "w")
+		local stream = io.open("T:/apm-cache/" .. source .. ".lon", "w")
 		local _, lon = loadLonSec(txt)
 		lon["expiresOn"] = os.time() + 60
 		stream:write(liblon.sertable(lon))
 		stream:close()
 	else
-		local stream = io.open("A:/Temporary/apm-cache/" .. source .. ".lon")
+		local stream = io.open("T:/apm-cache/" .. source .. ".lon")
 		txt = stream:read("a")
 		stream:close()
 	end
 	local ok, out = loadLonSec(txt)
 	if out and out["expiresOn"] then
 		if os.time() >= out["expiresOn"] then
-			fs.remove("A:/Temporary/apm-cache/" .. source .. ".lon")
+			fs.remove("T:/apm-cache/" .. source .. ".lon")
 			return searchSource(source)
 		end
 	end

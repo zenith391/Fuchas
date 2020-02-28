@@ -28,4 +28,9 @@ if res == nil then
 end
 
 security.requestPermission("*")
-loadfile(res)(args)
+local f, err = loadfile(res)
+if f then
+	f(args)
+else
+	error(err)
+end

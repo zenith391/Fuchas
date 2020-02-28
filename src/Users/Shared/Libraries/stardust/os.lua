@@ -8,11 +8,14 @@ lib.getenv = os.getenv
 lib.setenv = os.setenv
 lib.sleep = os.sleep
 
-function os.exit()
+lib.remove = require("filesystem").remove
+lib.rename = require("filesystem").rename
+
+function lib.exit()
 	error("terminate")
 end
 
-function os.tmpname()
+function lib.tmpname()
 	return "/tmp/" .. math.ceil(math.random()*99999999)
 end
 

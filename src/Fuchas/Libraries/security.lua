@@ -38,7 +38,7 @@ function lib.requestPermission(perm, pid)
 					permtable[currentProcess().pid] = {
 						["*"] = true
 					}
-					return
+					return true
 				end
 			end
 		end
