@@ -12,9 +12,11 @@
 		+ New driver format (lesss file loading): faster startup time
 		+ Inter-Process Communication (IPC)
 		+ Now using LuaComp (allows optional features AT BUILD-TIME!)
-		+ FPM packages are installed on current user's directory by default.
-		+ New "-g" option in FPM for installing in shared/global user directory.
+		+ FPM has been renamed to Application Package Manager (APM)
+		+ APM packages are installed on current user's directory by default.
+		+ New "-g" option in APM for installing in shared/global user directory.
 		+ Fixed many technical issues
+		+ Added OpenUPT library
 		+ Removed AwesomeCatgirl
 	]]
 }

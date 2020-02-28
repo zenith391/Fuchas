@@ -1,5 +1,4 @@
--- Sources are PIPBOYS (Package Installs & Packets for Beautiful and Ordered Young Software)
--- Installer is FPM (Fuchas Package Manager)
+-- APM (Application Package Manager)
 
 local liblon = require("liblon")
 local fs = require("filesystem")
@@ -15,47 +14,47 @@ local global = options["g"] or options["global"]
 
 -- File checks
 local packages, repoList
-if not fs.exists(shared .. "/fpm-packages.lon") then
+if not fs.exists(shared .. "/apm-packages.lon") then
 	packages = {
-		["fpm"] = {
+		["apm"] = {
 			files = {
-				["Fuchas/Binaries/fpm.lua"] = "A:/Fuchas/Binaries/fpm.lua"
+				["Fuchas/Binaries/apm.lua"] = "A:/Fuchas/Binaries/apm.lua"
 			},
 			dependencies = {},
-			name = "Fuchas Package Manager",
-			description = "Download what you're using to download this. Downloadception",
+			name = "Application Package Manager",
+			description = "Nice application manager.",
 			authors = "zenith391",
 			version = "bundled",
 			revision = 0
 		}
 	}
-	local s = fs.open(shared .. "/fpm-packages.lon", "w")
+	local s = fs.open(shared .. "/apm-packages.lon", "w")
 	s:write(liblon.sertable(packages))
 	s:close()
 else
-	local s = io.open(shared .. "/fpm-packages.lon", "r")
+	local s = io.open(shared .. "/apm-packages.lon", "r")
 	packages = liblon.loadlon(s)
 	s:close()
 end
-if not fs.exists(shared .. "/fpm-sources.lon") then
+if not fs.exists(shared .. "/apm-sources.lon") then
 	repoList = { -- Default sources
 		"zenith391/Fuchas",
 		"zenith391/zenith391-Pipboys"
 	}
-	local s = fs.open(shared .. "/fpm-sources.lon", "w")
+	local s = fs.open(shared .. "/apm-sources.lon", "w")
 	s:write(liblon.sertable(repoList))
 	s:close()
 else
-	local s = io.open(shared .. "/fpm-sources.lon", "r")
+	local s = io.open(shared .. "/apm-sources.lon", "r")
 	repoList = liblon.loadlon(s)
 	s:close()
 end
 
 local function save()
-	local s = fs.open(shared .. "/fpm-packages.lon", "w")
+	local s = fs.open(shared .. "/apm-packages.lon", "w")
 	s:write(liblon.sertable(packages))
 	s:close()
-	s = fs.open(shared .. "/fpm-sources.lon", "w")
+	s = fs.open(shared .. "/apm-sources.lon", "w")
 	s:write(liblon.sertable(repoList))
 	s:close()
 end
@@ -69,29 +68,29 @@ local function loadLonSec(txt)
 end
 
 local function searchSource(source)
-	if not fs.exists("A:/Users/Shared/fpm-cache") then
-		fs.makeDirectory("A:/Users/Shared/fpm-cache")
+	if not fs.exists("A:/Temporary/apm-cache") then
+		fs.makeDirectory("A:/Temporary/apm-cache")
 	end
 	local txt
-	if not fs.exists("A:/Users/Shared/fpm-cache/" .. source .. ".lon") or true then
-		if not fs.exists(fs.path("A:/Users/Shared/fpm-cache/" .. source)) then
-			fs.makeDirectory(fs.path("A:/Users/Shared/fpm-cache/" .. source))
+	if not fs.exists("A:/Temporary/apm-cache/" .. source .. ".lon") or true then
+		if not fs.exists(fs.path("A:/Temporary/apm-cache/" .. source)) then
+			fs.makeDirectory(fs.path("A:/Temporary/apm-cache/" .. source))
 		end
 		txt = internet.readFully(githubGet .. source .. "/master/programs.lon")
-		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon", "w")
+		local stream = io.open("A:/Temporary/apm-cache/" .. source .. ".lon", "w")
 		local _, lon = loadLonSec(txt)
 		lon["expiresOn"] = os.time() + 60
 		stream:write(liblon.sertable(lon))
 		stream:close()
 	else
-		local stream = io.open("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
+		local stream = io.open("A:/Temporary/apm-cache/" .. source .. ".lon")
 		txt = stream:read("a")
 		stream:close()
 	end
 	local ok, out = loadLonSec(txt)
 	if out and out["expiresOn"] then
 		if os.time() >= out["expiresOn"] then
-			fs.remove("A:/Users/Shared/fpm-cache/" .. source .. ".lon")
+			fs.remove("A:/Temporary/apm-cache/" .. source .. ".lon")
 			return searchSource(source)
 		end
 	end
@@ -102,7 +101,7 @@ local function downloadPackage(src, name, pkg, ver)
 	local arch = computer.getArchitecture()
 	if pkg.archFiles then -- if have architecture-dependent files
 		if pkg.archFiles[arch] then
-			print("Selected package architecture " .. arch)
+			print("Selected package architecture \"" .. arch .. "\"")
 			for k, v in pairs(pkg.archFiles[arch]) do
 				for l, w in pairs(pkg.files) do
 					if v == w then -- same target
@@ -143,17 +142,17 @@ end
 
 if args[1] == "help" then
 	print("Usage:")
-	print("\tfpm [-g] <help|install|remove|update|upgrade|list>")
-	print("Operations:")
-	print("\thelp                  : show this help message")
-	print("\tinstall [package name]: install the following package.")
-	print("\tremove  [package name]: remove the following package.")
-	print("\tupdate  [package name]: update the following package.")
-	print("\tupgrade               : update all outdated packages")
-	print("\tlist                  : list installed packages")
+	print("  apm [-g] <help|install|remove|update|upgrade|list>")
+	print("Commands:")
+	print("  help               : show this help message")
+	print("  install [package]  : install the following package.")
+	print("  remove  [package]  : remove the following package.")
+	print("  update  [package ] : update the following package.")
+	print("  upgrade            : update all outdated packages")
+	print("  list               : list installed packages")
 	print("Flags:")
-	print("\t-g      : shortcut for --global")
-	print("\t--global: this flag put packages installing to user path to global user path")
+	print("  -g      : shortcut for --global")
+	print("  --global: this flag put packages installing to user path to global user path")
 	return
 end
 
@@ -174,7 +173,8 @@ if args[1] == "remove" then
 		for _, i in pairs(toInstall) do
 			if k == i then
 				for f, dir in pairs(v.files) do
-					local dest = fs.canonical(dir) .. "/" .. f
+					dir = dir:gsub("{userpath}", ifOr(global, shared, userPath))
+					local dest = fs.canonical(dir)
 					io.stdout:write("Removing " .. f .. "..  ")
 					fs.remove(dest)
 					local _, fg = gpu.getColor()
@@ -305,4 +305,4 @@ if args[1] == "install" then
 	return
 end
 
-print("No arguments. Type 'fpm help' for help.")
+print("No arguments. Type 'apm help' for help.")
