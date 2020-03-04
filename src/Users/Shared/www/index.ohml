@@ -62,6 +62,8 @@
 				descend = false
 			end
 
+			console.log("Drawing smiley with color 0x" .. string.format("%x", color))
+
 			-- Draw the eyes
 			canvas.fillRect(10, 1, 1, 1, ' ')
 			canvas.fillRect(14, 1, 1, 1, ' ')

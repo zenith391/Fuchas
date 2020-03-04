@@ -18,6 +18,7 @@
 		+ Fixed many technical issues
 		+ Added OpenUPT library
 		+ Temporary filesystem mounted at "T:"
+		+ Reworked cpu load measurement
 		+ Removed AwesomeCatgirl
 	]]
 }

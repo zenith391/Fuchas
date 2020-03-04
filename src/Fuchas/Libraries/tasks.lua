@@ -90,6 +90,8 @@ local function handleProcessError(err, p)
 	end
 end
 
+local lastLoadPercentage = 0
+local totalStart = 0
 function mod.scheduler()
 	if mod.getCurrentProcess() ~= nil then
 		error("only system can use shin32.scheduler()")
@@ -104,7 +106,9 @@ function mod.scheduler()
 		event.exechandlers(lastEvent)
 	end
 	
-	local totalStart = measure()
+	if totalStart == 0 then
+		totalStart = measure()
+	end
 	for k, p in pairs(processes) do
 		local start = measure()
 		if p.status == "created" then
@@ -182,16 +186,22 @@ function mod.scheduler()
 			end
 		end
 		local e = measure()
-		p.lastCpuTime = math.floor(e*1000 - start*1000) -- in milliseconds
-		p.cpuTime = p.cpuTime + p.lastCpuTime
+		p.lastCpuTime = p.lastCpuTime + math.floor(e*1000 - start*1000) -- cpu time used in 1 second
+		p.cpuTime = p.cpuTime + math.floor(e*1000 - start*1000)
 	end
-	local totalEnd = measure()
-	local time = math.floor(totalEnd*1000 - totalStart*1000)
 
-	for k, p in pairs(processes) do
-		if time ~= 0 then
-			p.cpuPercentage = p.lastCpuTime / time * 100
+	if measure() > lastLoadPercentage+1 then -- 1 second
+		local totalEnd = measure()
+		local time = math.floor(totalEnd*1000 - totalStart*1000)
+
+		for k, p in pairs(processes) do
+			if time ~= 0 then
+				p.cpuPercentage = (p.lastCpuTime / time) * 100
+				p.lastCpuTime = 0
+			end
 		end
+		totalStart = 0
+		lastLoadPercentage = measure()
 	end
 end
 
