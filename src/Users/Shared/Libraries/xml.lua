@@ -24,13 +24,15 @@ function xml.parse(str)
 	local _sta = false -- is parsing attributes?
 	local _te = false -- is tag a ending tag? (</ohml>)
 	local _tn = "" -- tag name
+	local _otn = "" -- old tag name
+	local _ott = "" -- old parsing text
 	local _tap = "" -- tag attribute propety (name)
 	local _tav = "" -- tag attribute value
 	local _tt = "" -- currently parsing text
 	local _ttcdata = false -- is the current parsing text in a CDATA section? (<![CDATA ]]>)
-	local _utt = "" -- currently (unformated) parsing text
 	local _itap = false -- is parsing attribute property?
 	local _ta = {} -- currently parsing attributes
+	local _ota = {} -- old parsing attributes
 	while i < #chars do
 		local ch = chars[i]
 		if ch == '/' and not _sta and _tt == "" then
@@ -86,6 +88,16 @@ function xml.parse(str)
 				_itap = true
 			elseif not _sta then
 				_tn = _tn .. ch
+				if string.sub(_tn, string.len(_tn)-7) == "![CDATA[" then -- minus length of <![CDATA[
+					_ttcdata = true
+					table.remove(currentTag.childrens)
+					_st = false
+					_sta = false
+					_te = false
+					_tt = _ott
+					_tn = _otn
+					_ta = _ota
+				end
 			end
 		end
 		if ch == '<' and not _ttcdata then
@@ -102,23 +114,20 @@ function xml.parse(str)
 			_st = true
 			_sta = false
 			_te = false
+			_otn = _tn
 			_tn = ""
+			_ott = _tt
 			_tt = ""
-			_utt = ""
+			_ota = _ta
 			_ta = {}
 		end
 		if not _st then
-			_utt = _utt .. ch
 			if ch ~= "\r" and ch ~= "\n" and ch ~= "\t" then
 				_tt = _tt .. ch
-				if string.sub(_tt, string.len(_tt)-9) == "<![CDATA[" then -- minus length of <![CDATA[
-					_tt = string.sub(_tt, 1, string.len(_tt-9))
-					_ttcdata = true
-				end
 			else
 				if _ttcdata then
-					if string.sub(_tt, string.len(_tt)-3) == "]]>" then -- minus length of ]]>
-						_tt = string.sub(_tt, 1, string.len(_tt-3))
+					if string.sub(_tt, string.len(_tt)-2) == "]]>" then -- minus length of ]]>
+						_tt = string.sub(_tt, 1, string.len(_tt)-3)
 						_ttcdata = false
 					else
 						_tt = _tt .. ch

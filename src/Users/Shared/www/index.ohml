@@ -39,12 +39,14 @@
 	<br></br>
 	<canvas id="canvas" width=32 height=8></canvas>
 	<script lang="application/lua">
-		-- Code for drawing smile face.
+		--<![CDATA[
+		-- CDATA is required for multi-line and some characters
 		local canvas = document.getElementById("canvas")
 		local x = 5
 		local y = 3
 		local color = 0
 		local descend = false
+		console.log("Starting \"smiley\" program")
 		while true do
 			canvas.setBackground(color)
 			x = 5
@@ -72,7 +74,7 @@
 				end
 				x = x + 1
 				y = y + 0.5
-				--sleep(0.0)
+				--wait(0)
 			end
 
 			-- Draw the right part of the smile
@@ -85,9 +87,10 @@
 				end
 				x = x + 1
 				y = y - 0.5
-				--sleep(0.0)
+				--wait(0)
 			end
-			sleep(0.07)
+			wait(0.07)
 		end
+		--]]>
 	</script>
 </ohml>
