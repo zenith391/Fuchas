@@ -2,8 +2,8 @@
 	<text>
 		Fuchas | 
 		Home | 
-		<a href="info.ohml">Info</a> | 
-		<a href="authors.ohml">Authors</a>
+		<link href="info.ohml">Info</link> | 
+		<link href="authors.ohml">Authors</link>
 	</text>
 	<br></br>
 	<text>
@@ -20,7 +20,7 @@
 		  3. Enjoy Fuchas!<br></br>
 		<br></br>
 		<h3>Installations Instructions (OpenOS) (if above doesn't work)</h3>
-		  1. <a href="/release.cpio">Download CPIO</a><br></br>
+		  1. Download <link href="/release.cpio">the install CPIO</link><br></br>
 		  2. Install a program like 'uncpio' if you don't have it already.<br></br>
 		  3. Extract the CPIO to your root directory.<br></br>
 		  4. Then execute 'wget https://raw.githubusercontent.com/zenith391/Fuchas/master/init.lua init.lua'<br></br>
