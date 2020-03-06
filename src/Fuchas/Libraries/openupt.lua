@@ -23,7 +23,11 @@ end]]
 local function toTextGUID(guid)
 	local result = ""
 	for k, v in pairs(guid) do
-		result = result .. string.format("%x", v)
+		local hex = string.format("%x", v)
+		if hex:len() == 1 then
+			hex = "0" .. hex
+		end
+		result = result .. hex
 	end
 	return result
 end
@@ -109,7 +113,7 @@ function lib.newPartition(id, start, pend, guid)
 		["end"] = pend or 0,
 		type = ("\x00"):rep(8),
 		flags = 0,
-		guid = guid or uuid.generate(), -- todo: make it binary!
+		guid = lib.randomGUID(),
 		label = ("\x00"):rep(32)
 	}
 end

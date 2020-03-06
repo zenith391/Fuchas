@@ -3,7 +3,7 @@ local fs = require("filesystem")
 local drv = require("driver")
 local tasks = require("tasks")
 
--- Unmanaged drives
+-- Unmanaged drives: TO-REDO
 for k, v in pairs(fs.unmanagedFilesystems()) do
 	for addr, _ in component.list("drive") do
 		if fs.isValid(addr) then
@@ -32,13 +32,15 @@ tasks.newProcess("System Interface", function()
 		end
 		return l()
 	end, function(err)
-		io.stderr:write("System Crash!")
+		io.stderr:write("System Crash!\n")
 		io.stderr:write(err)
 		io.stderr:write(debug.traceback(" ", 1))
-		error(err)
+		return err
 	end)
 	if f == true then
 		computer.shutdown() -- main interface exit
+	else
+		error(err)
 	end
 end)
 

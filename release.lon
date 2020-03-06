@@ -19,6 +19,8 @@
 		+ Added OpenUPT library
 		+ Temporary filesystem mounted at "T:"
 		+ Reworked cpu load measurement
+		+ Replaced "pwd" by "cd" (cd offers same feature, clearer, when runned without arguments)
+		+ Started "Kabam" interface, this will soon be the default, eventually replacing Fushell
 		+ Removed AwesomeCatgirl
 	]]
 }

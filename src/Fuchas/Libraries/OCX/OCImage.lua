@@ -23,8 +23,8 @@ end
 
 function lib.create(width, height, bpp, alpha)
 	local img = {
-		width = width,
-		height = height,
+		width = math.min(width or 1, 1),
+		height = math.min(height or 1, 1),
 		backgrounds = {},
 		foregrounds = {},
 		chars = {},
