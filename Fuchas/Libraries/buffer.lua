@@ -16,51 +16,40 @@ function lib.from(handle)
 		end
 		if f == "a" or f == "*a" then -- the * before a or l and others is deprecated in Lua 5.3
 			local s = ""
-			while true do
+			repeat
 				local r = self.stream:read(math.huge)
 				coroutine.yield() -- to release the CPU atleast some time
-				if r == nil then
-					break
-				end
-				s = s .. r
-			end
+				s = s .. (r or "")
+			until not r
 			return s
 		end
 		
 		if f == "l" or f == "*l" then
 			local s = ""
-			while true do
-				local r = self.stream:read(1)
-				if r == nil then
-					if s == "" then
-						return nil
-					else
-						break
-					end
-				end
+			repeat
+				local r = (self.stream:read(1) or "")
 				if r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
 					return s
 				end
 				s = s .. r
-			end
-			return s
+			until not r
+			return (s == "" and nil) or s
 		end
 		return nil, "invalid mode"
 	end
 	stream.lines = function(self, f)
 		local tab = {}
-		while true do
+		repeat
 			local line = self.read(self, "l")
-			if line == nil then
-				break
+			if line then
+				table.insert(tab, line)
 			end
-			table.insert(tab, line)
-		end
+		until not line
 		local i = 0
 		setmetatable(tab, {
 			__call = function()
 				i = i + 1
-			if i <= n then return tab[i] end
+				if i <= n then return tab[i] end
 			end
 		})
 		return tab
