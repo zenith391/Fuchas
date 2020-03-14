@@ -321,7 +321,7 @@ function lib.read(options)
 							hideCursor()
 							inp = string.sub(inp, 1, string.len(inp) - 1)
 							cursor.x = cursor.x - 1
-							write(" ")
+							io.write(" ")
 							cursor.x = cursor.x - 1
 							displayCursor()
 							if options.onType then
@@ -331,7 +331,7 @@ function lib.read(options)
 					elseif d > 0x1F and d ~= 0x7F then
 						hideCursor()
 						inp = inp .. c
-						write(c)
+						io.write(c)
 						displayCursor()
 						if options.onType then
 							options.onType(inp, inp:len())
@@ -348,7 +348,7 @@ function lib.read(options)
 									if plus[1] then
 										hideCursor()
 										inp = inp .. plus[1]
-										write(plus[1])
+										io.write(plus[1])
 										displayCursor()
 									end
 								end
@@ -364,7 +364,7 @@ function lib.read(options)
 				hideCursor()
 				local txt = clip.object
 				inp = inp .. txt
-				write(txt)
+				io.write(txt)
 				displayCursor()
 				changeVis = false
 			end

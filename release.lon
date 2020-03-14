@@ -1,5 +1,5 @@
 {
-	version = "0.5.2",
+	version = "0.6.0",
 	changelog = [[
 		+ Shell autocompletion
 		+ OS arguments
@@ -18,9 +18,9 @@
 		+ Fixed many technical issues
 		+ Added OpenUPT library
 		+ Temporary filesystem mounted at "T:"
-		+ Reworked cpu load measurement
 		+ Replaced "pwd" by "cd" (cd offers same feature, clearer, when runned without arguments)
 		+ Started "Kabam" interface, this will soon be the default, eventually replacing Fushell
+		+ Removed obsolete/deprecated IO methods
 		+ Removed AwesomeCatgirl
 	]]
 }

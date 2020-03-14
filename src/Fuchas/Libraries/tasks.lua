@@ -23,11 +23,16 @@ function mod.newProcess(name, func)
 		status = "created",
 		cpuTime = 0,
 		lastCpuTime = 0,
-		cpuPercentage = 0,
+		cpuLoadPercentage = 0,
 		exitHandlers = {},
 		events = {},
 		operation = nil, -- the current async operation
 		closeables = {}, -- used for file streams; replaced iwth exitHandlers
+		io = { -- a copy of current parent process's io streams
+			stdout = io.stdout,
+			stderr = io.stderr,
+			stdin = io.stdin
+		},
 		errorHandler = nil,
 		detach = function(self)
 			self.parent = nil
@@ -196,7 +201,7 @@ function mod.scheduler()
 
 		for k, p in pairs(processes) do
 			if time ~= 0 then
-				p.cpuPercentage = (p.lastCpuTime / time) * 100
+				p.cpuLoadPercentage = (p.lastCpuTime / time) * 100
 				p.lastCpuTime = 0
 			end
 		end
@@ -260,7 +265,11 @@ function mod.getActiveProcesses()
 end
 
 function mod.getProcesses()
-	return processes
+	if require("security").hasPermission("scheduler.list") then
+		return processes
+	else
+		error("missing permission: scheduler.list")
+	end
 end
 
 return mod

@@ -1,10 +1,10 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.5.2",
+	VERSION = "0.6.0",
 	DEBUG = false,
 	CONFIG = {
 		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
-		DEFAULT_INTERFACE = "Kabam"
+		DEFAULT_INTERFACE = "Fushell"
 	}
 }
 

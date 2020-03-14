@@ -2,36 +2,7 @@ local fs = require("filesystem")
 local comp = require("component")
 local gpu = comp.proxy(comp.list("gpu")())
 
--- Obsolete I/O methods
-function io.fromu16(x)
-	local b1=string.char(x%256) x=(x-x%256)/256
-	local b2=string.char(x%256)
-	return {b1, b2}
-end
-
-function io.fromu32(x)
-	local b1=string.char(x%256) x=(x-x%256)/256
-	local b2=string.char(x%256) x=(x-x%256)/256
-	local b3=string.char(x%256) x=(x-x%256)/256
-	local b4=string.char(x%256)
-	return {b1, b2, b3, b4}
-end
-
-function io.tou16(arr, off)
-	local v1 = arr[off + 1]
-	local v2 = arr[off]
-	return v1 + (v2*256)
-end
-
-function io.tou32(arr, off)
-	local v1 = io.tou16(arr, off + 2)
-	local v2 = io.tou16(arr, off)
-	return v1 + (v2*65536)
-end
-
--- New I/O methods
-
--- To unsigned number (max 32-bit)
+-- Serialize unsigned number (max 32-bit)
 function io.tounum(number, count, littleEndian)
 	local data = {}
 	
@@ -57,7 +28,7 @@ function io.tounum(number, count, littleEndian)
 	return data
 end
 
--- From unsigned number (max 32-bit)
+-- Unserialize unsigned number (max 32-bit)
 function io.fromunum(data, littleEndian, count)
 	count = count or 0
 	if count == 0 then
@@ -152,30 +123,60 @@ function io.createStdErr()
 		gpu.setForeground(0xFF0000)
 		local b = io.stdout:write(val)
 		gpu.setForeground(fg)
-		return b
+		return true
 	end
-	--stream.write = io.stdout.write
 	stream.read = io.stdout.read
 	stream.close = io.stdout.close
 	return stream
 end
 
-io.stdout = io.createStdOut()
-io.stderr = io.createStdErr()
+function io.createStdIn()
+	local stream = {}
+
+	stream.read = function(self)
+
+	end
+
+	stream.write = function(self)
+		return false
+	end
+	stream.close = function(self)
+		return false
+	end
+
+	return stream
+end
+
+local termStdOut = io.createStdOut()
+local termStdErr = nil
+local termStdIn = io.createStdIn()
+
+setmetatable(io, {
+	__index = function(self, k)
+		local proc = require("tasks").getCurrentProcess()
+		if proc == nil then
+			if k == "stdout" then
+				return termStdOut
+			elseif k == "stderr" then
+				return termStdErr
+			elseif k == "stdin" then
+				return termStdIn
+			end
+		else
+			if k == "stdout" then
+				return proc.io.stdout
+			elseif k == "stderr" then
+				return proc.io.stderr
+			elseif k == "stdin" then
+				return proc.io.stdin
+			end
+		end
+	end
+})
+termStdErr = io.createStdErr()
 
 require("shell").setCursor(1, gy())
 _G.gy = nil
-
--- Redefine NT's stdio functions
-
-function print(msg)
-	write(tostring(msg) .. "\n")
-end
-
-function io.write(msg)
-	io.stdout:write(tostring(msg))
-end
-write = io.write
 
 function io.open(filename, mode)
 	if not fs.isDirectory(filename) then
@@ -187,3 +188,87 @@ function io.open(filename, mode)
 	end
 	return nil, "is directory"
 end
+
+function io.input(file)
+	if not file then
+		return io.stdin
+	else
+		if type(file) == "string" then -- file name
+			io.input(io.open(file, "r"))
+		else
+			local proc = require("tasks").getCurrentProcess()
+			proc.io.stdin = file
+		end
+	end
+end
+
+function io.output(file)
+	if not file then
+		return io.stdout
+	else
+		if type(file) == "string" then -- file name
+			io.input(io.open(file, "w"))
+		else
+			local proc = require("tasks").getCurrentProcess()
+			proc.io.stdout = file
+			proc.io.stderr = io.createStdErr() -- recreate stderr to be matching stdout
+		end
+	end
+end
+
+function io.flush()
+	if io.stdout.flush then -- if the stream is buffered
+		io.stdout:flush()
+	end
+end
+
+function io.read()
+	return io.stdin:read()
+end
+
+function io.close(file)
+	if file then
+		file:close()
+	else
+		io.stdout:close()
+	end
+end
+
+function io.popen(prog, mode)
+	if not mode then mode = "r" end
+	local resolved = require("shell").resolve(prog)
+	if not resolved then
+		error("could not resolve the program")
+	end
+	local func = loadfile(resolved)
+	local proc = require("tasks").newProcess(prog, func)
+	if mode == "r" then
+		-- TODO: redirect
+	elseif mode == "w" then
+		-- TODO: redirect
+	end
+end
+
+function io.type(obj)
+	if type(obj) == "table" then
+		if obj.closed then
+			return "closed file"
+		elseif (obj.read or obj.write) and obj.close then
+			return "file"
+		end
+	end
+	return nil
+end
+
+function io.write(msg)
+	io.stdout:write(tostring(msg))
+end
+
+-- Redefine kernel basic stdio functions
+
+function print(msg)
+	io.write(tostring(msg) .. "\n")
+end
+
+--write = io.write -- TODO: remove
+write = nil

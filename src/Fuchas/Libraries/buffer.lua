@@ -8,8 +8,9 @@ function lib.from(handle)
 	stream.size = 128
 	stream.close = function(self)
 		self.stream:close()
+		stream.closed = true
 	end
-	stream.write = function (self, val)
+	stream.write = function(self, val)
 		return self.stream:write(val)
 	end
 	stream.fillBuffer = function(self)
@@ -66,6 +67,9 @@ function lib.from(handle)
 		end
 		return nil, "invalid mode"
 	end
+	stream.setvbuf = function(mode, size)
+		-- TODO
+	end
 	stream.lines = function(self, f)
 		local tab = {}
 		while true do
@@ -83,6 +87,10 @@ function lib.from(handle)
 			end
 		})
 		return tab
+	end
+	stream.seek = function(self, whence, offset)
+		-- TODO: invalidate buffer
+		return self.stream:seek(whence, offset)
 	end
 	return stream
 end

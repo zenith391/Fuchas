@@ -26,7 +26,7 @@ end
 local rw, rh = driver.gpu.getResolution()
 
 local function printCentered(str)
-	write(string.rep(" ", math.floor(rw/2-str:len()/2)))
+	io.write(string.rep(" ", math.floor(rw/2-str:len()/2)))
 	print(str)
 end
 
@@ -77,10 +77,10 @@ while run do
 	while true do -- used for break (to act as "continue" in other other languages)
 	local ox, oy = sh.getCursor()
 	sh.setCursor(1, 1)
-	write(date("%H:%M"))
+	io.write(date("%H:%M"))
 	sh.setCursor(ox, oy)
 	os.setenv("PWD_DRIVE", drive)
-	write(drive .. ":/" .. os.getenv("PWD") .. ">")
+	io.write(drive .. ":/" .. os.getenv("PWD") .. ">")
 	local l = sh.read({
 		["autocomplete"] = sh.fileAutocomplete,
 		["autocompleteHandler"] = drawAutocomplete,
@@ -95,7 +95,7 @@ while run do
 		async = true
 	end
 	local args = sh.parseCL(l)
-	write(" \n")
+	io.write(" \n")
 	if #args == 0 then
 		args[1] = ""
 	end
