@@ -1,5 +1,6 @@
 local filesystem = {}
 local drives = {}
+local noBit32 = OSDATA.CONFIG["NO_52_COMPAT"] -- cannot be changed by program as filesystem is initialized before any outside program.
 
 local function readAll(node, path)
 	local handle = node.open(path, "r")
@@ -249,15 +250,7 @@ function filesystem.getAttributes(path, raw)
 	if raw then
 		return attr
 	else
-		if bit32 and bit32.band then
-			return {
-				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
-				system = (bit32.band(attr, 2) == 2), -- protected in Read
-				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
-				hidden = (bit32.band(attr, 8) == 8), -- hidden
-				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
-			}
-		elseif _VERSION ~= "Lua 5.2" then
+		if _VERSION ~= "Lua 5.2" then
 			return load([[
 				local attr = ...
 				return {
@@ -268,6 +261,14 @@ function filesystem.getAttributes(path, raw)
 					noExecute = ((attr & 16) == 16),
 				}
 			]])(attr)
+		elseif bit32 and bit32.band then
+			return {
+				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
+				system = (bit32.band(attr, 2) == 2), -- protected in Read
+				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
+				hidden = (bit32.band(attr, 8) == 8), -- hidden
+				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
+			}
 		else
 			return {} -- unsafe, but only way as we're on Lua 5.2 and we don't have bit32.
 			-- Breaking compatibility (using OS arguments) is recommended if on Lua 5.3
@@ -280,6 +281,8 @@ function filesystem.list(path)
 	local result = {}
 	if node then
 		result = node.list(rest)
+	else
+		error("no drive found for " .. tostring(path))
 	end
 	local set = {}
 	local keys = {}
@@ -365,6 +368,12 @@ function filesystem.open(path, mode)
 			return nil, "not enough permissions"
 		end
 	end
+	if mode ~= "r" and mode ~= "rb" then
+		local parts = segments(path)
+		if parts[#parts] == ".dir" then
+			return nil, "file not found"
+		end
+	end
 	local node, rest = findNode(path)
 	local segs = segments(path)
 	table.remove(segs, 1)
@@ -382,7 +391,7 @@ function filesystem.open(path, mode)
 	local function create_handle_method(key)
 		return function(self, ...)
 			if not self.handle then
-				return nil, "file is closed"
+				return nil, "file closed"
 			end
 			return self.fs[key](self.handle, ...)
 		end
@@ -399,9 +408,10 @@ function filesystem.open(path, mode)
 				self.fs.close(self.handle)
 				self.handle = nil
 				if self.proc ~= nil then
-					for k, v in pairs(self.proc.closeables) do
-						if v == self then
-							table.remove(self.proc.closeables, k)
+					for k, v in pairs(self.proc.exitHandlers) do
+						if v == exitHandler then
+							table.remove(self.proc.exitHandlers, k)
+							break
 						end
 					end
 				end
@@ -412,7 +422,10 @@ function filesystem.open(path, mode)
 	stream.seek = create_handle_method("seek")
 	stream.write = create_handle_method("write")
 	if stream.proc ~= nil then
-		table.insert(stream.proc.closeables, stream)
+		stream.exitHandler = function()
+			stream:close()
+		end
+		table.insert(stream.proc.exitHandlers, stream.exitHandler)
 	end
 	return stream
 end

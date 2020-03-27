@@ -1,10 +1,10 @@
 local sides = {
-	"bottom": 0,
-	"top": 1,
-	"back": 2,
-	"front": 3,
-	"right": 4,
-	"left": 5
+	bottom = 0,
+	top = 1,
+	back = 2,
+	front = 3,
+	right = 4,
+	left = 5
 }
 
 sides["down"] = sides["bottom"]

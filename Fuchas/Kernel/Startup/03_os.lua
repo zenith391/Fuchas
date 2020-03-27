@@ -20,6 +20,10 @@ function os.setenv(name, value)
 	end
 end
 
+function os.tmpname()
+	return "T:/" .. string.format("%x", math.random() * 0xFFFFFFFF)
+end
+
 function computer.shutdown(reboot)
 	computer.pushSignal("shutdown", computer.uptime())
 	if tasks.getCurrentProcess() ~= nil then

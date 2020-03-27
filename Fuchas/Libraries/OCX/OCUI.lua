@@ -18,14 +18,22 @@ function lib.component()
 	comp.context = nil
 	comp.x = 1
 	comp.y = 1
-	comp.width = 0
-	comp.height = 0
+	comp.width = 1
+	comp.height = 1
 	comp.background = 0x000000
 	comp.foreground = 0xFFFFFF
 	comp.listeners = {}
 	comp.dirty = true
 	comp.initRender = function(self)
-		if self.context == nil then
+		local mustReupdate = false
+		if self.context then
+			local x,y,w,h = draw.getContextBounds(self.context)
+			if x~=self.x or y~=self.y or w~=self.width or h~=self.height then
+				draw.moveContext(self.context, self.x, self.y)
+				draw.setContextSize(self.context, self.width, self.height)
+			end
+		end
+		if self.context == nil  then
 			self.context = draw.newContext(self.x, self.y, self.width, self.height)
 			self.canvas = draw.canvas(self.context)
 		end
@@ -49,15 +57,23 @@ function lib.container()
 	comp.childrens = {}
 	
 	comp.add = function(self, component)
+		if not component then
+			error("cannot add null to container")
+		end
+		component.parent = self
 		table.insert(self.childrens, component)
 	end
 	
 	comp.render = function(self)
 		self:initRender()
-		self.canvas.fillRect(1, 1, self.width, self.height, self.background) -- draw text
+		self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 		draw.drawContext(self.context) -- finally draw
 		for _, c in pairs(self.childrens) do
+			c.x = c.x + self.x - 1
+			c.y = c.y + self.y - 1
 			c:render()
+			c.x = c.x - self.x + 1
+			c.y = c.y - self.y + 1
 		end
 	end
 	
@@ -94,6 +110,19 @@ function lib.progressBar(maxProgress)
 		self:initRender()
 	end
 	return pb
+end
+
+function lib.menuBar()
+	local comp = lib.container()
+	local super = comp.render
+	comp.render = function(self)
+		if self.parent then
+			self.width = self.parent.width
+		end
+		super(self)
+	end
+	comp.background = 0xC2C2C2
+	return comp
 end
 
 return lib

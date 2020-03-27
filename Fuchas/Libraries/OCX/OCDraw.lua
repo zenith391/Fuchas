@@ -1,8 +1,6 @@
 local gpu = require("driver").gpu
 local rw, rh = gpu.getResolution()
-
 local lib = {}
-
 local dc = {} -- Draw Contexts
 
 local doDebug = OSDATA.DEBUG -- warning costs a lot of GPU call budget
@@ -61,6 +59,7 @@ function lib.requestMemory()
 	for k, v in pairs(dc) do
 		if v.doubleBuffer then
 			v.doubleBuffer = nil
+			v.curViewBuffer = nil
 		end
 	end
 end
@@ -68,28 +67,54 @@ end
 function lib.requestDoubleBuffer(ctxn)
 	local ctx = dc[ctxn]
 	ctx.doubleBuffer = {}
+	ctx.curViewBuffer = {}
 	for cx=1, ctx.width do
 		for cy=1, ctx.height do
 			local ch, fore, back = gpu.get(ctx.x+cx, ctx.y+cy)
 			ctx.doubleBuffer[y*ctx.width+x] = {ch, fore, back}
+			ctx.curViewBuffer[y*ctx.width+x] = {ch, fore, back}
+		end
+	end
+end
+
+function lib.tryMerge(drawBuffer)
+	for k, op1 in pairs(drawBuffer) do
+		for l, op2 in pairs(drawBuffer) do
+			if op1 and op2 and op2 ~= op1 then
+				if op1.type == "fillRect" and op2.type == "fillRect" and op1.color == op2.color then -- merge 2 consecutive rectangles
+					if op1.x <= op2.x and op1.x+op1.width >= op2.x and op1.y == op2.y and op1.height == op2.height then
+						drawBuffer[l] = nil
+						op1.width = op1.width + op2.x+op2.width - (op1.x+op1.width)
+						gpu.setColor(0xFFFFFF)
+					elseif op1.y <= op2.y and op1.y+op1.height >= op2.y and op1.x == op2.x and op1.width == op2.width then
+						drawBuffer[l] = nil
+						op1.height = op1.height + op2.y+op2.height - (op1.y+op1.height)
+						gpu.setColor(0xFFFFFF)
+					end
+				end
+			end
 		end
 	end
 end
 
 function lib.drawContext(ctxn)
 	local ctx = dc[ctxn]
+	local g
 	if ctx.target then
-		local gpu = lib.targetDriver(ctx.target)
+		g = lib.targetDriver(ctx.target)
+	else
+		g = gpu
 	end
 	if doDebug then
 		gpu.setColor(0xFFFFFF)
 		gpu.drawText(1, 1, "OCDraw Debug:", 0)
 		gpu.drawText(1, 2, "Active Draw Contexts: " .. #dc, 0)
 		gpu.drawText(1, 3, "Active Processes: " .. require("tasks").getActiveProcesses(), 0)
-		local usedMem = math.floor((computer.freeMemory() - computer.totalMemory()) / 1024)
+		local usedMem = math.floor((computer.totalMemory() - computer.freeMemory()) / 1024)
 		local totalMem = math.floor(computer.totalMemory() / 1024)
 		gpu.drawText(1, 4, "RAM: " .. usedMem .. "/" .. totalMem .. " KiB")
 	end
+	lib.tryMerge(ctx.drawBuffer)
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
 		local x = v.x
@@ -98,14 +123,14 @@ function lib.drawContext(ctxn)
 		local height = v.height
 		local color = v.color
 		if t == "fillRect" and x <= rw and y <= rh then
-			gpu.setColor(color)
-			gpu.fill(x, y, width, height)
+			g.setColor(color)
+			g.fill(x, y, width, height)
 		end
 		if t == "drawText" and x <= rw and y <= rh then
 			local back = v.color2
-			if not back then _, _, back = gpu.get(x, y) end
-			gpu.setColor(back)
-			gpu.drawText(x, y, v.text, color)
+			if not back then _, _, back = g.get(x, y) end
+			g.setColor(back)
+			g.drawText(x, y, v.text, color)
 		end
 		if t == "renderTarget" then
 			local img = v.img
@@ -120,31 +145,31 @@ function lib.drawContext(ctxn)
 					local changed = false
 					if fg ~= piece[2] then
 						fg = piece[2]
-						gpu.setForeground(fg)
+						g.setForeground(fg)
 						changed = true
 					end
 					if bg ~= piece[3] then
 						bg = piece[3]
-						gpu.setColor(bg)
+						g.setColor(bg)
 						changed = true
 					end
 					if changed then
-						gpu.drawText(x+sx, y+j, str)
+						g.drawText(x+sx, y+j, str)
 						str = ""
 						sx = i
 					end
 				end
-				gpu.drawText(x+sx, y+j, str)
+				g.drawText(x+sx, y+j, str)
 			end
 		end
 		if t == "copy" then
 			local x2, y2 = i.x2, i.y2
-			gpu.copy(x, y, width, height, x2 - x, y2 - y)
+			g.copy(x, y, width, height, x2 - x, y2 - y)
 		end
 		if t == "drawOval" then
-			gpu.setColor(color)
-			if gpu.drawOval then
-				gpu.drawOval(x, y, width, height)
+			g.setColor(color)
+			if g.drawOval then
+				g.drawOval(x, y, width, height)
 			else
 				x=math.ceil(x+width/2)
 				local cos, sin = math.cos, math.sin
@@ -154,7 +179,7 @@ function lib.drawContext(ctxn)
 					sx=math.floor(sx); sy=math.floor(sy);
 					if lx ~= sx or ly ~= sy then
 						lx = sx; ly = sy
-						gpu.fill(x+sx, y+sy, 1, 1)
+						g.fill(x+sx, y+sy, 1, 1)
 					end
 				end
 			end
@@ -209,6 +234,11 @@ function lib.setContextSize(ctx, width, height)
 	local c = dc[ctx]
 	c.width = width
 	c.height = height
+end
+
+function lib.getContextBounds(ctx)
+	local c = dc[ctx]
+	return c.x, c.y, c.width, c.height
 end
 
 function lib.moveContext(ctx, x, y)

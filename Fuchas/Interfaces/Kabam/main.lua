@@ -3,11 +3,7 @@ local fs = require("filesystem")
 local tasks = require("tasks")
 local driver = require("driver")
 
--- Avoid killing (safely) system process with a custom quit handler
-tasks.getCurrentProcess().safeKillHandler = function()
-	io.stderr:write("cannot kill system process!\n")
-	return false
-end
+local date = os.date
 
 tasks.getCurrentProcess().childErrorHandler = function(proc, err)
 	io.stderr:write(tostring(err) .. "\n")
@@ -35,18 +31,43 @@ local function printCentered(str)
 end
 
 sh.clear()
--- splash
+
 print(string.rep("=-", math.floor(rw/2)))
-printCentered(_OSVERSION .. "'s Fushell")
+printCentered("Kabam Beta interface on " .. _OSVERSION)
+printCentered("It is " .. date("%H:%M, the %d %b %Y"))
 printCentered("Type \"help\" if you don't know what to do!")
-printCentered("GitHub: https://github.com/zenith391/Fuchas")
 if computer.getArchitecture() == "Lua 5.2" then
 	for k, v in pairs(computer.getArchitectures()) do
 		if v == "Lua 5.3" then
-			printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
+			printCentered("/!\\ Switch to Lua 5.3 by shift-clicking on your CPU or APU")
 		end
 	end
 end
+
+local lastBox = {0, 0, 0, 0}
+local lastAutocomplete = nil
+
+local function drawAutocomplete(tab, pos, current)
+	driver.gpu.fill(lastBox[1], lastBox[2], lastBox[3], lastBox[4], 0)
+	local maxLen = 0
+	for _,v in pairs(tab) do
+		maxLen = math.max(maxLen, current:len() + v:len())
+	end
+	lastAutocomplete = tab
+	driver.gpu.fill(1, sh.getY()+1, maxLen, #tab, 0x2D2D2D)
+	lastBox = {1, sh.getY()+1, pos+maxLen, #tab}
+	for k,v in pairs(tab) do
+		driver.gpu.drawText(1, sh.getY()+k, current, 0x00FFFF)
+		driver.gpu.drawText(pos+1, sh.getY()+k, v, 0xFFFFFF)
+	end
+end
+
+local function drawType(current, pos)
+	if lastAutocomplete ~= nil then
+		drawAutocomplete(sh.autocompleteFor(current, sh.fileAutocomplete), pos, current)
+	end
+end
+
 print(string.rep("-=", math.floor(rw/2)))
 
 os.setenv("PWD", "")
@@ -54,11 +75,20 @@ local drive = "A"
 local run = true
 while run do
 	while true do -- used for break (to act as "continue" in other other languages)
+	local ox, oy = sh.getCursor()
+	sh.setCursor(1, 1)
+	io.write(date("%H:%M"))
+	sh.setCursor(ox, oy)
 	os.setenv("PWD_DRIVE", drive)
 	io.write(drive .. ":/" .. os.getenv("PWD") .. ">")
 	local l = sh.read({
-		["autocomplete"] = sh.fileAutocomplete
+		["autocomplete"] = sh.fileAutocomplete,
+		["autocompleteHandler"] = drawAutocomplete,
+		["onType"] = drawType
 	})
+	driver.gpu.fill(lastBox[1], lastBox[2], lastBox[3], lastBox[4])
+	lastAutocomplete = nil
+	lastBox = {0, 0, 0, 0}
 	local async = false
 	if string.endsWith(l, "&") then
 		l = l:sub(1, l:len()-1)
@@ -69,7 +99,7 @@ while run do
 	if #args == 0 then
 		args[1] = ""
 	end
-	if args[1] == "exit" then -- special case: exit cmd
+	if args[1] == "exit" then
 		run = false
 		break
 	end

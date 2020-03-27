@@ -1,12 +1,21 @@
 local drv = require("driver")
-local driver = drv.sound
+local args, ops = require("shell").parse(...)
+local t = args[1] or "sound"
+local driver = drv[t]
 
-for k, v in pairs(component.list()) do
-	print(k .. " " .. v)
+if driver == nil then
+	io.stderr:write("No component recognized with type \"" .. tostring(t) .. "\"\n")
+	return
 end
 
-print("Driver Name: " .. driver.getName())
-print("Capabilitites:")
-for k, v in pairs(driver.getCapabilities()) do
-	print("\t" .. k .. ": " .. tostring(v))
+print("Driver Name: " .. driver.spec.getName())
+if driver.getCapabilities then
+	print("Capabilitites:")
+	for k, v in pairs(driver.getCapabilities()) do
+		local b = v
+		if type(v) == "boolean" then
+			b = ifOr(v, "yes", "no")
+		end
+		print("\t" .. k .. ": " .. tostring(b))
+	end
 end

@@ -11,6 +11,7 @@ local selected      = 2
 local maxSelect     = 2
 local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
+local repoURLDev    = "https://raw.githubusercontent.com/zenith391/Fuchas/dev/"
 local downloading   = ""
 
 -- Adorable-Catgirl's uncpio
@@ -232,7 +233,7 @@ local doErase = false
 local function process()
 	if stage == 2 then
 		if selected == 2 then
-			repoURL = "https://raw.githubusercontent.com/zenith391/Fuchas/dev/"
+			repoURL = repoURLDev
 		end
 		selected = 1
 		stage = 3

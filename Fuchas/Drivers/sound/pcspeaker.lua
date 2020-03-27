@@ -1,68 +1,71 @@
-local drv = {}
 local buffer = {}
+local spec = {}
 
--- Possible: driver-specific "voice-emulation" mode, allowing up to 3 "voices"
-
-function drv.appendFrequency(channel, time, freq)
-	table.insert(buffer, {time, freq})
-	return true
-end
-
-function drv.setADSR(ch, attack, decay, sustain, release)
-	return false, "unsupported"
-end
-
-function drv.isCompatible()
-	return true
-end
-
-function drv.setWave(ch, type)
-	return false, "unsupported"
-end
-
-function drv.flush()
-	for k, v in pairs(buffer) do
-		computer.beep(v[0], v[1])
-		table.remove(buffer, k)
-	end
-end
-
-function drv.setSynchronous(sync)
-	return false, "unsupported" -- failed
-end
-
-function drv.isSynchronous()
-	return true
-end
-
-function drv.openChannel(channel)
-	return false, "unsupported"
-end
-
-function drv.closeChannel(channel)
-	return false, "unsupported"
-end
-
-function drv.getMaxChannels()
+function spec.getRank() -- used by "driver" library to choose best default driver
 	return 1
 end
 
-function drv.getRank() -- used by "driver" library to choose best driver
-	return 1
-end
-
-function drv.getCapabilities()
-    return {
-        adsr = false,
-        asynchronous = false,
-        volume = false,
-        waveTypes = {"square"},
-        channels = 1
-    }
-end
-
-function drv.getName()
+function spec.getName()
 	return "Lame(R) PC Speaker"
 end
 
-return drv
+function spec.isCompatible(address)
+	return true
+end
+
+function spec.new(address)
+	local drv = {}
+	drv.getName = spec.getName
+	function drv.appendFrequency(channel, time, freq)
+		table.insert(buffer, {time, freq})
+		return true
+	end
+
+	function drv.setADSR(ch, attack, decay, sustain, release)
+		return false, "unsupported"
+	end
+
+	function drv.setWave(ch, type)
+		return false, "unsupported"
+	end
+
+	function drv.flush()
+		for k, v in pairs(buffer) do
+			computer.beep(v[0], v[1])
+			table.remove(buffer, k)
+		end
+	end
+
+	function drv.setSynchronous(sync)
+		return false, "unsupported" -- failed
+	end
+
+	function drv.isSynchronous()
+		return true
+	end
+
+	function drv.openChannel(channel)
+		return false, "unsupported"
+	end
+
+	function drv.closeChannel(channel)
+		return false, "unsupported"
+	end
+
+	function drv.getMaxChannels()
+		return 1
+	end
+
+	function drv.getCapabilities()
+	    return {
+	        adsr = false,
+	        asynchronous = false,
+	        volume = false,
+	        waveTypes = {"square"},
+	        channels = 1
+	    }
+	end
+	return drv
+end
+
+return spec

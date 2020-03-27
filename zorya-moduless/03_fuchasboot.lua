@@ -1,6 +1,6 @@
 -- 03_fuchasboot.lua
--- Boots the Fuchas NT Kernel.
--- Note: Preferably use OEFI for booting.
+-- DEPRECATED, use OEFI
+
 local comp = component or require("component")
 local args = {...}
 local envs = args[1]

@@ -1,24 +1,38 @@
+local ALWAYS_INCR_PID = true -- to avoid PIDs pointing to the wrong process
+
 local event = require("event")
 local mod = {}
 
 local activeProcesses = 0
+local incr = 1
 local currentProc = nil
 local processes = {}
 
 function mod.newProcess(name, func)
-	local pid = #processes+1
+	local pid
+	if ALWAYS_INCR_PID then
+		pid = incr
+		incr = incr + 1
+	else
+		pid = #processes+1
+	end
 	local proc = {
 		name = name,
 		func = func,
-		pid = pid,
+		pid = pid, -- reliable pointer to process that help know if a process is dead; TODO: remove
 		status = "created",
 		cpuTime = 0,
 		lastCpuTime = 0,
-		cpuPercentage = 0,
+		cpuLoadPercentage = 0,
 		exitHandlers = {},
 		events = {},
 		operation = nil, -- the current async operation
-		closeables = {}, -- used for file streams
+		closeables = {}, -- used for file streams; replaced iwth exitHandlers
+		io = { -- a copy of current parent process's io streams
+			stdout = io.stdout,
+			stderr = io.stderr,
+			stdin = io.stdin
+		},
 		errorHandler = nil,
 		detach = function(self)
 			self.parent = nil
@@ -81,6 +95,8 @@ local function handleProcessError(err, p)
 	end
 end
 
+local lastLoadPercentage = 0
+local totalStart = 0
 function mod.scheduler()
 	if mod.getCurrentProcess() ~= nil then
 		error("only system can use shin32.scheduler()")
@@ -95,7 +111,9 @@ function mod.scheduler()
 		event.exechandlers(lastEvent)
 	end
 	
-	local totalStart = measure()
+	if totalStart == 0 then
+		totalStart = measure()
+	end
 	for k, p in pairs(processes) do
 		local start = measure()
 		if p.status == "created" then
@@ -135,7 +153,7 @@ function mod.scheduler()
 						p.errorHandler(ret)
 					else
 						if not handleProcessError(ret, p) then
-							shin32.kill(p)
+							mod.kill(p)
 						end
 					end
 				end
@@ -173,16 +191,22 @@ function mod.scheduler()
 			end
 		end
 		local e = measure()
-		p.lastCpuTime = math.floor(e*1000 - start*1000) -- in milliseconds
-		p.cpuTime = p.cpuTime + p.lastCpuTime
+		p.lastCpuTime = p.lastCpuTime + math.floor(e*1000 - start*1000) -- cpu time used in 1 second
+		p.cpuTime = p.cpuTime + math.floor(e*1000 - start*1000)
 	end
-	local totalEnd = measure()
-	local time = math.floor(totalEnd*1000 - totalStart*1000)
 
-	for k, p in pairs(processes) do
-		if time ~= 0 then
-			p.cpuPercentage = p.lastCpuTime / time * 100
+	if measure() > lastLoadPercentage+1 then -- 1 second
+		local totalEnd = measure()
+		local time = math.floor(totalEnd*1000 - totalStart*1000)
+
+		for k, p in pairs(processes) do
+			if time ~= 0 then
+				p.cpuLoadPercentage = (p.lastCpuTime / time) * 100
+				p.lastCpuTime = 0
+			end
 		end
+		totalStart = 0
+		lastLoadPercentage = measure()
 	end
 end
 
@@ -220,14 +244,19 @@ function mod.kill(proc)
 	for k, v in pairs(proc.closeables) do
 		v:close()
 	end
-	--processes[proc.pid] = nil
-	table.remove(processes, proc.pid)
-	-- update PID
-	for k,v in pairs(processes) do
-		v.pid = k
+	for k, v in pairs(proc.exitHandlers) do
+		v()
 	end
+	processes[proc.pid] = nil
+
+	-- Removing from tables help keep an array and not an hash table but conflicts with the purpose of PIDs
+	--table.remove(processes, proc.pid)
+	-- update PID
+	--for k,v in pairs(processes) do
+	--	v.pid = k
+	--end
 	if currentProc == proc then
-		coroutine.yield()
+		coroutine.yield() -- process is dead and will now yield
 	end
 end
 
@@ -236,7 +265,11 @@ function mod.getActiveProcesses()
 end
 
 function mod.getProcesses()
-	return processes
+	if require("security").hasPermission("scheduler.list") then
+		return processes
+	else
+		error("missing permission: scheduler.list")
+	end
 end
 
 return mod

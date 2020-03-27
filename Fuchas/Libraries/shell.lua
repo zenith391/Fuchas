@@ -14,6 +14,7 @@ local fs = require("filesystem")
 local driver = require("driver")
 local clipboard = require("clipboard")
 local stdout = io.stdout
+local globalHistory = {}
 
 local cursor = {
 	x = 1,
@@ -262,57 +263,94 @@ local function hideCursor()
 	driver.gpu.fill(cursor.x, cursor.y, 1, 1, 0x000000)
 end
 
+function lib.fileAutocomplete(s, sp)
+	local path = os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD")
+	local choices = {}
+	--if not fs.exists(path .. sp[#sp]) then
+	--	if fs.exists(fs.path(path .. sp[#sp])) then
+	--		path = fs.path(path .. sp[#sp])
+	--	end
+	--end
+	local seg = fs.segments(sp[#sp])
+	local st = table.remove(seg)
+	if #seg > 0 then path = path .. table.concat(seg, "/") end
+	seg = fs.segments(sp[#sp])
+	for k, v in pairs(fs.list(path)) do
+		if string.startsWith(v, seg[#seg]) then
+			local _, e = string.find(v, seg[#seg])
+			table.insert(choices, v:sub(e+1, v:len()))
+		end
+	end
+	return choices
+end
+
+local inp = ""
+function lib.appendRead(s)
+	inp = inp .. s
+end
+
+function lib.autocompleteFor(input, autocompleter)
+	if input:len() == 0 then
+		return {}
+	end
+	local sp = string.split(input, " ")
+	local plus = autocompleter(input, sp)
+	return plus
+end
+
 function lib.read(options)
 	if not options then
 		options = {}
 	end
 	local c = ""
-	local s = ""
+	inp = ""
 	local curVisible = true
 	local changeVis = false
+	local history = options.history or globalHistory
 	local event = require("event")
 	displayCursor()
 	while c ~= '\r' do -- '\r' == Enter
 		local a, b, d = event.pullFiltered(1, readEventFilter)
-		local sp = string.split(s, " ")
+		local sp = string.split(inp, " ")
 		if a == "key_down" then
 			if d ~= 0 then
 				c = string.char(d)
 				if c ~= '\r' then
 					if d == 8 then -- backspace
-						if string.len(s) > 0 then
+						if string.len(inp) > 0 then
 							hideCursor()
-							s = string.sub(s, 1, string.len(s) - 1)
+							inp = string.sub(inp, 1, string.len(inp) - 1)
 							cursor.x = cursor.x - 1
-							write(" ")
+							io.write(" ")
 							cursor.x = cursor.x - 1
 							displayCursor()
+							if options.onType then
+								options.onType(inp, inp:len())
+							end
 						end
 					elseif d > 0x1F and d ~= 0x7F then
 						hideCursor()
-						s = s .. c
-						write(c)
+						inp = inp .. c
+						io.write(c)
 						displayCursor()
-					elseif d == 0x09 then
-						if options.autocompleteFile then
-							local path = os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD")
-							--if not fs.exists(path .. sp[#sp]) then
-							--	if fs.exists(fs.path(path .. sp[#sp])) then
-							--		path = fs.path(path .. sp[#sp])
-							--	end
-							--end
-							local seg = fs.segments(sp[#sp])
-							local s = table.remove(seg)
-							if #seg > 0 then path = path .. table.concat(seg, "/") end
-							seg = fs.segments(sp[#sp])
-							for k, v in pairs(fs.list(path)) do
-								if string.startsWith(v, seg[#seg]) then
-									local _, e = string.find(v, seg[#seg])
-									hideCursor()
-									local npart = v:sub(e+1, v:len())
-									s = s .. npart
-									write(npart)
-									displayCursor()
+						if options.onType then
+							options.onType(inp, inp:len())
+						end
+					elseif d == 0x09 then -- horizontal tab
+						if options.autocomplete then
+							if type(options.autocomplete) == "table" then
+								-- TODO
+							else
+								local plus = options.autocomplete(inp, sp)
+								if options.autocompleteHandler then
+									options.autocompleteHandler(plus, inp:len(), inp)
+								else
+									if plus[1] then
+										hideCursor()
+										inp = inp .. plus[1]
+										io.write(plus[1])
+										displayCursor()
+									end
 								end
 							end
 						end
@@ -325,8 +363,8 @@ function lib.read(options)
 			if clip.type == "text/string" then
 				hideCursor()
 				local txt = clip.object
-				s = s .. txt
-				write(txt)
+				inp = inp .. txt
+				io.write(txt)
 				displayCursor()
 				changeVis = false
 			end
@@ -343,7 +381,7 @@ function lib.read(options)
 			curVisible = true
 		end
 	end
-	return s
+	return inp
 end
 
 return lib

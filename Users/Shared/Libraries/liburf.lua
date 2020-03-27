@@ -1,12 +1,8 @@
 -- liburf v1.0
--- 2019-2019
--- Extension library, being in Users/Shared
--- Implementation details:
---   over 64-bits precisions ALIs are not supported!
+-- URF went unused, to be moved
 local lib = {}
 
 -- Little-Endian bytes operations
-
 local function u32tostr(x)
 	local b4=string.char(x%256) x=(x-x%256)/256
 	local b3=string.char(x%256) x=(x-x%256)/256

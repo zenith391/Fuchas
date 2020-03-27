@@ -1,4 +1,5 @@
 -- Main UI file for the Operating System frontend UI (optional)
+package.loaded["Concert/wins"] = nil
 local wins = require("Concert/wins")
 local event = require("event")
 local draw = require("OCX/OCDraw")
@@ -12,7 +13,8 @@ local test = wins.newWindow()
 local startMenu = wins.newWindow()
 local startMenuEntries = {
 	{"Settings", "A:/Fuchas/Interfaces/Concert/csettings.lua"},
-	{"Task Manager", "A:/Fuchas/Interfaces/Concert/csysguard.lua"}
+	{"Task Manager", "A:/Fuchas/Interfaces/Concert/csysguard.lua"},
+	{"Minesweeper", "A:/Fuchas/Interfaces/Concert/minesweeper/minesweeper.lua"}
 }
 local taskBar = wins.newWindow()
 local focusedWin = nil
@@ -56,6 +58,8 @@ do
 		startMenu.container = comp
 	end
 end
+
+dofile("A:/Fuchas/Interfaces/Concert/csysguard.lua")
 
 do
 	taskBar.undecorated = true
@@ -115,13 +119,13 @@ local function screenEvent(name, addr, x, y, button, player)
 			--wins.moveWindow(selectedWin, x, y)
 			selectedWin.x = x; selectedWin.y = y
 			selectedWin.dirty = true
-			drawBackDesktop()
+			--drawBackDesktop()
 			wins.drawDesktop()
 		end
 	end
 end
 
-drawBackDesktop()
+--drawBackDesktop()
 wins.drawDesktop()
 
 while true do

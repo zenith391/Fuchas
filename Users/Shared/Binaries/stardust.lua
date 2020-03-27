@@ -7,7 +7,10 @@ if package.loaded["OCX/OCDraw"] then
 	require("OCX/OCDraw").requestMemory()
 end
 
-sec.requestPermission("component.unrestricted")
+if not sec.requestPermission("component.unrestricted") then
+	io.stderr:write("Stardust programs requires unrestricted access to components (admin access).\n")
+	return
+end
 
 local args, flags = shell.parse(...)
 
@@ -22,9 +25,30 @@ if path == nil then
 	return
 end
 
+local libs = {
+	component = require("stardust/component"),
+	filesystem = require("filesystem"), -- no porting necessary.. yet
+	colors = require("stardust/colors"),
+	rc = require("stardust/rc"),
+	sides = require("stardust/sides"),
+	os = require("stardust/os"),
+	term = require("stardust/term"),
+	event = require("event"), -- TODO: re-implement
+	buffer = require("buffer") -- TODO: re-implement
+}
+
+local function req(name)
+	print("debug) requiring " .. name)
+	if libs[name] then
+		return libs[name]
+	else
+		return require(name)
+	end
+end
+
 local env = {
-	computer = require("stardust/computer")
-	component = _G.component.unrestricted,
+	computer = require("stardust/computer"),
+	require = req,
 	math = _G.math,
 	coroutine = _G.coroutine,
 	bit32 = _G.bit32,
@@ -50,14 +74,17 @@ local env = {
 	tonumber = _G.tonumber,
 	tostring = _G.tostring,
 	type = _G.type,
-	xpcall = _G.xpcall
-
-	-- APIs,
-	filesystem = require("filesystem"), -- no porting necessary.. yet
-	colors = require("stardust/colors"),
-	rc = require("stardust/rc"),
-	sides = require("stardust/sides"),
-	os = require("stardust/os")
+	xpcall = _G.xpcall,
+	print = _G.print
 }
 
-load(path, "$1 over stardust", "bt", env)
+local handle = io.open(path)
+local code = handle:read("a")
+handle:close()
+local f, err = load(code, args[1], "bt", env)
+
+if f then
+	f()
+else
+	error(err)
+end

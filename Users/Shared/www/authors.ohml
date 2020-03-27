@@ -1,8 +1,8 @@
-<ohml version=1.02>
+<ohml version="1.02">
 	<text>
 		Fuchas | 
-		<a href="index.ohml">Home</a> | 
-		<a href="info.ohml">Info</a> | 
+		<link href="index.ohml">Home</link> | 
+		<link href="info.ohml">Info</link> | 
 		Authors
 	</text>
 	<br></br>

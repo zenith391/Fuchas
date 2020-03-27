@@ -1,15 +1,15 @@
 local filesystem = require("filesystem")
 local driver = ...
 
-local freeID = -1
+local freeID = 0
 
 local fs = {}
 local SS = 512
-local SO = 512 -- add 1 for the 1-number base
+local SO = 512
 
 local function getName(id)
 	local a = id * SS + SO
-	local name = driver.readBytes(a + 5, 32)
+	local name = driver.readBytes(a+6, 32)
 	local str = ""
 	for i=1, 32 do
 		if name[i] == 0 then
@@ -17,6 +17,7 @@ local function getName(id)
 		end
 		str = str .. string.char(name[i])
 	end
+	coroutine.yield()
 	return str
 end
 
@@ -28,28 +29,47 @@ end
 
 local function getType(id)
 	local a = id * SS + SO
-	return readBytes(a, 1, true)
+	return string.char(driver.readByte(a))
+end
+
+local function getFirstFragment(id)
+	local a = id * SS + SO
+	return io.fromunum(driver.readBytes(a + 39, 2), false, 2)
+end
+
+local function setFirstFragment(id, fragment)
+	local a = id * SS + SO
+	driver.writeBytes(a + 39, io.tounum(fragment, 2, false))
+end
+
+local function getNextFragment(id)
+	local a = id * SS + SO
+	return io.fromunum(driver.readBytes(a + 1, 2), false, 2)
+end
+
+local function setNextFragment(id, fragment)
+	local a = id * SS + SO
+	driver.writeBytes(a + 1, io.tounum(fragment, 2, false))
 end
 
 --- Warning! num counts from 0
-local function setChildren(id, num, ctype, cid)
+local function setChildren(id, num, cid)
 	local a = id * SS + SO
-	driver.writeBytes(a + 40 + (num*3), {string.byte(ctype), table.unpack(io.tounum(cid, 2, true))})
+	driver.writeBytes(a + 41 + (num*2), io.tounum(cid, 2, false))
 end
 
 local function setChildrenNum(id, num)
 	local a = id * SS + SO
-	driver.writeBytes(a + 38, io.tounum(num, 2, true))
+	driver.writeBytes(a + 39, io.tounum(num, 2, false))
 end
 
 local function getChildrens(id)
 	local a = id * SS + SO
-	local num = io.fromunum(driver.readBytes(a + 38, 2, true), true, 2)
+	local num = io.fromunum(driver.readBytes(a + 39, 2), false, 2)
 	local childs = {}
 	for i=1, num do
 		table.insert(childs, {
-			directory = (driver.readBytes(a + 39 + (i-1)*3, 1, true) == 'D'),
-			id = io.fromunum(driver.readBytes(a + 41 + (i-1)*3, 2), true, 2)
+			id = io.fromunum(driver.readBytes(a + 41 + (i-1)*2, 2), false, 2)
 		})
 	end
 	return childs
@@ -81,10 +101,8 @@ end
 
 local function writeEntry(type, id, parent)
 	local a = id * SS + SO
-	--component.invoke(addr, "writeSector", a/512+1, string.rep(string.char(0), 512))
-	driver.writeBytes(a, string.rep("\0", 512))
+	driver.writeBytes(a, string.rep("\0", 50))
 	driver.writeBytes(a, type)
-	driver.writeBytes(a+1, string.rep(string.char(0), 2))
 	driver.writeBytes(a+3, io.tounum(parent, 2, true))
 end
 
@@ -95,15 +113,17 @@ local function getId(path)
 	end
 	local segments = filesystem.segments(path)
 	local id = 0
-	for i=2, #segments-1 do -- start at 2 to skip "/" and skip the last part
+	for i=1, #segments-1 do
 		local seg = segments[i]
 		if getType(id) ~= "D" then
 			return -1, "one of path segment isn't an directory"
 		end
 		local childs = getChildrens(id)
+		print(id .. " have " .. #childs .. " childrens")
 		local foundChild = false
 		for k, v in pairs(childs) do
 			local name = getName(v.id)
+			print("child " .. name)
 			if name == seg then
 				foundChild = true
 				id = v.id
@@ -111,13 +131,16 @@ local function getId(path)
 			end
 		end
 		if not foundChild then
-			return -1, "a segment of path " .. path .. " (" ..seg .. ") is unexisting"
+			return -1, "a segment of path " .. path .. " (" ..seg .. ") does not exists"
 		end
 	end
 	-- Process last segment of path
 	local childs = getChildrens(id)
+	print(#childs .. "childs")
 	for k, v in pairs(childs) do
+		print("CHILD ID = " .. v.id)
 		local name = getName(v.id)
+		print("NAME = " .. name)
 		if name == segments[#segments] then
 			return v.id
 		end
@@ -126,10 +149,10 @@ local function getId(path)
 end
 
 function fs.format()
-	local str = string.rep('\0', 512)
-	driver.writeBytes(0, str)
-	driver.writeBytes(0, "NTRFS1")
-	driver.writeBytes(7, "FUCHAS")
+	local str = string.rep('\x00', 512)
+	driver.writeBytes(1, str)
+	driver.writeBytes(1, "NTRFS1")
+	driver.writeBytes(6, "FCH1")
 	writeEntry("D", 0, 0)
 	setName(0, "/")
 	return true
@@ -140,7 +163,11 @@ function fs.asFilesystem()
 end
 
 function fs.isDirectory(path)
-	local id = getId(path)
+	if path:len() == 0 or path == "/" then
+		return true
+	end
+	local id = getId(filesystem.canonical(path))
+	if id == -1 then return false end
 	return (getType(id) == "D")
 end
 
@@ -164,28 +191,24 @@ function fs.makeDirectory(path)
 		error(err)
 	end
 	local nid = getFreeID()
-	print("Parent ID: " .. id)
-	print("New ID: " .. nid)
+	--print("Parent ID: " .. id)
+	--print("New ID: " .. nid)
 	writeEntry("D", nid, id)
 	setName(nid, segments[#segments])
 	local childs = getChildrens(id)
 	local cnum = #childs
-	print("Children ID: " .. cnum)
-	setChildren(id, cnum, "D", nid)
+	--print("Children ID: " .. cnum)
+	setChildren(id, cnum, nid)
 	setChildrenNum(id, cnum+1)
 	cnum = #getChildrens(id)
-	print("Children Count: " .. cnum)
+	--print("Children Count: " .. cnum)
 end
 
 function fs.exists(path)
 	if path:len() == 0 or path == "/" then
 		return true
 	end
-	if path:sub(1, 1) ~= "/" then
-		path = "/" .. path
-	end
 	path = filesystem.canonical(path)
-	print(path)
 	local id = getId(path)
 	if id == -1 then
 		return false
@@ -194,13 +217,81 @@ function fs.exists(path)
 	end
 end
 
-function fs.isValid()
-	local head = driver.readBytes(0, 6, true)
+function fs.isFormatted()
+	local head = driver.readBytes(1, 6, true)
 	return head == "NTRFS1"
 end
 
 function fs.open(path, mode)
+	if not fs.exists(path) then
+		if mode == "w" then
+			-- create file
+			local parent = filesystem.path(path)
+			local segments = filesystem.segments(path)
+			if not fs.exists(parent) then
+				return nil, parent .. " does not exists"
+			end
+			local id, err = getId(parent)
+			if err ~= nil then
+				return nil, err
+			end
+			local nid = getFreeID()
+			writeEntry("F", nid, id)
+			setName(nid, segments[#segments])
+			local childs = getChildrens(id)
+			setChildren(id, #childs, nid)
+			setChildrenNum(id, #childs+1)
+		else
+			return nil, "file doesn't exists"
+		end
+	end
+	local id = getId(filesystem.canonical(path))
+	local curFragment = getFirstFragment(id)
+	local firstFragment = false
 	
+	local function read(self, length)
+		if curFragment == 0 then
+			return nil
+		end
+	end
+
+	local function allocateFragment()
+		local nid = getFreeID()
+		if firstFragment then
+			setFirstFragment(id, nid)
+			firstFragment = false
+		end
+		writeEntry("R", nid, id)
+		curFragment = nid
+	end
+
+	local function write(self, str)
+		if curFragment == 0 then
+			allocateFragment()
+		end
+		local i = 0
+		while true do
+			local sub = string.sub(i*509, i*509+509)
+			if sub:len() == 0 then
+				break
+			end
+			local a = curFragment * SS + SO
+			driver.writeBytes(a+3, sub)
+			-- TODO: increase file size and keep track of it for new allocations
+			self.cursor = self.cursor + sub:len()
+		end
+	end
+
+	local handle = {
+		close = function(self)
+			-- TODO: close
+		end,
+		cursor = 1
+	}
+	if mode == "w" then handle.write = write end
+	if mode == "r" then handle.read = read end
+
+	return handle
 end
 
-return fs, "NTRFS1", "NitroFS" -- in order: driver, OSDI label, fs name
+return fs, "NTRFS1", "NitroFS" -- in order: driver, 8-char FS name, fs name

@@ -17,7 +17,7 @@ end
 
 local function formatVal(v)
 	if type(v) == "string" then
-		return '"' .. v .. '"'
+		return string.format("%q", v)
 	end
 	
 	return tostring(v)

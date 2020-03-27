@@ -1,9 +1,9 @@
-<ohml version=1.02>
+<ohml version="1.02">
 	<text>
 		Fuchas | 
 		Home | 
-		<a href="info.ohml">Info</a> | 
-		<a href="authors.ohml">Authors</a>
+		<link href="info.ohml">Info</link> | 
+		<link href="authors.ohml">Authors</link>
 	</text>
 	<br></br>
 	<text>
@@ -20,7 +20,7 @@
 		  3. Enjoy Fuchas!<br></br>
 		<br></br>
 		<h3>Installations Instructions (OpenOS) (if above doesn't work)</h3>
-		  1. <a href="/release.cpio">Download CPIO</a><br></br>
+		  1. Download <link href="/release.cpio">the install CPIO</link><br></br>
 		  2. Install a program like 'uncpio' if you don't have it already.<br></br>
 		  3. Extract the CPIO to your root directory.<br></br>
 		  4. Then execute 'wget https://raw.githubusercontent.com/zenith391/Fuchas/master/init.lua init.lua'<br></br>
@@ -39,12 +39,14 @@
 	<br></br>
 	<canvas id="canvas" width=32 height=8></canvas>
 	<script lang="application/lua">
-		-- Code for drawing smile face.
+		--<![CDATA[
+		-- CDATA is required for multi-line and some characters
 		local canvas = document.getElementById("canvas")
 		local x = 5
 		local y = 3
 		local color = 0
 		local descend = false
+		console.log("Starting \"smiley\" program")
 		while true do
 			canvas.setBackground(color)
 			x = 5
@@ -60,6 +62,8 @@
 				descend = false
 			end
 
+			console.log("Drawing smiley with color 0x" .. string.format("%x", color))
+
 			-- Draw the eyes
 			canvas.fillRect(10, 1, 1, 1, ' ')
 			canvas.fillRect(14, 1, 1, 1, ' ')
@@ -72,7 +76,7 @@
 				end
 				x = x + 1
 				y = y + 0.5
-				--sleep(0.0)
+				--wait(0)
 			end
 
 			-- Draw the right part of the smile
@@ -85,9 +89,10 @@
 				end
 				x = x + 1
 				y = y - 0.5
-				--sleep(0.0)
+				--wait(0)
 			end
-			sleep(0.07)
+			wait(0.07)
 		end
+		--]]>
 	</script>
 </ohml>
