@@ -24,8 +24,8 @@ if not fs.exists(shared .. "/apm-packages.lon") then
 			name = "Application Package Manager",
 			description = "Nice application manager.",
 			authors = "zenith391",
-			version = "bundled",
-			revision = 0
+			version = "1.2",
+			revision = 5
 		}
 	}
 	local s = fs.open(shared .. "/apm-packages.lon", "w")
@@ -272,13 +272,13 @@ if args[1] == "install" then
 					local ver = v["_version"] or 1
 					for k, v in pairs(e.dependencies) do
 						if k == "fuchas" then
-							local fmajor = OSDATA.VERSION:sub(1,1)
-							local fminor = OSDATA.VERSION:sub(3,3)
+							local fmajor = tonumber(OSDATA.VERSION:sub(1,1))
+							local fminor = tonumber(OSDATA.VERSION:sub(3,3))
 							local fpatch = OSDATA.VERSION:sub(5,5)
 
-							local major,minor,patch = v:sub(1,1),v:sub(3,3),'*'
+							local major,minor,patch = tonumber(v:sub(1,1)),tonumber(v:sub(3,3)),'*'
 							if v:len() > 3 then patch = v:sub(5,5) end
-							if fmajor ~= major or fminor ~= minor or (patch ~= '*' and patch ~= fpatch) then
+							if fmajor >= major or fminor >= minor or (patch ~= '*' and patch ~= fpatch) then
 								print("Package " .. e.name .. " doesn't work with the current version of Fuchas.")
 								print("It is made for version " .. v .. ", but the current version is " .. OSDATA.VERSION)
 								return

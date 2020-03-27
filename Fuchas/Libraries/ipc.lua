@@ -15,22 +15,27 @@ function lib.socket(target, id)
 		error("invalid process: " .. target)
 	end
 
-	local sock = {}
-	sock.target = target
-	sock.id = id
-	sock.pid = tasks.getCurrentProcess().pid -- source pid
+	local socket = {}
+	socket.target = target
+	socket.id = id
+	socket.pid = tasks.getCurrentProcess().pid -- source pid
 
-	function sock:write(...)
-		if self:closed() then error("ipc socket " + sock.id + " closed") end
+	function socket:write(...)
+		if self:closed() then error("ipc socket " + self.id + " closed") end
 		computer.pushProcessSignal(self.target, "oipc_sock_comms", self.id, ...);
 	end
 
-	function sock:read()
-		if self:closed() then error("ipc socket " + sock.id + " closed") end
-		return event.pull("oipc_sock_comms");
+	function socket:read()
+		if self:closed() then error("ipc socket " + self.id + " closed") end
+		local _, id, ... = event.pull("oipc_sock_comms");
+		if id == self.id then
+			return ...
+		else
+			computer.pushProcessSignal(self.pid, "oipc_sock_comms", id, ...) -- resend the event to itself
+		end
 	end
 
-	function sock:closed()
+	function socket:closed()
 		local proc = tasks.getProcess(target)
 		if not proc then -- not alive
 			return true
@@ -39,7 +44,9 @@ function lib.socket(target, id)
 		end
 	end
 
-	return sock
+	computer.pushProcessSignal(self.target, "incoming_ipc_socket", socket.pid)
+
+	return socket
 end
 
 return lib

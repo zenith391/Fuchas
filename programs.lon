@@ -6,7 +6,7 @@
 		},
 		dependencies = {},
 		name = "Application Package Manager",
-		description = "Download what you're using to download this.",
+		description = "Nice application manager.",
 		authors = "zenith391",
 		version = "1.2",
 		revision = 5

@@ -84,7 +84,7 @@ function lib.partitionDriver(driver, partition)
 			driver.writeByte(addr+partition.start*512, value)
 		end,
 		getCapacity = function()
-			return (partition.end - partition.start) * 512
+			return (partition["end"] - partition.start) * 512
 		end
 	}
 end
