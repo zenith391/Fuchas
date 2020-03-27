@@ -150,6 +150,7 @@ function lib.parse(tab)
 		if v:len() > 0 then
 			if v:sub(1, 2) == "--" then
 				options[v:sub(3, v:len())] = true
+				print(v)
 			elseif v:sub(1, 1) == "-" then
 				options[v:sub(2, 2)] = true
 				if v:len() > 3 then
@@ -331,12 +332,16 @@ function lib.read(options)
 					elseif d > 0x1F and d ~= 0x7F then
 						hideCursor()
 						inp = inp .. c
-						io.write(c)
+						if options.pwchar then
+							io.write(options.pwchar)
+						else
+							io.write(c)
+						end
 						displayCursor()
 						if options.onType then
 							options.onType(inp, inp:len())
 						end
-					elseif d == 0x09 then -- horizontal tab
+					elseif d == 0x09 and not options.pwchar then -- horizontal tab
 						if options.autocomplete then
 							if type(options.autocomplete) == "table" then
 								-- TODO

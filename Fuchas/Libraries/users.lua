@@ -49,18 +49,13 @@ end
 
 -- Logouts and set account to guest (Shared).
 function lib.logout()
-	if user ~= nil then
-		if not not security.hasPermission("users.logout") then
-			return false, "missing permission: users.logout"
-		end
-	end
 	user = nil
 	os.setenv("USER", "guest")
 	return true
 end
 
 function lib.login(username, passwd)
-	if user ~= nil and not security.hasPermission("users.logout") then
+	if user ~= nil then
 		local ok, reason = lib.logout()
 		if not ok then
 			return ok, reason
@@ -76,7 +71,7 @@ function lib.login(username, passwd)
 					os.setenv("USER", user.name)
 					return true
 				else
-					return false, "invalid password"
+					return false, "the password is not valid"
 				end
 			elseif v.security == "none" then
 				user = v
@@ -85,7 +80,7 @@ function lib.login(username, passwd)
 			end
 		end
 	end
-	return false, "invalid username"
+	return false, "no user with username \"" .. username .. "\" was found."
 end
 
 retrieveUsers()

@@ -1,5 +1,3 @@
-local ALWAYS_INCR_PID = true -- to avoid PIDs pointing to the wrong process
-
 local event = require("event")
 local mod = {}
 
@@ -10,12 +8,8 @@ local processes = {}
 
 function mod.newProcess(name, func)
 	local pid
-	if ALWAYS_INCR_PID then
-		pid = incr
-		incr = incr + 1
-	else
-		pid = #processes+1
-	end
+	pid = incr
+	incr = incr + 1
 	local proc = {
 		name = name,
 		func = func,
@@ -123,7 +117,7 @@ function mod.scheduler()
 			p.func = nil
 		end
 		if coroutine.status(p.thread) == "dead" then
-			mod.kill(p, true)
+			mod.unsafeKill(p)
 		else
 			if p.status == "wait_signal" then
 				if lastEvent ~= nil then
@@ -153,7 +147,7 @@ function mod.scheduler()
 						p.errorHandler(ret)
 					else
 						if not handleProcessError(ret, p) then
-							mod.kill(p)
+							mod.unsafeKill(p)
 						end
 					end
 				end
@@ -224,18 +218,18 @@ function mod.waitFor(proc)
 	end
 end
 
-function mod.safeKill(proc)
+function mod.kill(proc)
 	if proc.safeKillHandler then
 		local doKill = proc.safeKillHandler()
 		if doKill then
-			mod.kill(proc)
+			mod.unsafeKill(proc)
 		end
 	else
-		mod.kill(proc, false)
+		mod.unsafeKkill(proc)
 	end
 end
-
-function mod.kill(proc)
+mod.safeKill = mod.kill
+function mod.unsafeKill(proc)
 	proc.status = "dead"
 	activeProcesses = activeProcesses - 1
 	if require("security").isRegistered(proc.pid) then
@@ -248,13 +242,6 @@ function mod.kill(proc)
 		v()
 	end
 	processes[proc.pid] = nil
-
-	-- Removing from tables help keep an array and not an hash table but conflicts with the purpose of PIDs
-	--table.remove(processes, proc.pid)
-	-- update PID
-	--for k,v in pairs(processes) do
-	--	v.pid = k
-	--end
 	if currentProc == proc then
 		coroutine.yield() -- process is dead and will now yield
 	end

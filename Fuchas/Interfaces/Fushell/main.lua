@@ -44,6 +44,7 @@ if computer.getArchitecture() == "Lua 5.2" then
 	for k, v in pairs(computer.getArchitectures()) do
 		if v == "Lua 5.3" then
 			printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
+			printCentered("/!\\ You cannot login on password protected account with Lua 5.2!")
 		end
 	end
 end

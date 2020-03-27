@@ -1,5 +1,7 @@
 local lib = {}
 local permtable = {}
+local userPerms = {}
+local userPermsLoaded = false
 local tasks = require("tasks")
 
 local function currentProcess()
@@ -8,6 +10,15 @@ local function currentProcess()
 		permtable[proc.pid] = {}
 	end
 	return proc
+end
+
+local function loadUserPermissions()
+	local fileStream = io.open("A:/Fuchas/permissions.lon")
+	if not fileStream then
+		error("SYSTEM ERROR! CANNOT LOAD USER PERMISSIONS FILE !!!")
+	end
+	userPerms = require("liblon").loadlon(fileStream)
+	fileStream:close()
 end
 
 function lib.revoke(pid)
@@ -23,25 +34,33 @@ function lib.revoke(pid)
 	return false
 end
 
-function lib.requestPermission(perm, pid)
-	if tasks.getCurrentProcess() == nil then
-		return
+local function initPerms(pid)
+	if not userPermsLoaded then
+		loadUserPermissions()
+		userPermsLoaded = true
 	end
 	if package.loaded.users then
 		local user = package.loaded.users.getUser()
 		if user ~= nil then
-			local fileStream = io.open("A:/Fuchas/admins.lon")
-			local adminFile = require("liblon").loadlon(fileStream)
-			fileStream:close()
-			for k, v in pairs(adminFile) do
-				if v == user.name then
-					permtable[currentProcess().pid] = {
-						["*"] = true
-					}
-					return true
+			for k, v in pairs(userPerms) do
+				if k == user.name then
+					permtable[pid] = {}
+					for _, prm in pairs(v) do
+						permtable[pid][prm] = true
+					end
 				end
 			end
 		end
+	end
+end
+
+function lib.requestPermission(perm)
+	if tasks.getCurrentProcess() == nil then
+		return
+	end
+	initPerms(currentProcess().pid)
+	if lib.hasPermission(perm, currentProcess().pid) then
+		return true
 	end
 	local proc = currentProcess().parent
 	if proc.permissionGrant then
@@ -64,6 +83,7 @@ function lib.hasPermission(perm, pid)
 		return true
 	end
 	local proc = pid or currentProcess().pid
+	initPerms(proc)
 	if permtable[proc]["*"] then
 		return true
 	else
