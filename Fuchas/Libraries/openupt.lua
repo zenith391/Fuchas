@@ -1,6 +1,5 @@
 -- Fuchas implementation of OpenUPT 1
 local lib = {}
-local uuid = require("uuid")
 
 -- Fuchas code for boot sector on newly formated drives
 local defaultBootCode = [[local cp = component
