@@ -243,9 +243,13 @@ function io.popen(prog, mode)
 	local func = loadfile(resolved)
 	local proc = require("tasks").newProcess(prog, func)
 	if mode == "r" then
-		-- TODO: redirect
+		local inp, out = require("buffer").pipedStreams(true)
+		proc.io.stdout = out
+		return inp
 	elseif mode == "w" then
-		-- TODO: redirect
+		local inp, out = require("buffer").pipedStreams(true)
+		proc.io.stdin = inp
+		return out
 	end
 end
 
@@ -270,5 +274,4 @@ function print(msg)
 	io.write(tostring(msg) .. "\n")
 end
 
---write = io.write -- TODO: remove
 write = nil

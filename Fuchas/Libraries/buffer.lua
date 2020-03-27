@@ -1,7 +1,30 @@
--- Library used to buffer I/O streams 
-local lib = {}
+-- Library used to buffer I/O streams and for some I/O stream utilities
+local buffer = {}
 
-function lib.from(handle)
+function buffer.pipedStreams(unbuffered)
+	local data = {}
+	local outputStream = {
+		write = function(self, v)
+			table.insert(data, v)
+		end,
+		seek = function() end,
+		close = function() end
+	}
+	local inputStream = {
+		read = function(self)
+			return table.remove(data)
+		end,
+		seek = function() end,
+		close = function() end
+	}
+	if not unbuffered then
+		inputStream = buffer.from(inputStream)
+		outputStream = buffer.from(outputStream)
+	end
+	return inputStream, outputStream
+end
+
+function buffer.from(handle)
 	local stream = {}
 	stream.stream = handle
 	stream.buf = ""
@@ -95,4 +118,4 @@ function lib.from(handle)
 	return stream
 end
 
-return lib
+return buffer

@@ -1,7 +1,7 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.6.0",
-	DEBUG = false,
+	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
 		DEFAULT_INTERFACE = "Fushell"
@@ -87,15 +87,7 @@ end
 function dofile(file, ...)
 	local program, reason = loadfile(file)
 	if program then
-		if OSDATA.DEBUG then
-			return program(...)
-		end
-		local result = table.pack(pcall(program, ...))
-		if result[1] then
-			return table.unpack(result, 2, result.n)
-		else
-			error(result[2])
-		end
+		return program(...)
 	else
 		error(reason)
 	end
@@ -107,6 +99,8 @@ local x = 1
 function gy() -- temporary cursor Y accessor
 	return y
 end
+
+local lastFore = 0
 local function write(msg, fore)
 	if not screen or not gpu then
 		return
@@ -114,8 +108,9 @@ local function write(msg, fore)
 	msg = tostring(msg)
 	if fore == nil then fore = 0xFFFFFF end
 	if gpu and screen then
-		if type(fore) == "number" then
+		if type(fore) == "number" and lastFore ~= fore then
 			gpu.setForeground(fore)
+			lastFore = fore
 		end
 		if msg:find("\n") then
 			for line in msg:gmatch("([^\n]+)") do
@@ -152,10 +147,8 @@ function os.sleep(n)
 	end
 end
 
-print("(1/5) Loading 'package' library..")
+print("(1/5) Pre-initialization..")
 _G.package = dofile("/Fuchas/Libraries/package.lua")
-_G.package.loaded.component = component
-_G.package.loaded.computer = computer
 print("(2/5) Checking OEFI compatibility..")
 if computer.supportsOEFI() then
 	local oefiLib = oefi or ...
@@ -176,7 +169,7 @@ if computer.supportsOEFI() then
 end
 print("(3/5) Loading filesystems")
 _G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
-_G.io = {} -- software-defined by shin32
+_G.io = {}
 print("(4/5) Mounting A: drive..")
 local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
 if not g then
@@ -186,18 +179,17 @@ _G.package.loaded.event = assert(loadfile("/Fuchas/Libraries/event.lua"))()
 _G.package.loaded.tasks = assert(loadfile("/Fuchas/Libraries/tasks.lua"))()
 _G.package.loaded.security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
 
-print("(4/5) Mounting all drives..")
-local letter = string.byte('A')
+local nextLetter = string.byte('B')
 for k, v in component.list() do -- TODO: check if letter is over Z
 	if k ~= computer.getBootAddress() and k ~= computer.tmpAddress() then -- drive are initialized later
 		if v == "filesystem" then
-			letter = letter + 1
-			print("    Mouting " .. string.char(letter) .. " (managed)")
-			if string.char(letter) == "T" then
+			if string.char(nextLetter) == "T" then
 				print("    Cannot continue mounting! Too much drives")
 				break
 			end
-			require("filesystem").mountDrive(component.proxy(k), string.char(letter))
+			print("    Mouting " .. string.char(nextLetter) .. ": drive..")
+			require("filesystem").mountDrive(component.proxy(k), string.char(nextLetter))
+			nextLetter = nextLetter + 1
 		end
 	end
 end
@@ -255,7 +247,7 @@ ask for help on the OC forum
 (https://oc.cil.li), search for
 Fuchas topic and speak about your
 computer problem as a reply.]])
-		local traceback = debug.traceback()
+		local traceback = debug.traceback(nil, 2)
 		write(traceback)
 		if io then
 			pcall(function()

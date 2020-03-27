@@ -12,7 +12,9 @@ local loaded = {
 	["os"] = os,
 	["package"] = package,
 	["string"] = string,
-	["table"] = table
+	["table"] = table,
+	["component"] = component,
+	["computer"] = computer
 }
 package.loaded = loaded
 

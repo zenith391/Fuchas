@@ -90,12 +90,8 @@ function lib.partitionDriver(driver, partition)
 end
 
 local guidSeed = 1
-function lib.randomGUID(noRandomSeed)
+function lib.randomGUID()
 	local guid = ""
-	if not noRandomSeed then
-		math.randomseed(math.ceil(os.clock() * 1024 / 7 * guidSeed + math.random(0, 5879)))
-		guidSeed = guidSeed + 139
-	end
 	for i=1, 8 do
 		local hex = string.format("%x", math.random(0, 0xFF))
 		if hex:len() == 1 then

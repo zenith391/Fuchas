@@ -1,6 +1,5 @@
 -- Bootstrap for Fuchas interface.
 local fs = require("filesystem")
-local drv = require("driver")
 local tasks = require("tasks")
 
 -- Unmanaged drives: TO-REDO
@@ -16,11 +15,9 @@ end
 if not fs.exists("A:/Users/Shared") then
 	fs.makeDirectory("A:/Users/Shared")
 end
-
-require("shell").setCursor(1, 1)
 tasks.newProcess("System Interface", function()
+	dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 	local f, err = xpcall(function()
-		dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 		require("users").login("guest") -- no password required
 		local path = "A:/Fuchas/Interfaces/" .. OSDATA.CONFIG["DEFAULT_INTERFACE"] .. "/main.lua"
 		if not fs.exists(path) then
@@ -34,7 +31,7 @@ tasks.newProcess("System Interface", function()
 	end, function(err)
 		io.stderr:write("System Crash!\n")
 		io.stderr:write(err)
-		io.stderr:write(debug.traceback(" ", 1))
+		io.stderr:write(debug.traceback(nil, 2))
 		return err
 	end)
 	if f == true then
