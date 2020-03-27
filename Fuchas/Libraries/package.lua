@@ -1,6 +1,7 @@
 local package = {}
 
-package.path = "A:/Fuchas/Libraries/?.lua;./?.lua;A:/?.lua;A:/Users/Shared/Libraries/?.lua"
+local backupPackagePath = "A:/Fuchas/Libraries/?.lua;./?.lua;A:/?.lua;A:/Users/Shared/Libraries/?.lua"
+package.path = backupPackagePath
 
 local loading = {}
 
@@ -41,15 +42,30 @@ function package.searchpath(name, path, sep, rep)
   return nil, table.concat(errorFiles, "\n")
 end
 
+local mtSetup = false
 function require(module)
 	checkArg(1, module, "string")
 	if loaded[module] ~= nil then
 		return loaded[module]
 	elseif not loading[module] then
 		local library, status, step
-		if os and os.getenv then -- compatible before and after launching
+		if not mtSetup and os and os.getenv then -- compatible before and after launching
 			if os.getenv("LIB_PATH") then
-				package.path = os.getenv("LIB_PATH")
+				package.path = nil
+				setmetatable(package, {
+					__index = function(self, key)
+						if key == "path" then
+							return os.getenv("LIB_PATH") or backupPackagePath
+						end
+					end,
+					__newindex = function(self, key, value)
+						if key == "path" then
+							print("new value: " .. value)
+							os.setenv("LIB_PATH", value)
+						end
+					end
+				})
+				mtSetup = true
 			end
 		end
 		step, library, status = "not found", package.searchpath(module, package.path)

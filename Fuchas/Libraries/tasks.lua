@@ -209,7 +209,11 @@ function mod.getCurrentProcess()
 end
 
 function mod.getProcess(pid)
-	return processes[pid]
+	if require("security").hasPermission("scheduler.list") or require("security").hasPermission("process.edit") then
+		return processes[pid]
+	else
+		error("missing permission: scheduler.list or process.edit")
+	end
 end
 
 function mod.waitFor(proc)
@@ -247,8 +251,25 @@ function mod.unsafeKill(proc)
 	end
 end
 
-function mod.getActiveProcesses()
-	return activeProcesses
+function mod.getProcessMetrics(pid)
+	local proc = processes[pid]
+	local parentPid = -1
+	if proc.parent then parentPid = proc.parent.pid end
+	return {
+		name = proc.name,
+		cpuTime = proc.cpuTime,
+		cpuLoadPercentage = proc.cpuLoadPercentage,
+		status = proc.status,
+		parent = parentPid
+	}
+end
+
+function mod.getPIDs()
+	local pids = {}
+	for k, v in pairs(processes) do
+		table.insert(pids, v.pid)
+	end
+	return pids
 end
 
 function mod.getProcesses()
