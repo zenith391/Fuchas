@@ -11,13 +11,19 @@
 		+ Optimization of OCDraw (merging)
 		+ New driver format (lesss file loading): faster startup time
 		+ Inter-Process Communication (IPC)
-		+ Now using LuaComp (allows optional things AT BUILD TIME)
 		+ FPM has been renamed to Application Package Manager (APM)
 		+ APM packages are installed on current user's directory by default.
 		+ New "-g" option in APM for installing in shared/global user directory.
 		+ Fixed many technical issues
 		+ Added OpenUPT library
+		+ Fuchas's Advanced Lua: added string.toByteArray
 		+ Temporary filesystem mounted at "T:"
+		+ Released "format" program
+		+ Added "echo" command
+		+ Fuchas now implements (almost) every standard I/O function! Including io.popen
+		+ Non-standard "write" function removed, use "io.write"
+		+ Improved OS API
+		+ Support for different standanrd IO streams (stdout, stdin, stderr) per process and for stream piping
 		+ Replaced "pwd" by "cd" (cd offers same feature, clearer, when runned without arguments)
 		+ Started "Kabam" interface, this will soon be the default, eventually replacing Fushell
 		+ Removed obsolete/deprecated IO methods
