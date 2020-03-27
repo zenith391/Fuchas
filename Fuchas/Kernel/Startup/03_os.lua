@@ -20,8 +20,12 @@ function os.setenv(name, value)
 	end
 end
 
+function os.exit()
+	tasks.kill(tasks.getCurrentProcess())
+end
+
 function os.tmpname()
-	return "T:/" .. string.format("%x", math.random() * 0xFFFFFFFF)
+	return "T:/" .. string.format("%x", math.floor(math.random() * 0xFFFFFFFF))
 end
 
 function computer.shutdown(reboot)

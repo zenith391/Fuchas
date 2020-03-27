@@ -8,8 +8,8 @@
 		+ Concert task manager
 		+ Architecture-dependent package files (different file depending on having Lua 5.2 or 5.3)
 		+ Warning displayed when Lua 5.3 is supported but not enabled
-		+ Optimization of OCDraw (merging)
-		+ New driver format (lesss file loading): faster startup time
+		+ Optimization of OCDraw (merging) and GPU drivers (avoid setting multiple time the same color)
+		+ New driver format (less file loading): faster startup time
 		+ Inter-Process Communication (IPC)
 		+ FPM has been renamed to Application Package Manager (APM)
 		+ APM packages are installed on current user's directory by default.
@@ -26,6 +26,7 @@
 		+ Support for different standanrd IO streams (stdout, stdin, stderr) per process and for stream piping
 		+ Replaced "pwd" by "cd" (cd offers same feature, clearer, when runned without arguments)
 		+ Started "Kabam" interface, this will soon be the default, eventually replacing Fushell
+		+ os.exit()
 		+ Removed obsolete/deprecated IO methods
 		+ Removed AwesomeCatgirl
 	]]

@@ -141,7 +141,9 @@ function mod.scheduler()
 					ok, ret, a1, a2, a3 = coroutine.resume(p.thread)
 				end
 				currentProc = nil
-				p.status = "ready"
+				if p.status ~= "dead" then
+					p.status = "ready"
+				end
 				if not ok then
 					if p.errorHandler then
 						p.errorHandler(ret)
@@ -229,7 +231,7 @@ function mod.kill(proc)
 			mod.unsafeKill(proc)
 		end
 	else
-		mod.unsafeKkill(proc)
+		mod.unsafeKill(proc)
 	end
 end
 mod.safeKill = mod.kill

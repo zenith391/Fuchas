@@ -10,14 +10,14 @@ local vw, vh = gpu.getResolution()
 local args, ops = shell.parse(...)
 
 local list = filesystem.list(fullPath)
-print("List of " .. fullPath)
+print("Listing of " .. fullPath)
 for k, v in list do
 	local fp = filesystem.concat(filesystem.canonical(fullPath), k)
 	local isdir = filesystem.isDirectory(fp)
 	if isdir then
-		gpu.setForeground(0x00FF00)
+		gpu.setForeground(0x33FF33)
 	else
-		gpu.setForeground(0x0000FF)
+		gpu.setForeground(0x4444FF)
 	end
 	if x + k:len() > vw then
 		require("shell").setCursor(1, require("shell").getY()+1)

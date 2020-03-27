@@ -29,6 +29,8 @@ end
 function spec.new(address)
 	local comp = cp.proxy(address)
 	local drv = {}
+	local fg = -1
+	local bg = -1
 
 	function drv.getColors()
 		if getTier(comp) == 1 then
@@ -61,7 +63,6 @@ function spec.new(address)
 	end
 
 	function drv.fillChar(x, y, w, h, ch)
-		-- Driver-level optimization
 		if h == 1 and ch == " " then
 			comp.set(x, y, ch:rep(w))
 		else
@@ -69,9 +70,9 @@ function spec.new(address)
 		end
 	end
 
-	function drv.fill(x, y, w, h, bg)
-		if bg then
-			comp.setBackground(bg)
+	function drv.fill(x, y, w, h, bgc)
+		if bgc then
+			drv.setColor(bgc)
 		end
 		drv.fillChar(x, y, w, h, ' ')
 	end
@@ -85,12 +86,15 @@ function spec.new(address)
 	end
 
 	function drv.setForeground(rgb, paletted)
-		comp.setForeground(rgb, paletted)
+		if fg ~= rgb then
+			comp.setForeground(rgb, paletted)
+			fg = rgb
+		end
 	end
 
-	function drv.drawText(x, y, text, fg)
-		if fg then
-			comp.setForeground(fg)
+	function drv.drawText(x, y, text, fgc)
+		if fgc then
+			drv.setForeground(fgc)
 		end
 		comp.set(x, y, tostring(text))
 	end
@@ -100,7 +104,10 @@ function spec.new(address)
 	end
 
 	function drv.setColor(rgb, paletted)
-		comp.setBackground(rgb, paletted)
+		if bg ~= rgb then
+			comp.setBackground(rgb, paletted)
+			bg = rgb
+		end
 	end
 
 	drv.palette = setmetatable({}, {

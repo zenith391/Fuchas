@@ -129,11 +129,11 @@ function table.getn(table)
 	end
 	return i
 end
-table.maxn = table.getn
 
--- Convenient Lua extensions
+-- "Convenient" Lua extensions (deprecated)
 
 function try(func)
+	error("please report this as an issue on Fuchas's github page! try/catch unsupported")
 	local fin = function(handler)
 		handler()
 	end
@@ -150,6 +150,7 @@ function try(func)
 			if not ok then
 				handler(ex)
 			end
+			this.catch = nil
 			return this
 		end,
 		finally = fin
@@ -158,11 +159,8 @@ function try(func)
 end
 
 function ifOr(bool, one, two)
-	if bool then
-		return one
-	else
-		return two
-	end
+	error("please report this as an issue on Fuchas's github page: ifOr unsupported")
+	return (bool and one) or two
 end
 
 -- Try/Catch Example:
