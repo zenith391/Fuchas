@@ -2,7 +2,8 @@
 local component     = require("component")
 local bit32         = require("bit32")
 local internet      = component.getPrimary("internet")
-local gpu           = require("term").gpu()
+local term          = require("term")
+local gpu           = term.gpu()
 local event         = require("event")
 local filesystem    = require("filesystem")
 local width, height = gpu.getResolution()
@@ -200,6 +201,34 @@ local function drawStage()
 		gpu.set(5, 6, downloading)
 	end
 	if stage == 6 then
+		gpu.set(5, 5, "Create your admin account")
+		gpu.set(5, 6, "New account username:")
+		term.setCursor(5, 7)
+		local uname = term.read()
+		uname = uname:sub(1, uname:len() - 1) -- remove \n
+		gpu.set(5, 8, "New account password:")
+		local pwd = term.read({
+			pwchar = '*'
+		})
+		pwd = pwd:sub(1, pwd:len() - 1) -- remove \n
+		filesystem.makeDirectory("/Users/" .. uname .. "/")
+
+		-- Hash using SHA3-512
+		local sha3 = require("/Fuchas/Libraries/sha3.min")
+		local bin = sha3.bin
+		local hash = bin.stohex(sha3.sha3.sha512(input))
+		local handle = io.open("/Users/" .. uname .. "/account.lon", "w")
+		handle:write([[
+{
+	name = "]] .. uname .. [[",
+	password = "]] .. hash .. [[",
+	security = "sha3-512"
+}
+]])
+		handle:close()
+		stage = 7
+	end
+	if stage == 7 then
 		gpu.set(5, 5, "Done!")
 		gpu.set(5, 6, "Now restarting the computer..")
 		os.sleep(3)
@@ -249,6 +278,11 @@ local function process()
 		selected = 1
 		drawStage()
 	end
+end
+
+if _VERSION == "Lua 5.2" then
+	io.stderr:write("You need Lua 5.3 to install Fuchas.\n")
+	return
 end
 
 drawStage()
