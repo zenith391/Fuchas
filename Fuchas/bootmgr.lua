@@ -15,10 +15,12 @@ end
 if not fs.exists("A:/Users/Shared") then
 	fs.makeDirectory("A:/Users/Shared")
 end
+
 tasks.newProcess("System Interface", function()
 	dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 	local f, err = xpcall(function()
 		require("users").login("guest") -- no password required
+		print("(5/5) Loading " .. OSDATA.CONFIG["DEFAULT_INTERFACE"])
 		local path = "A:/Fuchas/Interfaces/" .. OSDATA.CONFIG["DEFAULT_INTERFACE"] .. "/main.lua"
 		if not fs.exists(path) then
 			error("No such interface: " .. path)

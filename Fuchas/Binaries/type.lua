@@ -8,7 +8,7 @@ if #args < 1 then
 	return
 end
 
-local file = shell.resolve(file)
+local file = shell.resolve(args[1])
 if not file then
 	io.stderr:write("No such file: " .. file)
 	return

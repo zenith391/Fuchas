@@ -14,7 +14,7 @@ if tasks.getProcess(pid) == nil then
 end
 
 if options.f or options.force then
-	tasks.kill(tasks.getProcess(pid), true)
+	tasks.unsafeKill(tasks.getProcess(pid), true)
 else
-	tasks.safeKill(tasks.getProcess(pid))
+	tasks.kill(tasks.getProcess(pid))
 end

@@ -8,14 +8,20 @@ function buffer.pipedStreams(unbuffered)
 			table.insert(data, v)
 		end,
 		seek = function() end,
-		close = function() end
+		close = function() end,
+		seekable = function()
+			return false
+		end
 	}
 	local inputStream = {
 		read = function(self)
 			return table.remove(data)
 		end,
 		seek = function() end,
-		close = function() end
+		close = function() end,
+		seekable = function()
+			return false
+		end
 	}
 	if not unbuffered then
 		inputStream = buffer.from(inputStream)

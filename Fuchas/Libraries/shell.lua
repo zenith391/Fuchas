@@ -189,7 +189,7 @@ function lib.resolve(path)
 end
 
 function lib.write(obj)
-	write(tostring(obj))
+	io.write(tostring(obj))
 end
 
 function lib.getAliases(cmd)

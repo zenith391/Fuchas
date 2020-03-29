@@ -1,7 +1,6 @@
 local event = require("event")
 local mod = {}
 
-local activeProcesses = 0
 local incr = 1
 local currentProc = nil
 local processes = {}
@@ -44,15 +43,15 @@ function mod.newProcess(name, func)
 	local currProc = mod.getCurrentProcess()
 	if currProc ~= nil then
 		proc.env = currProc.env
+		proc.parent = currProc
+		if currProc.userKey then
+			proc.userKey = currProc.userKey
+		end
 	else
 		proc.env = {}
-	end
-	processes[pid] = proc
-	if mod.getCurrentProcess() ~= nil then
-		proc.parent = mod.getCurrentProcess()
-	else -- else it's launched by system, so it's a system process
 		require("security").requestPermission("*", pid)
 	end
+	processes[pid] = proc
 	return proc
 end
 
@@ -112,78 +111,53 @@ function mod.scheduler()
 		local start = measure()
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
-			activeProcesses = activeProcesses + 1
 			p.status = "ready"
 			p.func = nil
 		end
-		if coroutine.status(p.thread) == "dead" then
+		if coroutine.status(p.thread) == "dead" then -- if it died for some unhandled reason
 			mod.unsafeKill(p)
-		else
-			if p.status == "wait_signal" then
-				if lastEvent ~= nil then
-					if lastEvent[1] ~= nil then
-						p.result = lastEvent
-						p.status = "ready"
-					elseif computer.uptime() >= p.timeout then
-						p.status = "ready"
-						p.timeout = nil
-					end
+		end
+		if p.status == "wait_signal" then
+			if lastEvent ~= nil then
+				if lastEvent[1] ~= nil then
+					p.result = lastEvent
+					p.status = "ready"
+				elseif computer.uptime() >= p.timeout then
+					p.status = "ready"
+					p.timeout = nil
 				end
 			end
-			if p.status == "ready" then
-				p.status = "running"
-				local ok, ret, a1, a2, a3
-				currentProc = p
-				if p.result then
-					ok, ret, a1, a2, a3 = coroutine.resume(p.thread, p.result)
-					p.result = nil
+		end
+		if p.status == "ready" then
+			p.status = "running"
+			local ok, ret, a1, a2, a3
+			currentProc = p
+			if p.result then
+				ok, ret, a1, a2, a3 = coroutine.resume(p.thread, p.result)
+				p.result = nil
+			else
+				ok, ret, a1, a2, a3 = coroutine.resume(p.thread)
+			end
+			currentProc = nil
+			if p.status ~= "dead" then
+				p.status = "ready"
+			end
+			if not ok then
+				if p.errorHandler then
+					p.errorHandler(ret)
 				else
-					ok, ret, a1, a2, a3 = coroutine.resume(p.thread)
-				end
-				currentProc = nil
-				if p.status ~= "dead" then
-					p.status = "ready"
-				end
-				if not ok then
-					if p.errorHandler then
-						p.errorHandler(ret)
-					else
-						if not handleProcessError(ret, p) then
-							mod.unsafeKill(p)
-						end
-					end
-				end
-				if ret then
-					-- function return has been replaced by operations
-					if type(ret) == "function" then
-						currentProc = p
-						local cont, val = true, nil
-						while cont do
-							cont, val = ret(val)
-						end
-						p.result = val
-						currentProc = nil
-					end
-					if type(ret) == "string" then
-						if ret == "pull_event" then
-							if a1 then
-								p.timeout = computer.uptime() + a1
-							else
-								p.timeout = math.huge
-							end
-							p.status = "wait_signal"
-						end
+					if not handleProcessError(ret, p) then
+						mod.unsafeKill(p)
 					end
 				end
 			end
-			if p.operation and type(p.operation) == "function" then
-				-- Function returns: continue (boolean)
-				currentProc = p
-				if not p.operation() then
-					p.operation = nil
-					p.status = "ready"
+			if ret == "pull_event" then
+				if a1 then
+					p.timeout = computer.uptime() + a1
+				else
+					p.timeout = math.huge
 				end
-				currentProc = nil
+				p.status = "wait_signal"
 			end
 		end
 		local e = measure()
@@ -227,9 +201,11 @@ end
 function mod.kill(proc)
 	if proc.safeKillHandler then
 		local doKill = proc.safeKillHandler()
+		currentProc = proc
 		if doKill then
 			mod.unsafeKill(proc)
 		end
+		currentProc = nil
 	else
 		mod.unsafeKill(proc)
 	end
@@ -237,7 +213,6 @@ end
 mod.safeKill = mod.kill
 function mod.unsafeKill(proc)
 	proc.status = "dead"
-	activeProcesses = activeProcesses - 1
 	if require("security").isRegistered(proc.pid) then
 		require("security").revoke(proc.pid)
 	end

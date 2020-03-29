@@ -1,7 +1,9 @@
-local user = nil
+local lib = {}
 local users = {}
+local userKeys = {} -- keys to recognize user login
 local security = require("security")
-local fs = require("filesystem")
+local filesystem = require("filesystem")
+local tasks = require("tasks")
 local hashes = {
 	-- lazy-loaded, Lua 5.2-ers cannot login to a password-protected account
 	["sha3-256"] = function(input)
@@ -13,10 +15,9 @@ local hashes = {
 		return bin.stohex(require("sha3").sha3.sha512(input))
 	end
 }
-local lib = {}
 
 local function retrieveUsers()
-    for k, v in fs.list("A:/Users") do
+	for k, v in filesystem.list("A:/Users") do
 		local configStream = io.open("A:/Users/" .. k .. "/account.lon")
 		if configStream then
 			local config = require("liblon").loadlon(configStream)
@@ -31,6 +32,20 @@ local function retrieveUsers()
 	end
 end
 
+local function userLogin(user)
+	local curProc = tasks.getCurrentProcess()
+	os.setenv("USER", user.name)
+	local userKey
+	while not userKey or userKeys[userKey] do
+		userKey = string.format("%x", math.floor(math.random() * 0xFFFFFFFF))
+	end
+	userKeys[userKey] = {
+		user = user,
+		pid = curProc.pid
+	}
+	curProc.userKey = userKey
+end
+
 function lib.getSharedUserPath()
 	return "A:/Users/Shared"
 end
@@ -43,14 +58,31 @@ function lib.getUserPath()
 	end
 end
 
+function lib.userForKey(key, pid)
+	if userKeys[key] then
+		if userKeys[key].pid == pid then
+			return true, userKeys[key].user
+		end
+	end
+	return false -- the key isn't valid
+end
+
 function lib.getUser()
-	return user
+	local curProc = tasks.getCurrentProcess()
+	if curProc.userKey then
+		local ok, user = lib.userForKey(curProc.userKey, curProc.pid)
+		if not ok then
+			error("invalid user key!")
+		end
+		return user
+	end
+	return nil
 end
 
 -- Logouts and set account to guest (Shared).
 function lib.logout()
-	user = nil
 	os.setenv("USER", "guest")
+	tasks.getCurrentProcess().userKey = nil
 	return true
 end
 
@@ -61,28 +93,30 @@ function lib.login(username, passwd)
 			return ok, reason
 		end
 	end
+	if username == "guest" then
+		return true -- we already logged out
+	end
+	if #users == 0 then
+		retrieveUsers()
+	end
 	for _, v in pairs(users) do
 		if v.name == username then
 			if v.security ~= "none" and hashes[v.security] then
 				local algo = hashes[v.security]
 				local hash = algo("$@^PO!°]" .. passwd) -- salt + passwd; salt against rainbow tables
 				if v.password == hash then
-					user = v
-					os.setenv("USER", user.name)
+					userLogin(v)
 					return true
 				else
 					return false, "the password is not valid"
 				end
 			elseif v.security == "none" then
-				user = v
-				os.setenv("USER", user.name)
+				userLogin(v)
 				return true
 			end
 		end
 	end
 	return false, "no user with username \"" .. username .. "\" was found."
 end
-
-retrieveUsers()
 
 return lib
