@@ -8,6 +8,16 @@ local x = 1
 local vw, vh = gpu.getResolution()
 
 local args, ops = shell.parse(...)
+if args[1] then
+	fullPath = shell.resolve(args[1])
+	if not fullPath then
+		error("dir: could not access '" .. fullPath .. "': No such file or directory.")
+	end
+end
+
+if not filesystem.isDirectory(fullPath) then
+	error("dir: could not access '" .. fullPath .. "': Path is not directory.")
+end
 
 local list = filesystem.list(fullPath)
 print("Listing of " .. fullPath)
