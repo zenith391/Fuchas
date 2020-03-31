@@ -138,7 +138,7 @@ local function drawEntries()
 			gpu.setBackground(0xFFFFFF)
 			gpu.setForeground(0x000000)
 		end
-		gpu.set(7, 12, "Dev branch (unstable)")
+		gpu.set(7, 12, "Dev branch (unstable, only if you know what you're doing)")
 		gpu.setBackground(0x000000)
 		gpu.setForeground(0xFFFFFF)
 	end
@@ -202,16 +202,14 @@ local function drawStage()
 	end
 	if stage == 6 then
 		gpu.set(5, 5, "Create your admin account")
-		gpu.set(5, 6, "New account username:")
-		term.setCursor(5, 7)
-		local uname = term.read()
-		uname = uname:sub(1, uname:len() - 1) -- remove \n
+		gpu.set(5, 6, "New account username: admin")
+		term.setCursor(5, 9)
 		gpu.set(5, 8, "New account password:")
 		local pwd = term.read({
 			pwchar = '*'
 		})
 		pwd = pwd:sub(1, pwd:len() - 1) -- remove \n
-		filesystem.makeDirectory("/Users/" .. uname .. "/")
+		filesystem.makeDirectory("/Users/admin/")
 
 		-- Hash using SHA3-512
 		local sha3 = require("/Fuchas/Libraries/sha3.min")
