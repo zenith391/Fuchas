@@ -135,6 +135,10 @@ function lib.clear()
 	lib.setCursor(1, 1)
 end
 
+function lib.clearLine()
+	driver.gpu.fill(1, cursor.y, 160, 1, 0)
+end
+
 function lib.getKeyboard()
 	return component.getPrimary("screen").getKeyboards()[1]
 end
@@ -215,41 +219,44 @@ function lib.addAlias(alias, cmd)
 end
 
 function lib.parseCL(cl)
-	local args = {}
-	local ca = string.toCharArray(cl)
-
-	local istr = false
-	local arg = ""
-	for i = 1, #ca do
-		local c = ca[i]
-		if not istr then
-			if c == '"' then
-				arg = ""
-				istr = true
-			elseif c == " " then
-				table.insert(args, arg)
-				arg = ""
+	local strs = string.split(cl, "|")
+	local commands = {}
+	for i=1, #strs do
+		local args = {}
+		local ca = string.toCharArray(strs[i])
+		local istr = false
+		local arg = ""
+		for i = 1, #ca do
+			local c = ca[i]
+			if not istr then
+				if c == '"' then
+					arg = ""
+					istr = true
+				elseif c == " " then
+					table.insert(args, arg)
+					arg = ""
+				else
+					arg = arg .. c
+				end
 			else
-				arg = arg .. c
-			end
-		else
-			if c == '"' then
-				istr = false
-				table.insert(args, arg)
-				arg = ""
-			else
-				arg = arg .. c
+				if c == '"' then
+					istr = false
+					table.insert(args, arg)
+					arg = ""
+				else
+					arg = arg .. c
+				end
 			end
 		end
-	end
-	if arg ~= "" then
-		if istr then
-			error("parse error: long-argument not ended with \"")
+		if arg ~= "" then
+			if istr then
+				error("parse error: long-argument not ended with \"")
+			end
+			table.insert(args, arg)
 		end
-		table.insert(args, arg)
+		table.insert(commands, args)
 	end
-
-	return args
+	return commands
 end
 
 local function readEventFilter(name)

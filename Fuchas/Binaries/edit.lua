@@ -107,6 +107,10 @@ local function drawCursor()
 	end
 end
 
+local function scroll(dy)
+	
+end
+
 ---------------------------------------------
 
 do

@@ -241,15 +241,20 @@ function io.popen(prog, mode)
 		error("could not resolve the program")
 	end
 	local func = loadfile(resolved)
-	local proc = require("tasks").newProcess(prog, func)
+	return io.pipedProc(func, mode)
+end
+
+function io.pipedProc(func, name, mode)
+	if not mode then mode = "r" end
+	local proc = require("tasks").newProcess(name, func)
 	if mode == "r" then
 		local inp, out = require("buffer").pipedStreams(true)
 		proc.io.stdout = out
-		return inp
+		return inp, proc
 	elseif mode == "w" then
 		local inp, out = require("buffer").pipedStreams(true)
 		proc.io.stdin = inp
-		return out
+		return out, proc
 	end
 end
 

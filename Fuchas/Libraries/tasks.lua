@@ -222,6 +222,9 @@ function mod.unsafeKill(proc)
 	for k, v in pairs(proc.exitHandlers) do
 		v()
 	end
+	proc.io.stdout:close()
+	proc.io.stdin:close()
+	proc.io.stderr:close()
 	processes[proc.pid] = nil
 	if currentProc == proc then
 		coroutine.yield() -- process is dead and will now yield

@@ -3,25 +3,49 @@ local buffer = {}
 
 function buffer.pipedStreams(unbuffered)
 	local data = {}
+	local closed = false
+	local inputStream = {}
 	local outputStream = {
 		write = function(self, v)
-			table.insert(data, v)
+			table.insert(data, 1, v)
 		end,
 		seek = function() end,
-		close = function() end,
+		close = function(self)
+			closed = true
+			self.closed = true
+			inputStream.closed = true
+		end,
 		seekable = function()
 			return false
 		end
 	}
-	local inputStream = {
-		read = function(self)
-			return table.remove(data)
+	inputStream = {
+		read = function(self, t)
+			if not t then t = 1 end
+			local str = ""
+			for i=1, t do
+				local d = table.remove(data)
+				if not d then
+					break
+				end
+				str = str .. d
+				if #data == 0 then break end
+			end
+			if str:len() == 0 then
+				return nil
+			end
+			return str
 		end,
 		seek = function() end,
-		close = function() end,
+		close = function(self)
+			closed = true
+			self.closed = true
+			outputStream.closed = true
+		end,
 		seekable = function()
 			return false
-		end
+		end,
+		closed = false
 	}
 	if not unbuffered then
 		inputStream = buffer.from(inputStream)

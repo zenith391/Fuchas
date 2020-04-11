@@ -65,78 +65,97 @@ while run do
 		l = l:sub(1, l:len()-1)
 		async = true
 	end
-	local args = sh.parseCL(l)
+	local commands = sh.parseCL(l)
+	local chainStream = nil
 	io.write(" \n")
-	if #args == 0 then
-		args[1] = ""
-	end
-	if args[1] == "exit" then -- special case: exit cmd
-		run = false
-		break
-	end
-	if args[1]:len() == 2 then
-		if args[1]:sub(2, 2) == ":" then
-			if not fs.isMounted(args[1]:sub(1, 1)) then
-				print("No such drive: " .. args[1]:sub(1, 1))
-				break
-			end
-			drive = args[1]:sub(1, 1)
-			os.setenv("PWD", "")
+	for i=1, #commands do
+		local args = commands[i]
+		if #args == 0 then
+			args[1] = ""
+		end
+		if args[1] == "exit" then -- special case: exit cmd
+			run = false
 			break
 		end
-	end
-	
-	if sh.getCommand(args[1]) ~= nil then
-		args[1] = sh.getCommand(args[1])
-	end
-
-	local newargs = string.split(args[1])
-	if #newargs > 1 then
-		table.remove(args, 1)
-		for i=#newargs, 1, -1 do
-			table.insert(args, 1, newargs[i])
+		if args[1]:len() == 2 then
+			if args[1]:sub(2, 2) == ":" then
+				if not fs.isMounted(args[1]:sub(1, 1)) then
+					print("No such drive: " .. args[1]:sub(1, 1))
+					break
+				end
+				drive = args[1]:sub(1, 1)
+				os.setenv("PWD", "")
+				break
+			end
 		end
-	end
-	
-	local path = sh.resolve(args[1])
-	local exists = true
-	if not path then
-		exists = false
-	end
-	
-	if exists and args[1] ~= "" then
-		local f, err = xpcall(function()
-			local programArgs = {}
-			if #args > 1 then
-				for k, v in pairs(args) do
-					if k > 1 then
-						table.insert(programArgs, v)
+		
+		if sh.getCommand(args[1]) ~= nil then
+			args[1] = sh.getCommand(args[1])
+		end
+
+		local newargs = string.split(args[1])
+		if #newargs > 1 then
+			table.remove(args, 1)
+			for i=#newargs, 1, -1 do
+				table.insert(args, 1, newargs[i])
+			end
+		end
+		
+		local path = sh.resolve(args[1])
+		local exists = true
+		if not path then
+			exists = false
+		end
+		
+		if exists and args[1] ~= "" then
+			local f, err = xpcall(function()
+				local programArgs = {}
+				if #args > 1 then
+					for k, v in pairs(args) do
+						if k > 1 then
+							table.insert(programArgs, v)
+						end
 					end
 				end
-			end
-			local f, err = loadfile(path)
-			if f == nil then
-				print(err)
-			end
-
-			local proc = tasks.newProcess(args[1], function()
-				if f ~= nil then
-					xpcall(f, function(err)
-						io.stderr:write(err .. "\n")
-						io.stderr:write(debug.traceback(nil, 2) .. "\n")
-					end, programArgs)
+				local f, err = loadfile(path)
+				if f == nil then
+					print(err)
 				end
+
+				local func = function()
+					if f ~= nil then
+						xpcall(f, function(err)
+							io.stderr:write(err .. "\n")
+							io.stderr:write(debug.traceback(nil, 2) .. "\n")
+						end, programArgs)
+					end
+				end
+				local proc = nil
+
+				if i == #commands then
+					proc = tasks.newProcess(args[1], func)
+					if chainStream then
+						proc.io.stdin = chainStream
+					end
+					if not async then
+						proc:join()
+						driver.gpu.setForeground(0xFFFFFF)
+						driver.gpu.setColor(0)
+					end
+				else
+					local oldChainStream = chainStream
+					chainStream, proc = io.pipedProc(func, args[1], "r")
+					if oldChainStream then
+						proc.io.stdin = oldChainStream
+					end
+				end
+			end, function(err)
+				print(debug.traceback(err))
 			end)
-			if not async then
-				proc:join()
-			end
-			driver.gpu.setForeground(0xFFFFFF)
-			driver.gpu.setColor(0x000000)
-		end, function(err)
-			print(debug.traceback(err))
-		end)
-	else
-		print("No such command or external file found.")
+		else
+			print("No such command or external file found.")
+			break
+		end
 	end
 	end -- end of "continue" while
 end

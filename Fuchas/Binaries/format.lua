@@ -16,15 +16,15 @@ if options.e then
 	print("Full formatting...")
 	local dots = 0
 	for i=0, drive.getCapacity()/512-512 do
-		if dots > 10 then
+		if dots > 20 then
 			dots = 0
 		end
 		shell.clear()
 		print("Full formatting" .. ("."):rep(dots))
-		print("(this might takes around 20 minutes)")
+		print("(this might take around 20 minutes)")
 		dots = dots + 1
 		print(math.floor(i/(drive.getCapacity()/512-512)*100) .. "%")
-		drive.writeBytes(ifOr(i==0, 1, i*512), ("\x00"):rep(512))
+		drive.writeBytes((i==0 and 1) or i*512, ("\x00"):rep(512))
 	end
 	print("Done.")
 end
