@@ -7,7 +7,8 @@ local aliases = {
 	["ps"] = "pl",
 	["reboot"] = "power reboot",
 	["shutdown"] = "power off",
-	["cls"] = "clear"
+	["cls"] = "clear",
+	["edit"] = "quack"
 }
 
 local fs = require("filesystem")

@@ -1,8 +1,8 @@
 local shell = require("shell")
 
-print(_VERSION .. " " .. "Copyright (C) 1994-2016 Lua.org, PUC-Rio")
+print(_VERSION .. " Copyright (C) 1994-2016 Lua.org, PUC-Rio")
 print("Add '=' at the start of your code to print the result")
-print("Type os.exit() or '\\q' to exit the interpreter.")
+print("Type 'os.exit()' or '\\q' to exit the interpreter.")
 
 while true do
 	io.write("> ")
@@ -26,7 +26,7 @@ while true do
 				print(table.concat(tab, "\t"))
 			end
 		end, function(err)
-			print(err)
+			io.stderr:write(err .. "\n")
 			io.stderr:write(debug.traceback(nil, 2))
 		end)
 	end

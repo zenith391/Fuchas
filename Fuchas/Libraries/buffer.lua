@@ -66,24 +66,31 @@ function buffer.from(handle)
 	stream.write = function(self, val)
 		return self.stream:write(val)
 	end
-	stream.fillBuffer = function(self)
-		if self.buf:len() == 0 then
+	function stream:fillBuffer()
+		if self.buf and self.buf:len() == 0 then
 			self.buf = self.stream:read(self.size)
 		end
 	end
-	stream.readBuffer = function(self, len)
-		local steps = len/self.size
+	function stream:readBuffer(len)
+		local steps = math.ceil(len/self.size)
 		local str = ""
 		for i=1, steps do
-			self.fillBuffer()
+			self:fillBuffer()
+			if self.buf == nil then
+				if str:len() > 0 then
+					return str
+				else
+					return nil
+				end
+			end
 			local part = self.buf:sub(1, len%self.size)
-			self.buf = self.buf:sub(len+1, self.buf:len()) -- cut the readed part
+			self.buf = self.buf:sub(len%self.size+1, self.buf:len()) -- cut the read part
 			str = str .. part
 			len = len - len%self.size
 		end
 		return str
 	end
-	stream.read = function(self, f)
+	function stream:read(f)
 		if not f then
 			f = "a"
 		end
@@ -101,8 +108,8 @@ function buffer.from(handle)
 		elseif f == "l" or f == "*l" then
 			local s = ""
 			while true do
-				local r = self.stream:read(1)
-				if r == nil then
+				local r = self:read(1)
+				if not r then
 					if s == "" then
 						return nil
 					else
@@ -110,6 +117,9 @@ function buffer.from(handle)
 					end
 				end
 				if r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
+					if r:find("\r") then
+						self:read(1) -- skip \n
+					end
 					return s
 				end
 				s = s .. r
@@ -142,7 +152,7 @@ function buffer.from(handle)
 		return tab
 	end
 	stream.seek = function(self, whence, offset)
-		-- TODO: invalidate buffer
+		self.buf = ""
 		return self.stream:seek(whence, offset)
 	end
 	return stream

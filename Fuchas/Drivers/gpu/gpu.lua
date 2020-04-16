@@ -77,8 +77,8 @@ function spec.new(address)
 		drv.fillChar(x, y, w, h, ' ')
 	end
 
-	function drv.copy(x1, y1, w, h, x2, y2)
-		comp.copy(x1, y1, w, h, x2, y2)
+	function drv.copy(x, y, w, h, tx, ty)
+		comp.copy(x, y, w, h, tx, ty)
 	end
 
 	function drv.get(x, y)
