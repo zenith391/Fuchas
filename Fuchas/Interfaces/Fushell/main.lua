@@ -57,9 +57,15 @@ while run do
 	while true do -- used for break (to act as "continue" in other other languages)
 	os.setenv("PWD_DRIVE", drive)
 	io.write(drive .. ":/" .. os.getenv("PWD") .. ">")
-	local l = sh.read({
+	local ok, l = pcall(sh.read, {
 		["autocomplete"] = sh.fileAutocomplete
 	})
+	io.write(" \n")
+	if not ok and string.endsWith(l, "interrupted") then
+		print("Ctrl+Alt+C: Restarting")
+		computer.shutdown(true)
+		return
+	end
 	local async = false
 	if string.endsWith(l, "&") then
 		l = l:sub(1, l:len()-1)
@@ -67,7 +73,6 @@ while run do
 	end
 	local commands = sh.parseCL(l)
 	local chainStream = nil
-	io.write(" \n")
 	for i=1, #commands do
 		local args = commands[i]
 		if #args == 0 then

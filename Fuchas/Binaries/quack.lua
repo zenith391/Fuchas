@@ -126,7 +126,7 @@ while true do
 				gpu.drawText(1, cy-sy+1, lines[cy] .. (" "):rep(rw-#lines[cy]))
 				cy = cy + 1
 				table.insert(lines, cy, p2)
-				gpu.copy(1, cy-sy+1, rw, rh-1, 0, cy-sy+1+1)
+				gpu.copy(1, cy-sy+1, rw, rh-1, 0, 1)
 				gpu.drawText(1, cy-sy+1, lines[cy] .. (" "):rep(rw-#lines[cy]))
 				drawBottomBar()
 			elseif keyChar >= 0x20 then

@@ -31,9 +31,11 @@ tasks.newProcess("System Interface", function()
 		end
 		return l()
 	end, function(err)
-		io.stderr:write("System Crash!\n")
-		io.stderr:write(err)
-		io.stderr:write(debug.traceback(nil, 2))
+		io.stderr:write("\nThe interface crashed \\:\n")
+		io.stderr:write(err .. "\n")
+		io.stderr:write(debug.traceback(nil, 2) .. "\n")
+		io.stderr:write("Restarting ..\n")
+		computer.shutdown(true)
 		return err
 	end)
 	if f == true then
