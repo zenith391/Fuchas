@@ -19,27 +19,32 @@ local function formatVal(v)
 	if type(v) == "string" then
 		return string.format("%q", v)
 	end
-	
 	return tostring(v)
 end
 
 --- Serializes a table to LON string, includes indentation
-function lib.sertable(tab, depth)
+function lib.sertable(tab, depth, pretty)
+	if pretty == nil then
+		pretty = true
+	end
 	depth = depth or 1
 	local str = "{"
 	local i = 1
+	local tabStr = (pretty and string.rep("\t", depth)) or ""
+	local newLine = (pretty and "\n") or ""
+	local equalsStr = (pretty and " = ") or "="
 	for k, v in pairs(tab) do
 		if type(v) == "table" then
 			if type(k) == "number" then
-				str = str .. "\n" .. string.rep("\t", depth) .. lib.sertable(v)
+				str = str .. newLine .. tabStr .. lib.sertable(v, pretty)
 			else
-				str = str .. "\n" .. string.rep("\t", depth) .. "[\"" .. k .. "\"]" .. " = " .. lib.sertable(v, depth+1)
+				str = str .. newLine .. tabStr .. "[\"" .. k .. "\"]" .. equalsStr .. lib.sertable(v, depth+1, pretty)
 			end
 		else
 			if type(k) == "number" then
-				str = str .. "\n" .. string.rep("\t", depth) .. formatVal(v)
+				str = str .. newLine .. tabStr .. formatVal(v)
 			else
-				str = str .. "\n" .. string.rep("\t", depth) .. "[\"" .. k .. "\"]" .. " = " .. formatVal(v)
+				str = str .. newLine .. tabStr .. "[\"" .. k .. "\"]" .. equalsStr .. formatVal(v)
 			end
 		end
 		if i < table.getn(tab) then
@@ -47,7 +52,7 @@ function lib.sertable(tab, depth)
 		end
 		i = i + 1
 	end
-	str = str .. "\n" .. string.rep("\t", depth-1) .. "}"
+	str = str .. newLine .. ((pretty and string.rep("\t", depth-1)) or "") .. "}"
 	return str
 end
 

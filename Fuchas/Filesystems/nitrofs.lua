@@ -5,11 +5,11 @@ local freeID = 0
 
 local fs = {}
 local SS = 512
-local SO = 512
+local SO = 513
 
 local function getName(id)
 	local a = id * SS + SO
-	local name = driver.readBytes(a+6, 32)
+	local name = driver.readBytes(a+5, 32)
 	local str = ""
 	for i=1, 32 do
 		if name[i] == 0 then
@@ -119,7 +119,6 @@ local function getId(path)
 			return -1, "one of path segment isn't an directory"
 		end
 		local childs = getChildrens(id)
-		print(id .. " have " .. #childs .. " childrens")
 		local foundChild = false
 		for k, v in pairs(childs) do
 			local name = getName(v.id)
@@ -136,11 +135,10 @@ local function getId(path)
 	end
 	-- Process last segment of path
 	local childs = getChildrens(id)
-	print(#childs .. "childs")
 	for k, v in pairs(childs) do
-		print("CHILD ID = " .. v.id)
+		--print("CHILD ID = " .. v.id)
 		local name = getName(v.id)
-		print("NAME = " .. name)
+		--print("NAME = " .. name)
 		if name == segments[#segments] then
 			return v.id
 		end
@@ -151,8 +149,8 @@ end
 function fs.format()
 	local str = string.rep('\x00', 512)
 	driver.writeBytes(1, str)
-	driver.writeBytes(1, "NTRFS1")
-	driver.writeBytes(6, "FCH1")
+	driver.writeBytes(1, "Nitro_FS")
+	driver.writeBytes(9, "FCH1")
 	writeEntry("D", 0, 0)
 	setName(0, "/")
 	return true
@@ -191,17 +189,13 @@ function fs.makeDirectory(path)
 		error(err)
 	end
 	local nid = getFreeID()
-	--print("Parent ID: " .. id)
-	--print("New ID: " .. nid)
 	writeEntry("D", nid, id)
 	setName(nid, segments[#segments])
 	local childs = getChildrens(id)
 	local cnum = #childs
-	--print("Children ID: " .. cnum)
 	setChildren(id, cnum, nid)
 	setChildrenNum(id, cnum+1)
 	cnum = #getChildrens(id)
-	--print("Children Count: " .. cnum)
 end
 
 function fs.exists(path)
@@ -218,8 +212,8 @@ function fs.exists(path)
 end
 
 function fs.isFormatted()
-	local head = driver.readBytes(1, 6, true)
-	return head == "NTRFS1"
+	local head = driver.readBytes(1, 8, true)
+	return head == "Nitro_FS"
 end
 
 function fs.open(path, mode)
@@ -247,7 +241,7 @@ function fs.open(path, mode)
 	end
 	local id = getId(filesystem.canonical(path))
 	local curFragment = getFirstFragment(id)
-	local firstFragment = false
+	local firstFragment = curFragment == 0
 	
 	local function read(self, length)
 		if curFragment == 0 then
@@ -266,19 +260,20 @@ function fs.open(path, mode)
 	end
 
 	local function write(self, str)
-		if curFragment == 0 then
-			allocateFragment()
+		if str:len() == 0 then
+			return
 		end
-		local i = 0
 		while true do
-			local sub = string.sub(i*509, i*509+509)
-			if sub:len() == 0 then
+			if self.cursor%509 == 1 then
+				allocateFragment()
+			end
+			local part = str:sub(1, 510-self.cursor)
+			if part:len() == 0 then
 				break
 			end
-			local a = curFragment * SS + SO
-			driver.writeBytes(a+3, sub)
-			-- TODO: increase file size and keep track of it for new allocations
-			self.cursor = self.cursor + sub:len()
+			driver.writeBytes(curFragment*SS+SO+2, part)
+			str = str:sub(510-self.cursor+1)
+			self.cursor = self.cursor + part:len()
 		end
 	end
 
@@ -294,4 +289,4 @@ function fs.open(path, mode)
 	return handle
 end
 
-return fs, "NTRFS1", "NitroFS" -- in order: driver, 8-char FS name, fs name
+return fs, "Nitro_FS", "NitroFS" -- in order: driver, 8-char FS name, fs name

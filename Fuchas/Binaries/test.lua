@@ -14,7 +14,10 @@ if driver.getCapabilities then
 	for k, v in pairs(driver.getCapabilities()) do
 		local b = v
 		if type(v) == "boolean" then
-			b = ifOr(v, "yes", "no")
+			b = (v and "yes") or "no"
+		end
+		if type(v) == "table" then
+			b = require("liblon").sertable(v, 2, false)
 		end
 		print("\t" .. k .. ": " .. tostring(b))
 	end

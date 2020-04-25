@@ -30,7 +30,7 @@ for k, v in list do
 		gpu.setForeground(0x4444FF)
 	end
 	if x + k:len() > vw then
-		io.write(" \n")
+		io.write("\n")
 		x = 0
 	end
 	io.write(k .. " ")

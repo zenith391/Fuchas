@@ -11,18 +11,14 @@ function io.tounum(number, count, littleEndian)
 	end
 	
 	if littleEndian then
-		local i = count
-		while i > 0 do
-			data[i] = bit32.band(number, 0x000000FF)
+		for i=1, count do
+			data[i] = bit32.band(number, 0xFF)
 			number = bit32.rshift(number, 8)
-			i = i - 1
 		end
 	else
-		local i = 1
-		while i < count+1 do
-			data[i] = bit32.band(number, 0x000000FF)
+		for i=1, count do
+			data[count-i+1] = bit32.band(number, 0xFF)
 			number = bit32.rshift(number, 8)
-			i = i + 1
 		end
 	end
 	return data
@@ -89,16 +85,16 @@ function io.createStdOut()
 			sh.setY(sh.getY() + 1)
 		end
 		if val:find("\n") then
-			for line in val:gmatch("([^\n]+)") do
-				if sh.getY() == h then
-					gpu.copy(1, 2, w, h - 1, 0, -1)
-					gpu.fill(1, h, w, 1, " ")
-					sh.setY(sh.getY() - 1)
-				end
-				gpu.set(sh.getX(), sh.getY(), line)
-				sh.setX(1)
-				sh.setY(sh.getY() + 1)
+			local s, e = val:find("\n")
+			gpu.set(sh.getX(), sh.getY(), val:sub(1, s-1))
+			sh.setX(1)
+			sh.setY(sh.getY() + 1)
+			if sh.getY() == h then
+				gpu.copy(1, 2, w, h - 1, 0, -1)
+				gpu.fill(1, h, w, 1, " ")
+				sh.setY(sh.getY() - 1)
 			end
+			self:write(val:sub(e+1))
 		else
 			if sh.getY() == h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)

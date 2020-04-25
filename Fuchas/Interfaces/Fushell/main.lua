@@ -80,7 +80,7 @@ while run do
 		end
 		if args[1] == "exit" then -- special case: exit cmd
 			run = false
-			break
+			return
 		end
 		if args[1]:len() == 2 then
 			if args[1]:sub(2, 2) == ":" then
