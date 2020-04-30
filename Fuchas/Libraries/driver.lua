@@ -41,7 +41,14 @@ end
 
 local function findBestDriver(type, addr)
 	local sel = nil
-	for _, v in pairs(string.split(os.getenv("DRV_PATH"), ";")) do
+
+	local drvPath
+	if os.getenv then
+		drvPath = os.getenv("DRV_PATH")
+	else
+		drvPath = "A:/Fuchas/Drivers/"
+	end
+	for _, v in pairs(string.split(drvPath, ";")) do
 		local dir = v .. type .. "/"
 		if fs.exists(dir) then
 			for path, _ in fs.list(dir) do

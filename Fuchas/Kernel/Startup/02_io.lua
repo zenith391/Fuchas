@@ -69,49 +69,6 @@ function io.fromunum(data, littleEndian, count)
 	end
 end
 
-function io.createStdOut()
-	local stream = {}
-	local sh = require("shell")
-	local w, h = gpu.getViewport()
-	stream.close = function(self)
-		return false -- unclosable stream
-	end
-	stream.write = function(self, val)
-		if val:find("\t") then
-			val = val:gsub("\t", "    ")
-		end
-		if sh.getX() >= 160 then
-			sh.setX(0)
-			sh.setY(sh.getY() + 1)
-		end
-		if val:find("\n") then
-			local s, e = val:find("\n")
-			gpu.set(sh.getX(), sh.getY(), val:sub(1, s-1))
-			sh.setX(1)
-			sh.setY(sh.getY() + 1)
-			if sh.getY() == h then
-				gpu.copy(1, 2, w, h - 1, 0, -1)
-				gpu.fill(1, h, w, 1, " ")
-				sh.setY(sh.getY() - 1)
-			end
-			self:write(val:sub(e+1))
-		else
-			if sh.getY() == h then
-				gpu.copy(1, 2, w, h - 1, 0, -1)
-				gpu.fill(1, h, w, 1, " ")
-				sh.setY(sh.getY() - 1)
-			end
-			gpu.set(sh.getX(), sh.getY(), val)
-			sh.setX(sh.getX() + string.len(val))
-		end
-		return true
-	end
-	stream.read = function(self, len)
-		return nil -- cannot read stdOUT
-	end
-	return stream
-end
-
 function io.createStdErr()
 	local stream = {}
 	stream.write = function(self, val)
@@ -143,7 +100,7 @@ function io.createStdIn()
 	return stream
 end
 
-local termStdOut = io.createStdOut()
+local termStdOut = require("shell").createStdOut(require("driver").gpu)
 local termStdErr = nil
 local termStdIn = io.createStdIn()
 

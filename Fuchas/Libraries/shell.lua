@@ -22,86 +22,6 @@ local cursor = {
 	y = 1
 }
 
-function lib.enableANSI()
-	local ESC = string.char(27)
-	local gpu = component.gpu
-	local width, height = gpu.getResolution()
-	io.stdout.write = function(self, val)
-		if val:find("\t") then
-			val = val:gsub("\t", "    ")
-		end
-		if val:find(ESC .. "c") then
-			local _, occ = val:find(ESC .. "c")
-			gpu.setBackground(0x000000)
-			gpu.fill(1, 1, width, height, " ")
-			val = val:sub(occ, val:len())
-			io.stdout:write(val)
-		end
-		-- CSI sequences
-		if val:find(ESC .. "%[A") then
-			local _, occ = val:find(ESC .. "c")
-			cursor.y = cursor.y - 1
-			if cursor.y < 1 then cursor.y = 1 end
-			val = val:sub(occ, val:len())
-			io.stdout:write(val)
-		end
-		if val:find(ESC .. "%[B") then
-			local _, occ = val:find(ESC .. "c")
-			cursor.y = cursor.y + 1
-			val = val:sub(occ, val:len())
-			io.stdout:write(val)
-		end
-		if val:find(ESC .. "%[C") then
-			local _, occ = val:find(ESC .. "c")
-			cursor.x = cursor.x + 1
-			if cursor.x > width then cursor.x = width end
-			val = val:sub(occ, val:len())
-			io.stdout:write(val)
-		end
-		if val:find(ESC .. "%[D") then
-			local _, occ = val:find(ESC .. "c")
-			cursor.x = cursor.x - 1
-			if cursor.x < 1 then cursor.x = 1 end
-			val = val:sub(occ, val:len())
-			io.stdout:write(val)
-		end
-		if val:find(ESC .. "%[2J") then
-			cursor.x = 1
-			cursor.y = 1
-			gpu.fill(1, 1, 160, 50, " ")
-		end
-
-		if val:find("\n") then
-			for line in val:gmatch("([^\n]+)") do
-				if lib.getY() == h then
-					gpu.copy(1, 2, w, h - 1, 0, -1)
-					gpu.fill(1, h, w, 1, " ")
-					lib.setY(lib.getY() - 1)
-				end
-				gpu.set(lib.getX(), lib.getY(), line)
-				lib.setX(1)
-				lib.setY(lib.getY() + 1)
-			end
-		else
-			if lib.getY() == h then
-				gpu.copy(1, 2, w, h - 1, 0, -1)
-				gpu.fill(1, h, w, 1, " ")
-				lib.setY(lib.getY() - 1)
-			end
-			gpu.set(lib.getX(), lib.getY(), val)
-			lib.setX(lib.getX() + val:len())
-		end
-		return true
-	end
-end
-
-function lib.resetStdout(full) -- disables ANSI
-	if full then
-		stdout = io.createStdOut()
-	end
-	io.stdout = stdout
-end
-
 function lib.stdout()
 	return io.stdout
 end
@@ -141,11 +61,158 @@ function lib.clearLine()
 end
 
 function lib.getKeyboard()
-	return component.getPrimary("screen").getKeyboards()[1]
+	local screen = lib.getScreen()
+	if screen then
+		local proxy = component.proxy(screen)
+		return proxy.getKeyboards()[1]
+	else
+		return nil -- unknown
+	end
 end
 
 function lib.getScreen()
-	return component.getPrimary("screen").address
+	local gpu = io.stdout.gpu
+	if not gpu then
+		return nil
+	else
+		return gpu.getScreen()
+	end
+end
+
+-- gpu: GPU DRIVER
+function lib.createStdOut(gpu)
+	local stream = {}
+	local sh = require("shell")
+	local w, h = gpu.getResolution()
+	stream.gpu = gpu
+	stream.close = function(self)
+		return false -- unclosable stream
+	end
+	local colorTable = {
+		0x0,
+		0xAA0000,
+		0x00AA00,
+		0xAA5500,
+		0x0000AA,
+		0xAA00AA,
+		0x00AAAA,
+		0xAAAAAA
+	}
+	local brightColorTable = {
+		0x555555,
+		0xFF5555,
+		0x55FF55,
+		0xFFFF55,
+		0x5555FF,
+		0xFF55FF,
+		0x55FFFF,
+		0xFFFFFF
+	}
+	local ESC = string.char(0x1B)
+	local CSI = ESC .. "%["
+	stream.write = function(self, val)
+		if val:find("\t") then
+			val = val:gsub("\t", "    ")
+		end
+		if sh.getX() >= w then
+			sh.setX(0)
+			sh.setY(sh.getY() + 1)
+		end
+		local ptr, ptrE, ptrC = val:find(CSI .. "(.*)H") -- move cursor, in order: pattern start, pattern end, pattern capture
+		if ptr then
+			self:write(val:sub(1, ptr-1))
+			local split = string.split(ptrC, ";")
+			if #split >= 2 then
+				local y = tonumber(split[1]) or 1
+				local x = tonumber(split[2]) or 1
+				lib.setCursor(x, y)
+				return self:write(val:sub(ptrE+1))
+			end
+		end
+		ptr, ptrE = val:find(ESC .. "c") -- clear
+		if ptr then
+			self:write(val:sub(1, ptr-1))
+			lib.clear()
+			return self:write(val:sub(ptrE+1))
+		end
+		ptr, ptrE = val:find(CSI .. "%?25h")
+		if ptr then
+			self:write(val:sub(1, ptr-1))
+			-- TODO: show cursor
+			return self:write(val:sub(ptrE+1))
+		end
+		ptr, ptrE = val:find(CSI .. "%?25l")
+		if ptr then
+			self:write(val:sub(1, ptr-1))
+			-- TODO: hide cursor
+			return self:write(val:sub(ptrE+1))
+		end
+		ptr, ptrE, ptrC = val:find(CSI .. "([%d;]+)m")
+		if ptr then
+			self:write(val:sub(1, ptr-1))
+			local sgrs = string.split(ptrC, ";")
+			for i=1, #sgrs do
+				local sgr = tonumber(sgrs[i])
+				if sgr and sgr >= 30 and sgr <= 37 then -- foreground
+					gpu.setForeground(colorTable[sgr-29])
+				elseif sgr == 38 then -- extended foreground color
+					if sgrs[i+1] == "2" then -- only supporting RGB extended color
+						local r = sgrs[i+2]
+						local g = sgrs[i+3]
+						local b = sgrs[i+4]
+						local hex = bit32.bor(bit32.lshift(r, 16), bit32.lshift(g, 8), b)
+						gpu.setForeground(hex)
+						i = i + 4
+					end
+				elseif sgr == 39 then -- default foreground color
+					gpu.setForeground(0xFFFFFF)
+				elseif sgr and sgr >= 40 and sgr <= 47 then -- background
+					gpu.setColor(colorTable[sgr-39])
+				elseif sgr == 48 then -- extended background color
+					if sgrs[i+1] == "2" then -- only supporting RGB extended color
+						local r = sgrs[i+2]
+						local g = sgrs[i+3]
+						local b = sgrs[i+4]
+						local hex = bit32.bor(bit32.lshift(r, 16), bit32.lshift(g, 8), b)
+						gpu.setColor(hex)
+						i = i + 4
+					end
+				elseif sgr == 49 then -- default background color
+					gpu.setColor(0x000000)
+				elseif sgr and sgr >= 90 and sgr <= 97 then -- bright foreground
+					gpu.setForeground(brightColorTable[sgr-89])
+				elseif sgr and sgr >= 100 and sgr <= 107 then -- bright background
+					gpu.setColor(brightColorTable[sgr-99])
+				end
+			end
+			return self:write(val:sub(ptrE+1))
+		end
+		if val:find("\n") then
+			local s, e = val:find("\n")
+			gpu.drawText(sh.getX(), sh.getY(), val:sub(1, s-1))
+			sh.setX(1)
+			sh.setY(sh.getY() + 1)
+			if sh.getY() == h then
+				gpu.copy(1, 2, w, h - 1, 0, -1)
+				gpu.fill(1, h, w, 1)
+				sh.setY(sh.getY() - 1)
+			end
+			return self:write(val:sub(e+1))
+		else
+			if sh.getY() == h then
+				gpu.copy(1, 2, w, h - 1, 0, -1)
+				gpu.fill(1, h, w, 1)
+				sh.setY(sh.getY() - 1)
+			end
+			gpu.drawText(sh.getX(), sh.getY(), val)
+			sh.setX(sh.getX() + string.len(val))
+		end
+		return true
+	end
+	stream.read = function(self, len)
+		return nil -- cannot read stdOUT
+	end
+	return stream
 end
 
 function lib.parse(tab)

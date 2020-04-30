@@ -1,0 +1,9 @@
+[30m[107mBlack on white!
+[40m[31mRed foreground
+[32mGreen foreground
+[33mYellow foreground, wait no, this uses VGA color scheme!
+[34mBlue!
+[35mMagenta?
+[36mCyan
+[37mWho calls that white?
+[97mWe need to use bright white to have real white ?!

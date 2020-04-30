@@ -63,7 +63,7 @@ function spec.new(address)
 	end
 
 	function drv.fillChar(x, y, w, h, ch)
-		if h == 1 and ch == " " then
+		if h == 1 then
 			comp.set(x, y, ch:rep(w))
 		else
 			comp.fill(x, y, w, h, ch)

@@ -21,17 +21,18 @@ end
 
 local list = filesystem.list(fullPath)
 print("Listing of " .. fullPath)
+local CSI = string.char(0x1B) .. "["
 for k, v in list do
 	local fp = filesystem.concat(filesystem.canonical(fullPath), k)
 	local isdir = filesystem.isDirectory(fp)
-	if isdir then
-		gpu.setForeground(0x33FF33)
-	else
-		gpu.setForeground(0x4444FF)
-	end
 	if x + k:len() > vw then
 		io.write("\n")
 		x = 0
+	end
+	if isdir then
+		io.write(CSI .. "38;2;51;255;51m")
+	else
+		io.write(CSI .. "38;2;68;68;255m")
 	end
 	io.write(k .. " ")
 	x = x + k:len() + 1

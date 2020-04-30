@@ -60,7 +60,7 @@ while run do
 	local ok, l = pcall(sh.read, {
 		["autocomplete"] = sh.fileAutocomplete
 	})
-	io.write(" \n")
+	io.write("\n")
 	if not ok and string.endsWith(l, "interrupted") then
 		print("Ctrl+Alt+C: Restarting")
 		computer.shutdown(true)
