@@ -78,7 +78,9 @@ local function handleProcessError(err, p)
 	local parent = p.parent
 	if parent ~= nil then
 		if parent.childErrorHandler then
+			currentProc = p
 			parent.childErrorHandler(p, err)
+			currentProc = nil
 			return true
 		else
 			return handleProcessError(err, parent)
@@ -90,20 +92,21 @@ end
 
 local lastLoadPercentage = 0
 local totalStart = 0
+local minSleepTime = 0
 function mod.scheduler()
 	if mod.getCurrentProcess() ~= nil then
 		error("only system can use shin32.scheduler()")
 	end
 	
 	local measure = computer.uptime
-	local lastEvent = table.pack(event.handlers(0))
+	local lastEvent = table.pack(event.handlers((minSleepTime == math.huge and 0) or minSleepTime))
 	if not systemEvent(lastEvent) then
 		lastEvent = nil -- if not propagating
 	end
 	if lastEvent and lastEvent[1] then
 		event.exechandlers(lastEvent)
 	end
-	
+	minSleepTime = math.huge
 	if totalStart == 0 then
 		totalStart = measure()
 	end
@@ -127,16 +130,24 @@ function mod.scheduler()
 					p.timeout = nil
 				end
 			end
+			minSleepTime = math.min(minSleepTime, math.max(0, (p.timeout or 0) - computer.uptime()))
+		end
+		if p.status == "sleeping" then
+			if computer.uptime() >= p.timeout then
+				p.status = "ready"
+				p.timeout = nil
+			end
+			minSleepTime = math.min(minSleepTime, p.timeout - computer.uptime())
 		end
 		if p.status == "ready" then
 			p.status = "running"
-			local ok, ret, a1, a2, a3
+			local ok, ret, a1
 			currentProc = p
 			if p.result then
-				ok, ret, a1, a2, a3 = coroutine.resume(p.thread, p.result)
+				ok, ret, a1 = coroutine.resume(p.thread, p.result)
 				p.result = nil
 			else
-				ok, ret, a1, a2, a3 = coroutine.resume(p.thread)
+				ok, ret, a1 = coroutine.resume(p.thread)
 			end
 			currentProc = nil
 			if p.status ~= "dead" then
@@ -144,7 +155,9 @@ function mod.scheduler()
 			end
 			if not ok then
 				if p.errorHandler then
+					currentProc = p
 					p.errorHandler(ret)
+					currentProc = nil
 				else
 					if not handleProcessError(ret, p) then
 						mod.unsafeKill(p)
@@ -158,6 +171,9 @@ function mod.scheduler()
 					p.timeout = math.huge
 				end
 				p.status = "wait_signal"
+			end
+			if p.status == "ready" then
+				minSleepTime = math.huge
 			end
 		end
 		local e = measure()
@@ -184,6 +200,14 @@ function mod.getCurrentProcess()
 	return currentProc
 end
 
+function mod.sleep(secs)
+	currentProc.status = "sleeping"
+	currentProc.timeout = computer.uptime() + secs
+	coroutine.yield()
+end
+
+os.sleep = mod.sleep
+
 function mod.getProcess(pid)
 	if require("security").hasPermission("scheduler.list") or require("security").hasPermission("process.edit") then
 		return processes[pid]
@@ -200,12 +224,13 @@ end
 
 function mod.kill(proc)
 	if proc.safeKillHandler then
-		local doKill = proc.safeKillHandler()
+		local oldProc = currentProc
 		currentProc = proc
+		local doKill = proc.safeKillHandler()
+		currentProc = oldProc
 		if doKill then
 			mod.unsafeKill(proc)
 		end
-		currentProc = nil
 	else
 		mod.unsafeKill(proc)
 	end
