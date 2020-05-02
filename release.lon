@@ -1,6 +1,17 @@
 {
 	version = "0.6.0",
 	changelog = [[
+		0.6.1:
+		+ Total UAC rework, based on user keys and is now per-process.
+		+ PIDs always increase
+		+ Improved permissions/security on multitask: process metrics and PID listing
+		+ `package.path`
+		+ Fixed massive security fault: unprotected A:/Users/Shared could override A:/Fuchas/Binaries in the load order.
+		+ Improved "lua" prompt
+		+ Support for ANSI colors (try "type Fuchas/ansi_test.txt")
+		+ "Fushell" now supports command piping (e.g.: "dir |more")
+		+ Optimized scheduler: Fuchas now consumes less CPU time
+		0.6.0:
 		+ Shell autocompletion
 		+ OS arguments
 		+ "buffer" library for buffered streams
