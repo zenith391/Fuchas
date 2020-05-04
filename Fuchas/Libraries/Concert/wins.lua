@@ -6,7 +6,7 @@ local windows = {}
 local desktop = {}
 local config = {
 	COPY_WINDOW_OPTI = false,
-	DIRTY_WINDOW_OPTI = true
+	DIRTY_WINDOW_OPTI = false
 }
 
 local function titleBar(win)
@@ -25,7 +25,7 @@ end
 function lib.newWindow(width, height, title)
 	local obj = {
 		title = title or "",
-		x = 20,
+		x = 30,
 		y = 10,
 		width = width or 40,
 		height = height or 10,
@@ -37,7 +37,7 @@ function lib.newWindow(width, height, title)
 		container = ui.container(),
 		id = #windows+1,
 		show = function(self)
-			desktop[self.id] = self
+			self.deskId = table.insert(desktop, 1, self)
 			self.visible = true
 			self.dirty = true
 			lib.drawDesktop()
@@ -48,7 +48,11 @@ function lib.newWindow(width, height, title)
 			self.container:dispose(true)
 			gpu.setColor(0xAAAAAA)
 			gpu.fill(self.x, self.y, self.width, self.height)
+			--table.remove(desktop, self.deskId)
 			lib.drawDesktop()
+		end,
+		focus = function(self)
+			
 		end
 	}
 	obj.titleBar = titleBar(obj)
@@ -133,12 +137,8 @@ end
 function lib.drawDesktop()
 	for _, win in pairs(desktop) do
 		if win.visible and win.dirty then
-			print(win.title .. " is title")
-			print("draw")
 			lib.drawWindow(win)
-			if config.DIRTY_WINDOW_OPTI then win.dirty = false end
-		else
-			print("not draw")
+			if not config.DIRTY_WINDOW_OPTI then win.dirty = false end
 		end
 	end
 end

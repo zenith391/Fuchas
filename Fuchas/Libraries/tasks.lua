@@ -263,6 +263,7 @@ function mod.getProcessMetrics(pid)
 	return {
 		name = proc.name,
 		cpuTime = proc.cpuTime,
+		lastCpuTime = proc.lastCpuTime,
 		cpuLoadPercentage = proc.cpuLoadPercentage,
 		status = proc.status,
 		parent = parentPid

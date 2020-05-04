@@ -101,15 +101,25 @@ local function drawBackDesktop(dontDraw)
 	end
 end
 
+local wtx = 0
 local function screenEvent(name, addr, x, y, button, player)
 	if name == "touch" then
 		selectedWin = nil
 		focusedWin = nil
 		for _, v in pairs(wins.desktop()) do
+			v.focused = false
 			if x >= v.x and y >= v.y and x < v.x+v.width and y < v.y+v.height then
 				focusedWin = v
+				v:focus()
 				if not v.undecorated then
 					selectedWin = v
+					wtx = x - selectedWin.x
+					if x == selectedWin.x+selectedWin.width-2 and y == selectedWin.y then
+						--selectedWin:hide()
+						selectedWin = nil
+						print(selectedWin.title)
+					end
+					break
 				end
 			end
 		end
@@ -117,15 +127,15 @@ local function screenEvent(name, addr, x, y, button, player)
 	if name == "drag" then
 		if selectedWin ~= nil then
 			--wins.moveWindow(selectedWin, x, y)
-			selectedWin.x = x; selectedWin.y = y
+			selectedWin.x = x - wtx; selectedWin.y = y
 			selectedWin.dirty = true
-			--drawBackDesktop()
+			drawBackDesktop()
 			wins.drawDesktop()
 		end
 	end
 end
 
---drawBackDesktop()
+drawBackDesktop()
 wins.drawDesktop()
 
 while true do
