@@ -1,24 +1,77 @@
 -- APM (Application Package Manager)
 
-local liblon = require("liblon")
 local fs = require("filesystem")
-local driver = require("driver")
-local gpu = driver.gpu
-local internet = driver.internet
-local shared = require("users").getSharedUserPath()
-local userPath = require("users").getUserPath()
+local theOS = "Fuchas"
+if _OSVERSION and _OSVERSION:sub(1, 6) == "OpenOS" then
+	theOS = "OpenOS"
+end
+local shared = (theOS == "OpenOS" and "/usr") or require("users").getSharedUserPath()
+local userPath = (theOS == "OpenOS" and "/usr/local") or require("users").getUserPath()
 local githubGet = "https://raw.githubusercontent.com/"
-local shell = require("shell")
-local args, options = shell.parse(...)
+local args, options = require("shell").parse(...)
+local tmpPath = (theOS == "OpenOS" and "/tmp") or "T:"
 local global = options["g"] or options["global"]
+local hasInternet = false
+
+if theOS == "OpenOS" then -- OpenOS
+	hasInternet = require("component").isAvailable("internet")
+else
+	if require("driver").internet then
+		hasInternet = true
+	end
+end
+
+local function readFully(url)
+	if theOS == "OpenOS" then -- OpenOS
+		local h = require("component").internet.request(url)
+		h.finishConnect()
+		local buf = ""
+		local data = ""
+		while data ~= nil do
+			buf = buf .. data
+			data = h.read()
+		end
+		h.close()
+		return buf
+	else
+		return require("driver").internet.readFully(url)
+	end
+end
+
+local function serialize(t)
+	if theOS == "OpenOS" then -- OpenOS
+		return require("serialization").serialize(t)
+	else
+		return require("liblon").sertable(t)
+	end
+end
+
+local function unserialize(s)
+	if theOS == "OpenOS" then -- OpenOS
+		return require("serialization").unserialize(s)
+	else
+		return require("liblon").loadlon(s)
+	end
+end
 
 -- File checks
 local packages, repoList
-if not fs.exists(shared .. "/apm-packages.lon") then
+if not fs.exists(shared .. "/apm") then
+	fs.makeDirectory(shared .. "/apm")
+end
+
+if not fs.exists(shared .. "/apm/packages.lon") then
 	packages = {
 		["apm"] = {
 			files = {
 				["Fuchas/Binaries/apm.lua"] = "A:/Fuchas/Binaries/apm.lua"
+			},
+			os = {
+				["OpenOS"] = {
+					files = {
+						["Fuchas/Binaries/apm.lua"] = "/bin/apm.lua"
+					}
+				}
 			},
 			dependencies = {},
 			name = "Application Package Manager",
@@ -28,39 +81,39 @@ if not fs.exists(shared .. "/apm-packages.lon") then
 			revision = 5
 		}
 	}
-	local s = fs.open(shared .. "/apm-packages.lon", "w")
-	s:write(liblon.sertable(packages))
+	local s = io.open(shared .. "/apm/packages.lon", "w")
+	s:write(serialize(packages))
 	s:close()
 else
-	local s = io.open(shared .. "/apm-packages.lon", "r")
-	packages = liblon.loadlon(s)
+	local s = io.open(shared .. "/apm/packages.lon", "r")
+	packages = unserialize(s:read("*a"))
 	s:close()
 end
-if not fs.exists(shared .. "/apm-sources.lon") then
+if not fs.exists(shared .. "/apm/sources.lon") then
 	repoList = { -- Default sources
 		"zenith391/Fuchas",
 		"zenith391/zenith391-Pipboys"
 	}
-	local s = fs.open(shared .. "/apm-sources.lon", "w")
-	s:write(liblon.sertable(repoList))
+	local s = fs.open(shared .. "/apm/sources.lon", "w")
+	s:write(serialize(repoList))
 	s:close()
 else
-	local s = io.open(shared .. "/apm-sources.lon", "r")
-	repoList = liblon.loadlon(s)
+	local s = io.open(shared .. "/apm/sources.lon", "r")
+	repoList = unserialize(s:read("*a"))
 	s:close()
 end
 
 local function save()
-	local s = fs.open(shared .. "/apm-packages.lon", "w")
-	s:write(liblon.sertable(packages))
+	local s = fs.open(shared .. "/apm/packages.lon", "w")
+	s:write(serialize(packages))
 	s:close()
-	s = fs.open(shared .. "/apm-sources.lon", "w")
-	s:write(liblon.sertable(repoList))
+	s = fs.open(shared .. "/apm/sources.lon", "w")
+	s:write(serialize(repoList))
 	s:close()
 end
 
 local function loadLonSec(txt)
-	local ok, out = pcall(liblon.loadlon, txt)
+	local ok, out = pcall(unserialize, txt)
 	if not ok then
 		io.stderr:write("    " .. out)
 	end
@@ -68,37 +121,50 @@ local function loadLonSec(txt)
 end
 
 local function searchSource(source)
-	if not fs.exists("A:/Temporary/apm-cache") then
-		fs.makeDirectory("A:/Temporary/apm-cache")
+	if not fs.exists(tmpPath .. "/apm") then
+		fs.makeDirectory(tmpPath .. "/apm")
 	end
 	local txt
-	if not fs.exists("T:/apm-cache/" .. source .. ".lon") then
-		if not fs.exists(fs.path("T:/apm-cache/" .. source)) then
-			fs.makeDirectory(fs.path("T:/apm-cache/" .. source))
+	if not fs.exists(tmpPath .. "/apm/" .. source .. ".lon") then
+		if not fs.exists(fs.path(tmpPath .. "/apm/" .. source)) then
+			fs.makeDirectory(fs.path(tmpPath .. "/apm/" .. source))
 		end
-		txt = internet.readFully(githubGet .. source .. "/master/programs.lon")
-		local stream = io.open("T:/apm-cache/" .. source .. ".lon", "w")
+		txt = readFully(githubGet .. source .. "/master/programs.lon")
+		local stream = io.open(tmpPath .. "/apm/" .. source .. ".lon", "w")
 		local _, lon = loadLonSec(txt)
 		lon["expiresOn"] = os.time() + 60
-		stream:write(liblon.sertable(lon))
+		stream:write(serialize(lon))
 		stream:close()
 	else
-		local stream = io.open("T:/apm-cache/" .. source .. ".lon")
+		local stream = io.open(tmpPah .. "/apm/" .. source .. ".lon")
 		txt = stream:read("a")
 		stream:close()
 	end
 	local ok, out = loadLonSec(txt)
 	if out and out["expiresOn"] then
 		if os.time() >= out["expiresOn"] then
-			fs.remove("T:/apm-cache/" .. source .. ".lon")
+			fs.remove(tmpPath .. "/apm/" .. source .. ".lon")
 			return searchSource(source)
 		end
 	end
 	return out
 end
 
+local function transformPath(path)
+	path = path:gsub("{userpath}", ifOr(global, shared, userPath))
+	if theOS == "Fuchas"  then
+		path = path:sub("{lib}", "A:/Users/Shared/Libraries")
+		path = path:sub("{bin}", "A:/Users/Shared/Binaries")
+	else
+		path = path:sub("{lib}", "/usr/lib")
+		path = path:sub("{bin}", "/usr/bin")
+	end
+	return path
+end
+
 local function downloadPackage(src, name, pkg, ver)
 	local arch = computer.getArchitecture()
+	local files = pkg.files
 	if pkg.archFiles then -- if have architecture-dependent files
 		if pkg.archFiles[arch] then
 			print("Selected package architecture \"" .. arch .. "\"")
@@ -112,29 +178,29 @@ local function downloadPackage(src, name, pkg, ver)
 			end
 		end
 	end
-	for k, v in pairs(pkg.files) do
-		v = v:gsub("{userpath}", ifOr(global, shared, userPath))
+	if pkg.os then -- if have os-dependent files
+		if pkg.os[theOS] then
+			print("Selected package OS \"" .. theOS .. "\"")
+			files = pkg.os[theOS].files
+		end
+	end
+	for k, v in pairs(files) do
+		v = transformPath(v)
 		local dest = fs.canonical(v)
 		if ver == 1 then
 			dest = fs.canonical(v) .. "/" .. k
 		end
 		io.stdout:write("\tDownloading " .. k .. "..  ")
-		local txt = internet.readFully(githubGet .. src .. "/master/" .. k)
+		local txt = readFully(githubGet .. src .. "/master/" .. k)
 		if txt == "" then
-			local _, fg = gpu.getColor()
-			gpu.setForeground(0xFF0000)
-			print("NOT FOUND!")
-			print("\tDOWNLOAD ABORTED")
-			gpu.setForeground(fg)
+			print("\x1b[31mNot Found!")
+			print("\tDownload aborted.\x1b[97m")
 			return
 		end
 		local s = fs.open(dest, "w")
 		s:write(txt)
 		s:close()
-		local _, fg = gpu.getColor()
-		gpu.setForeground(0x00FF00)
-		print("OK!")
-		gpu.setForeground(fg)
+		print("\x1b[92mOK!\x1b[97m")
 	end
 	packages[name] = pkg
 	save()
@@ -145,21 +211,21 @@ if args[1] == "help" then
 	print("  apm [-g] <help|install|remove|update|upgrade|list>")
 	print("Commands:")
 	print("  help               : show this help message")
-	print("  install [package]  : install the following package.")
-	print("  remove  [package]  : remove the following package.")
-	print("  update  [package ] : update the following package.")
+	print("  install [packages...]  : install the following packages.")
+	print("  remove  [packages...]  : remove the following packages.")
+	print("  update  [packages...]  : update the following packages.")
 	print("  upgrade            : update all outdated packages")
 	print("  list               : list installed packages")
 	print("Flags:")
 	print("  -g      : shortcut for --global")
-	print("  --global: this flag put packages installing to user path to global user path")
+	print("  --global: this flag change install user path (" .. userPath .. ") to global user path (" .. shared .. ")")
 	return
 end
 
 if args[1] == "list" then
 	print("Package list:")
 	for k, v in pairs(packages) do
-		print("\t- " .. k .. " " .. v.version .. " (rev " .. v.revision ..")")
+		print("    - " .. k .. " " .. v.version .. " (rev. " .. v.revision ..")")
 	end
 	return
 end
@@ -173,14 +239,11 @@ if args[1] == "remove" then
 		for _, i in pairs(toInstall) do
 			if k == i then
 				for f, dir in pairs(v.files) do
-					dir = dir:gsub("{userpath}", ifOr(global, shared, userPath))
+					dir = transformPath(dir)
 					local dest = fs.canonical(dir)
 					io.stdout:write("Removing " .. f .. "..  ")
 					fs.remove(dest)
-					local _, fg = gpu.getColor()
-					gpu.setForeground(0xFF0000)
-					print("REMOVED!")
-					gpu.setForeground(fg)
+					print("\x1b[31mREMOVED!\x1b[97m")
 				end
 				packages[k] = nil
 				save()
@@ -191,7 +254,7 @@ if args[1] == "remove" then
 end
 
 if args[1] == "update" then
-	if not internet then
+	if not hasInternet then
 		io.stderr:write("Internet card required!")
 		return
 	end
@@ -242,7 +305,7 @@ end
 
 if args[1] == "install" then
 	local toInstall = {}
-	if not internet then
+	if not hasInternet then
 		io.stderr:write("Internet card required!")
 		return
 	end
@@ -271,7 +334,7 @@ if args[1] == "install" then
 				if k == i then -- if it's one of the package we want to install
 					local ver = v["_version"] or 1
 					for k, v in pairs(e.dependencies) do
-						if k == "fuchas" then
+						if k == "fuchas" and theOS == "Fuchas" then
 							local fmajor = tonumber(OSDATA.VERSION:sub(1,1))
 							local fminor = tonumber(OSDATA.VERSION:sub(3,3))
 							local fpatch = OSDATA.VERSION:sub(5,5)
@@ -298,7 +361,7 @@ if args[1] == "install" then
 			end
 		end
 	end
-	if isnt then
+	if isnt then -- not present
 		return
 	end
 	print("Package not found: " .. args[2])

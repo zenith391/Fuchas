@@ -11,7 +11,7 @@ tasks.newProcess("csysguard", function()
 			break
 		end
 		win.container:render() -- update
-		os.sleep(1)
+		os.sleep(0.2)
 	end
 end)
 

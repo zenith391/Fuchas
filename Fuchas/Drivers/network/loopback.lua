@@ -30,6 +30,7 @@ function protocol.listenAsync(port, callback)
 			coroutine.yield()
 		end
 	end)
+	return proc.pid
 end
 
 function protocol.getAddress()

@@ -3,6 +3,7 @@
 local protocol = {}
 local event = require("event")
 local listenedPorts = {}
+local modem = component.modem
 
 function protocol.isProtocolAddress(addr)
 	return addr:len() == 36 -- todo: more checks
@@ -51,9 +52,8 @@ function protocol.getAddresses()
 end
 
 function protocol.open(addr, dport)
-	component.modem.open(dport)
+	modem.open(dport)
 	return {
-		modem = component.getPrimary("modem"),
 		rbuf = nil,
 		dest = addr,
 		port = dport,
@@ -62,9 +62,9 @@ function protocol.open(addr, dport)
 		end,
 		write = function(self, ...)
 			if dest == "ffffffff-ffff-ffff-ffff-ffffffffffff" then  -- broadcast address
-				self.modem.broadcast(self.port, ...)
+				modem.broadcast(self.port, ...)
 			else
-				self.modem.send(self.dest, self.port, ...)
+				modem.send(self.dest, self.port, ...)
 			end
 		end,
 		read = function(self)

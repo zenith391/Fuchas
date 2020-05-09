@@ -20,7 +20,6 @@ function mod.newProcess(name, func)
 		exitHandlers = {},
 		events = {},
 		operation = nil, -- the current async operation
-		closeables = {}, -- used for file streams; replaced iwth exitHandlers
 		io = { -- a copy of current parent process's io streams
 			stdout = io.stdout,
 			stderr = io.stderr,
@@ -137,7 +136,7 @@ function mod.scheduler()
 				p.status = "ready"
 				p.timeout = nil
 			end
-			minSleepTime = math.min(minSleepTime, p.timeout - computer.uptime())
+			minSleepTime = math.min(minSleepTime, (p.timeout or computer.uptime()) - computer.uptime())
 		end
 		if p.status == "ready" then
 			p.status = "running"
@@ -163,6 +162,10 @@ function mod.scheduler()
 						mod.unsafeKill(p)
 					end
 				end
+			end
+			if ret == "sleep" then
+				p.status = "sleeping"
+				p.timeout = computer.uptime() + a1
 			end
 			if ret == "pull_event" then
 				if a1 then
@@ -201,9 +204,7 @@ function mod.getCurrentProcess()
 end
 
 function mod.sleep(secs)
-	currentProc.status = "sleeping"
-	currentProc.timeout = computer.uptime() + secs
-	coroutine.yield()
+	coroutine.yield("sleep", secs)
 end
 
 os.sleep = mod.sleep
@@ -240,9 +241,6 @@ function mod.unsafeKill(proc)
 	proc.status = "dead"
 	if require("security").isRegistered(proc.pid) then
 		require("security").revoke(proc.pid)
-	end
-	for k, v in pairs(proc.closeables) do
-		v:close()
 	end
 	for k, v in pairs(proc.exitHandlers) do
 		v()

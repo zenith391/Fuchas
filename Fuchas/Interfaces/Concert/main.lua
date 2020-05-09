@@ -41,7 +41,9 @@ do
 			draw.drawContext(self.context)
 		end
 		comp.listeners["defocus"] = function(name, self, new)
-			startMenu:hide()
+			if startMenu.visible then
+				startMenu:hide()
+			end
 		end
 		comp.listeners["touch"] = function(name, _, x, y, button)
 			if button == 0 then
@@ -110,14 +112,13 @@ local function screenEvent(name, addr, x, y, button, player)
 			v.focused = false
 			if x >= v.x and y >= v.y and x < v.x+v.width and y < v.y+v.height then
 				focusedWin = v
-				v:focus()
-				if not v.undecorated then
+				focusedWin:focus()
+				if not v.undecorated and y == v.y then
 					selectedWin = v
 					wtx = x - selectedWin.x
-					if x == selectedWin.x+selectedWin.width-2 and y == selectedWin.y then
-						--selectedWin:hide()
+					if x == selectedWin.x+selectedWin.width-2 then
+						selectedWin:hide()
 						selectedWin = nil
-						print(selectedWin.title)
 					end
 					break
 				end
@@ -126,11 +127,11 @@ local function screenEvent(name, addr, x, y, button, player)
 	end
 	if name == "drag" then
 		if selectedWin ~= nil then
-			--wins.moveWindow(selectedWin, x, y)
-			selectedWin.x = x - wtx; selectedWin.y = y
-			selectedWin.dirty = true
-			drawBackDesktop()
-			wins.drawDesktop()
+			wins.moveWindow(selectedWin, x-wtx, y)
+			--selectedWin.x = x - wtx; selectedWin.y = y
+			--selectedWin.dirty = true
+			--drawBackDesktop()
+			--wins.drawDesktop()
 		end
 	end
 end

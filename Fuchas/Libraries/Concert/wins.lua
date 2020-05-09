@@ -2,6 +2,7 @@ local lib = {}
 local ui = require("OCX/OCUI")
 local draw = require("OCX/OCDraw")
 local gpu = require("driver").gpu
+local tasks = require("tasks")
 local windows = {}
 local desktop = {}
 local config = {
@@ -34,29 +35,58 @@ function lib.newWindow(width, height, title)
 		focused = false,
 		undecorated = false,
 		visible = false,
+		allocated = true,
 		container = ui.container(),
-		id = #windows+1,
 		show = function(self)
-			self.deskId = table.insert(desktop, 1, self)
+			table.insert(desktop, 1, self)
 			self.visible = true
 			self.dirty = true
 			lib.drawDesktop()
 		end,
 		hide = function(self)
 			self.visible = false
-			self.titleBar:dispose(true)
-			self.container:dispose(true)
 			gpu.setColor(0xAAAAAA)
 			gpu.fill(self.x, self.y, self.width, self.height)
-			--table.remove(desktop, self.deskId)
 			lib.drawDesktop()
 		end,
+		dispose = function(self)
+			local idx = 0
+			for k, v in pairs(desktop) do
+				if v == self then
+					idx = k
+				end
+			end
+			if idx == 0 then
+				self.allocated = false
+				return
+			end
+			table.remove(desktop, idx)
+			self.titleBar:dispose(true)
+			self.container:dispose(true)
+			self.allocated = false
+			self.visible = false
+		end,
 		focus = function(self)
-			
+			local idx = 0
+			for k, v in pairs(desktop) do
+				if v == self then idx = k end
+			end
+			if idx == 0 then
+				error("window not displayed")
+			end
+			table.remove(desktop, idx)
+			table.insert(desktop, 1, self)
+			self.dirty = true
+			lib.drawDesktop()
 		end
 	}
 	obj.titleBar = titleBar(obj)
-	windows[obj.id] = obj
+	table.insert(windows, obj)
+	table.insert(tasks.getCurrentProcess().exitHandlers, function()
+		if obj.allocated then
+			obj:dispose()
+		end
+	end)
 	return obj
 end
 
@@ -82,31 +112,42 @@ function lib.moveWindow(win, x, y)
 	local rw, rh = gpu.getResolution()
 	
 	local tx, ty = x - win.x, y - win.y
-	if ox+win.width+1 > rw or oy+win.height+1 > rh then
+	if ox+win.width+1 > rw or oy+win.height+1 > rh or ox <= 0 or oy <= 0 then
 		win.x = x
 		win.y = y
 		lib.drawWindow(win)
 	else
 		--gpu.setForeground(0x000000)
 		--gpu.set(1, 1, tostring(ox))
-		gpu.copy(ox, oy, win.width+1, win.height+1, tx, ty)
+		gpu.copy(ox, oy, win.width, win.height, tx, ty)
 	end
 	gpu.setColor(0xAAAAAA)
 	if tx > 0 then
 		gpu.fill(ox, oy, tx, win.height+1)
 	else
-		gpu.fill(ox+win.width, oy, -tx, win.height+1)
+		gpu.fill(ox+win.width-1, oy, -tx+1, win.height+1)
 	end
 	if ty > 0 then
-		gpu.fill(ox, oy-1, win.width, ty)
+		gpu.fill(ox, oy, win.width, ty)
 	else
 		gpu.fill(ox, oy+win.height, win.width+1, -ty)
 	end
 	win.x = x
 	win.y = y
+	local cy = win.y+1
+	local ch = win.height-1
+	if win.undecorated then
+		cy = win.y
+		ch = win.height
+	end
+	win.container.x = win.x
+	win.container.y = cy
 end
 
 function lib.drawWindow(win)
+	if not win.allocated then
+		return
+	end
 	if not win.undecorated then
 		win.titleBar.x = win.x
 		win.titleBar.y = win.y

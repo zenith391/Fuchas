@@ -9,7 +9,6 @@ function lib.closeContext(ctx)
 	if not dc[ctx] then
 		return
 	end
-	lib.drawContext(ctx)
 	dc[ctx] = nil
 end
 
