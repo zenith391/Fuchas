@@ -92,7 +92,7 @@ end
 if not fs.exists(shared .. "/apm/sources.lon") then
 	repoList = { -- Default sources
 		"zenith391/Fuchas",
-		"zenith391/zenith391-Pipboys"
+		"zenith391/OpenComputers-Packages"
 	}
 	local s = fs.open(shared .. "/apm/sources.lon", "w")
 	s:write(serialize(repoList))
@@ -136,7 +136,7 @@ local function searchSource(source)
 		stream:write(serialize(lon))
 		stream:close()
 	else
-		local stream = io.open(tmpPah .. "/apm/" .. source .. ".lon")
+		local stream = io.open(tmpPath .. "/apm/" .. source .. ".lon")
 		txt = stream:read("a")
 		stream:close()
 	end
@@ -151,23 +151,23 @@ local function searchSource(source)
 end
 
 local function transformPath(path)
-	path = path:gsub("{userpath}", ifOr(global, shared, userPath))
+	path = path:gsub("{userpath}", (global and shared) or userPath)
 	if theOS == "Fuchas"  then
-		path = path:sub("{lib}", "A:/Users/Shared/Libraries")
-		path = path:sub("{bin}", "A:/Users/Shared/Binaries")
+		path = path:gsub("{lib}", "A:/Users/Shared/Libraries")
+		path = path:gsub("{bin}", "A:/Users/Shared/Binaries")
 	else
-		path = path:sub("{lib}", "/usr/lib")
-		path = path:sub("{bin}", "/usr/bin")
+		path = path:gsub("{lib}", "/usr/lib")
+		path = path:gsub("{bin}", "/usr/bin")
 	end
 	return path
 end
 
 local function downloadPackage(src, name, pkg, ver)
-	local arch = computer.getArchitecture()
+	local arch = (computer or package.loaded.computer).getArchitecture()
 	local files = pkg.files
 	if pkg.archFiles then -- if have architecture-dependent files
 		if pkg.archFiles[arch] then
-			print("Selected package architecture \"" .. arch .. "\"")
+			print("Selected package architecture: " .. arch)
 			for k, v in pairs(pkg.archFiles[arch]) do
 				for l, w in pairs(pkg.files) do
 					if v == w then -- same target
@@ -180,7 +180,7 @@ local function downloadPackage(src, name, pkg, ver)
 	end
 	if pkg.os then -- if have os-dependent files
 		if pkg.os[theOS] then
-			print("Selected package OS \"" .. theOS .. "\"")
+			print("Selected package OS: " .. theOS)
 			files = pkg.os[theOS].files
 		end
 	end
@@ -195,31 +195,21 @@ local function downloadPackage(src, name, pkg, ver)
 		if txt == "" then
 			print("\x1b[31mNot Found!")
 			print("\tDownload aborted.\x1b[97m")
+			if theOS == "OpenOS" then -- OpenOS's ANSI doesn't support bright color for some reasons
+				io.stdout:write("\x1b[37m")
+			end
 			return
 		end
 		local s = fs.open(dest, "w")
 		s:write(txt)
 		s:close()
-		print("\x1b[92mOK!\x1b[97m")
+		print("\x1b[32mOK!\x1b[97m")
+		if theOS == "OpenOS" then -- OpenOS's ANSI doesn't support bright color for some reasons
+			io.stdout:write("\x1b[37m")
+		end
 	end
 	packages[name] = pkg
 	save()
-end
-
-if args[1] == "help" then
-	print("Usage:")
-	print("  apm [-g] <help|install|remove|update|upgrade|list>")
-	print("Commands:")
-	print("  help               : show this help message")
-	print("  install [packages...]  : install the following packages.")
-	print("  remove  [packages...]  : remove the following packages.")
-	print("  update  [packages...]  : update the following packages.")
-	print("  upgrade            : update all outdated packages")
-	print("  list               : list installed packages")
-	print("Flags:")
-	print("  -g      : shortcut for --global")
-	print("  --global: this flag change install user path (" .. userPath .. ") to global user path (" .. shared .. ")")
-	return
 end
 
 if args[1] == "list" then
@@ -303,6 +293,40 @@ if args[1] == "update" then
 	return
 end
 
+if args[1] == "info" then
+	if not hasInternet then
+		io.stderr:write("Internet card required!")
+		return
+	end
+	if #args < 2 then
+		args[1] = "help"
+	else
+		local pkg = args[2]
+		print("Searching package..")
+		local packageList = {}
+		for k, v in pairs(repoList) do
+			packageList[v] = searchSource(v)
+		end
+		local isFound = false
+		for src, v in pairs(packageList) do
+			for k, e in pairs(v) do
+				if k == pkg then
+					print(k .. ":")
+					print("    Name: " .. e.name)
+					print("    Description: " .. e.description)
+					print("    Authors: " .. e.authors)
+					isFound = true
+					break
+				end
+			end
+		end
+		if not isFound then
+			print("Package not found: " .. pkg)
+		end
+		return
+	end
+end
+
 if args[1] == "install" then
 	local toInstall = {}
 	if not hasInternet then
@@ -311,7 +335,6 @@ if args[1] == "install" then
 	end
 	for i=2,#args do
 		table.insert(toInstall, args[i])
-
 	end
 	for k, _ in pairs(packages) do
 		for _, i in pairs(toInstall) do
@@ -365,6 +388,23 @@ if args[1] == "install" then
 		return
 	end
 	print("Package not found: " .. args[2])
+	return
+end
+
+if args[1] == "help" then
+	print("Usage:")
+	print("  apm [-g] <help|install|remove|update|upgrade|list>")
+	print("Commands:")
+	print("  help                 : show this help message")
+	print("  install [packages...]: install the following packages.")
+	print("  remove  [packages...]: remove the following packages.")
+	print("  update  [packages...]: update the following packages.")
+	print("  info    [package]    : display info about the following package")
+	print("  upgrade              : update all outdated packages")
+	print("  list                 : list installed packages")
+	print("Flags:")
+	print("  -g      : shortcut for --global")
+	print("  --global: this flag change install user path (" .. userPath .. ") to global user path (" .. shared .. ")")
 	return
 end
 
