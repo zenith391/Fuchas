@@ -32,10 +32,8 @@ jobs:
           find Fuchas Users/Shared .efi | cpio -oHbin > "release.cpio"
           cd ..
       - name: Upload build
-        run: |
-          git add release.cpio
-          git add .efi/fuchas.efi2
-          git config --global user.email "$INPUT_COMMIT_USER_EMAIL"
-          git config --global user.name "$INPUT_COMMIT_USER_NAME"
-          git commit -m "$INPUT_COMMIT_MESSAGE" --author="$INPUT_COMMIT_AUTHOR"
-          git push origin
+        uses: stefanzweifel/git-auto-commit-action@v4.2.0
+        with:
+          commit_message: Build latest dev release
+          branch: master
+          repository: .
