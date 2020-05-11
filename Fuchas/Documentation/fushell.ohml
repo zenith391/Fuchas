@@ -1,0 +1,14 @@
+<ohml version="1.03">
+	<h1>Fuchas Documentation - Fushell</h1>
+	<br></br>
+	<text>Fushell is the default interface for Fuchas, it is mostly inspired of MS-DOS</text>
+	<text>The name is also very obvious: Fuchas Shell => FuShell</text>
+	<text>Here's a non-exhaustive list of changes between *NIX-like shells and Fuchas shell:</text>
+	<text>"ls"   => "dir"</text>
+	<text>"ps"   => "pl"</text>
+	<text>"oppm" => "apm"</text>
+	<text>"rm"   => "delete"</text>
+	<text>"cat"  => "type"</text>
+	<br></br>
+	<text>Return to <link href="home.ohml">Home</link></text>
+</ohml>

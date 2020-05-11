@@ -384,12 +384,33 @@ function lib.read(options)
 	local changeVis = false
 	local history = options.history or globalHistory
 	local event = require("event")
+	local historyIndex = #history+1
 	displayCursor()
 	while c ~= '\r' do -- '\r' == Enter
-		local a, b, d = event.pullFiltered(1, readEventFilter)
+		local a, b, d, code = event.pullFiltered(1, readEventFilter)
 		local sp = string.split(inp, " ")
 		if a == "key_down" then
-			if d ~= 0 then
+			if code == 200 then -- up arrow
+				if historyIndex > 1 then
+					historyIndex = historyIndex - 1
+					hideCursor()
+					cursor.x = cursor.x - string.len(inp)
+					io.write((" "):rep(string.len(inp)))
+					cursor.x = cursor.x - string.len(inp)
+					io.write(history[historyIndex])
+					inp = history[historyIndex]
+					displayCursor()
+				end
+			elseif code == 208 then -- down arrow
+				if historyIndex < #history then
+					historyIndex = historyIndex + 1
+					hideCursor()
+					cursor.x = cursor.x - string.len(inp)
+					io.write(history[historyIndex])
+					inp = history[historyIndex]
+					displayCursor()
+				end
+			elseif d ~= 0 then
 				c = string.char(d)
 				if c ~= '\r' then
 					if d == 8 then -- backspace
@@ -461,6 +482,7 @@ function lib.read(options)
 			curVisible = true
 		end
 	end
+	table.insert(history, inp)
 	return inp
 end
 
