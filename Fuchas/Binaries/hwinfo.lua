@@ -1,6 +1,11 @@
 print("Software Info:")
 print("\tUsed Memory: " .. math.floor((computer.totalMemory()-computer.freeMemory())/1024) .. "/" .. math.floor(computer.totalMemory()/1024) .. " KiB")
-print("\tUsing OEFI? " .. (computer.supportsOEFI() and "Yes") or "No")
+io.stdout:write("\tUsing OEFI? ")
+if computer.supportsOEFI() then
+	print("Yes")
+else
+	print("No")
+end
 if computer.supportsOEFI() then
 	local oefi = require("oefi")
 	print("\tOEFI Version: " .. oefi.getAPIVersion())

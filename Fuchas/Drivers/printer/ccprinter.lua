@@ -2,11 +2,11 @@ local spec = {}
 local cp = ...
 
 function spec.isCompatible(address)
-	return cp.proxy(address).type == "adapter" -- TODO: check if it's CC printer?
+	return cp.proxy(address).type == "adapter" and cp.proxy(address).newPage
 end
 
 function spec.getName()
-	return "ComputerCraft Printer Driver 1.0"
+	return "CC Printer w/ Adapter v1.0"
 end
 
 function spec.getRank()

@@ -82,6 +82,7 @@ if not fs.exists(shared .. "/apm/packages.lon") then
 		}
 	}
 	local s = io.open(shared .. "/apm/packages.lon", "w")
+	print(serialize(packages))
 	s:write(serialize(packages))
 	s:close()
 else

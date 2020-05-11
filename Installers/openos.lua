@@ -215,7 +215,7 @@ local function drawStage()
 		-- Hash using SHA3-512
 		local sha3 = dofile(baseDir .. "Fuchas/Libraries/sha3.min.lua")
 		local bin = sha3.bin
-		local hash = bin.stohex(sha3.sha3.sha512(pwd))
+		local hash = bin.stohex(sha3.sha3.sha512("$@^PO!°]" .. pwd))
 		local handle = io.open(baseDir .. "Users/admin/account.lon", "w")
 		handle:write([[
 {
