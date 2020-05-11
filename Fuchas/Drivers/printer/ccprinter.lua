@@ -2,7 +2,7 @@ local spec = {}
 local cp = ...
 
 function spec.isCompatible(address)
-	return cp.proxy(address).type == "adapter" and cp.proxy(address).newPage
+	return cp.proxy(address).type == "printer" and cp.proxy(address).newPage
 end
 
 function spec.getName()
@@ -19,15 +19,12 @@ function spec.new(address)
 	printer = cp.proxy(address)
 
 	function drv.getStatistics()
+		local pw, ph = printer.getPageSize()
 		return {
-			blackInkLevel = printer.getBlackInkLevel(),
-			colorInkLevel = printer.getColorInkLevel(),
-			inkLevel = printer.getBlackInkLevel() + printer.getColorInkLevel(),
-			maxBlackInkLevel = 4000,
-			maxColorInkLevel = 4000,
-			maxInkLevel = 8000,
 			paperLevel = printer.getPaperLevel(),
-			maxPaperLevel = 256
+			blackInkLevel = printer.getInkLevel(),
+			pageWidth = pw,
+			pageHeight = ph
 		}
 	end
 
@@ -35,30 +32,16 @@ function spec.new(address)
 		if out == nil then
 			out = {
 				write = function(self, str)
-					local ln = table.pack(string.find(str, "\n", 1, true))
-					local last = 1
-					for k, v in pairs(ln) do
-						if k ~= "n" then
-							if outbuf ~= nil then
-								printer.writeln(outbuf)
-								outbuf = nil
-							end
-							printer.writeln(string.sub(last, v))
-							last = v+1
-						end
-					end
-					if last < str:len() then
-						outbuf = str:sub(last, str:len())
-					end
+					printer.write(str)
 				end,
 				flush = function(self)
 					if outbuf ~= nil then
-						printer.writeln(outbuf)
+						printer.write(outbuf)
 					end
 				end,
 				print = function(self)
 					self.flush()
-					return printer.print()
+					return printer.endPage()
 				end
 			}
 		end

@@ -16,6 +16,10 @@ local devRelease    = false
 local downloading   = ""
 local baseDir = os.getenv("BASE_DIR") or "/"
 
+if baseDir:sub(#baseDir, #baseDir) then
+	error("You forgot the '/' at the end of the 'BASE_DIR' environment variable!")
+end
+
 -- Adorable-Catgirl's uncpio
 local function ext(stream)
 	local dent = {
