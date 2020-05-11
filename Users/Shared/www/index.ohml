@@ -1,5 +1,5 @@
 <ohml version="1.02">
-	<text>
+	<text bgcolor="2d2d2d">
 		Fuchas | 
 		Home | 
 		<link href="info.ohml">Info</link> | 
@@ -38,6 +38,7 @@
 	</text>
 	<br></br>
 	<canvas id="canvas" width=32 height=8></canvas>
+	<notavailable feature="Lua 5.3">Oh? You use Lua 5.2!</notavailable>
 	<script lang="application/lua">
 		--<![CDATA[
 		-- CDATA is required for multi-line and some characters

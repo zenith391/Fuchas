@@ -38,7 +38,7 @@ function protocol.getAddress()
 end
 
 function protocol.getAddresses()
-	return {"localhost", "127.0.0.1", "::1", 0.0, "0.0:0.0"}
+	return {"localhost", "127.0.0.1", "::1", 0.0, "0.0", "0.0:0.0"}
 end
 
 function protocol.open(addr, dport)

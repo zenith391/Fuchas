@@ -18,15 +18,13 @@ if not args[1] then
 	args[1] = "file:///A:/Users/Shared/www/index.ohml"
 end
 
-local currentPath = args[1]
-
 local function render()
 	gpu.setColor(0x000000)
 	gpu.setForeground(0xFFFFFF)
 	local fore = 0xFFFFFF
 	gpu.fill(1, 1, width, height)
 	gpu.drawText(width/2-4, 1, "MineScape")
-	gpu.drawText(math.floor(width/2-(currentPath:len()/2)), 2, currentPath)
+	gpu.drawText(math.floor(width/2-(geeko.currentPath:len()/2)), 2, geeko.currentPath)
 	gpu.drawText(1, height, "Ctrl+C: Exit")
 	gpu.drawText(14, height, "| Ctrl+T: Change URL")
 	for _, obj in pairs(geeko.objects) do

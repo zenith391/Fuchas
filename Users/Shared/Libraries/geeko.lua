@@ -6,7 +6,8 @@
 local geeko = {
 	-- The OS-independent filesystem API
 	fs = nil,
-	version = "0.2.1", -- Geeko version
+	mt = nil, -- multi task
+	version = "0.2.2", -- Geeko version
 	browser = {"Unknown (name)", "Unknown (publisher or developer)", "1.0"},
 	thread = nil,
 	renderCallback = nil,
@@ -31,6 +32,32 @@ local function fsLuaIO()
 		end,
 		parent = function(path)
 			return require("filesystem").path(path)
+		end
+	}
+end
+
+local function fuchasMT()
+	return {
+		new = function(name, func)
+			local proc = require("tasks").newProcess(name, func)
+			return {
+				kill = function()
+					proc:kill()
+				end
+			}
+		end
+	}
+end
+
+local function openOSMT()
+	return {
+		new = function(name, func)
+			local th = require("thread").create(func)
+			return {
+				kill = function()
+					th:kill()
+				end
+			}
 		end
 	}
 end
@@ -158,7 +185,7 @@ local function loadScripts(tag)
 			if not chunk then
 				log("geeko", "error", "could not load web script")
 			end
-			local process = require("tasks").newProcess("luaweb-script-" .. scriptId, chunk) -- TODO make it cross-compatible
+			local process = geeko.mt.new("luaweb-script-" .. scriptId, chunk)
 			table.insert(geeko.runningScripts, process)
 			scriptId = scriptId + 1
 		else
@@ -226,9 +253,6 @@ function geeko.read(tag)
 					end
 				end
 			else
-				if v.content:sub(1, 2) == "--" then
-					log("geeko", "debug", v.parent.name)
-				end
 				table.insert(geeko.objects, {
 					type = "text",
 					x = cx,
@@ -280,6 +304,172 @@ function geeko.url(link)
 	}
 end
 
+
+local function toCharArray(str)
+	local t = {}
+	for i=1, #str do
+		table.insert(t, str:sub(i, i))
+	end
+	return t
+end
+
+--- Tags are tables as follow:
+---   name: Name
+---   attr: Attributes
+---   parent: Parent
+---   childrens: Childrens
+--- What this function return is a root tag (just a tag with no name, no attribute and no parent, that have all tags (not nested ones) as childrens)
+function geeko.parseXML(str)
+	local chars = toCharArray(str)
+    local line = 1
+    local rootTag = {
+		name = nil,
+		attr = nil,
+		parent = nil,
+		childrens = {}
+	}
+    local ok, err = pcall(function()
+	local currentTag = rootTag
+	
+	local i = 1
+	local _st = false -- is parsing tag name? (<ohml>)
+	local _sta = false -- is parsing attributes?
+	local _te = false -- is tag a ending tag? (</ohml>)
+	local _tn = "" -- tag name
+	local _otn = "" -- old tag name
+	local _ott = "" -- old parsing text
+	local _tap = "" -- tag attribute propety (name)
+	local _tav = "" -- tag attribute value
+	local _tt = "" -- currently parsing text
+	local _ttcdata = false -- is the current parsing text in a CDATA section? (<![CDATA ]]>)
+	local _itap = false -- is parsing attribute property?
+	local _ta = {} -- currently parsing attributes
+	local _ota = {} -- old parsing attributes
+	while i < #chars do
+		local ch = chars[i]
+		if ch == '/' and not _sta and _tt == "" then
+			i = i + 1
+			ch = chars[i] -- skip "/"
+			_te = true
+		end
+		if ch == '\n' then
+			line = line + 1
+		end
+		if _sta then
+			if _itap then
+				if ch == '=' then
+					_itap = false
+				elseif ch ~= " " then
+					_tap = _tap .. ch
+				end
+			else
+				if ch ~= ' ' and ch ~= '>' then
+					_tav = _tav .. ch
+				end
+			end
+		end
+		if _st then
+			if ch == '>' then
+				_st = false
+				_sta = false
+				if _te then
+					currentTag = currentTag.parent
+					_te = false
+				else
+					if _tap ~= "" then
+						local f, err = load("return " .. _tav)
+						if not f then
+							error(err)
+						end
+						_ta[_tap] = load("return " .. _tav)() -- value conversion, insecure
+						_tap = ""
+						_tav = ""
+					end
+					local tag = {
+						name = _tn,
+						attr = _ta,
+						childrens = {},
+						parent = currentTag
+					}
+					table.insert(currentTag.childrens, tag)
+					currentTag = tag
+				end
+			elseif ch == ' ' and not _te then
+				if _tap ~= "" then
+					local f, err = load("return " .. _tav)
+					if not f then
+						error(err)
+					end
+					_ta[_tap] = load("return " .. _tav)() -- value conversion, insecure
+				end
+				_tap = ""
+				_tav = ""
+				_sta = true
+				_itap = true
+			elseif not _sta then
+				_tn = _tn .. ch
+				if string.sub(_tn, string.len(_tn)-7) == "![CDATA[" then -- minus length of <![CDATA[
+					_ttcdata = true
+					table.remove(currentTag.childrens)
+					_st = false
+					_sta = false
+					_te = false
+					_tt = _ott
+					_tn = _otn
+					_ta = _ota
+				end
+			end
+		end
+		if ch == '<' and not _ttcdata then
+			if _tt ~= "" then
+				local textTag = {
+					name = "#text",
+					content = _tt,
+					attr = {},
+					childrens = {},
+					parent = currentTag
+				}
+				table.insert(currentTag.childrens, textTag)
+			end
+			_st = true
+			_sta = false
+			_te = false
+			_otn = _tn
+			_tn = ""
+			_ott = _tt
+			_tt = ""
+			_ota = _ta
+			_ta = {}
+		end
+		if not _st then
+			if ch ~= "\r" and ch ~= "\n" and ch ~= "\t" then
+				_tt = _tt .. ch
+			else
+				if _ttcdata then
+					if string.sub(_tt, string.len(_tt)-2) == "]]>" then -- minus length of ]]>
+						_tt = string.sub(_tt, 1, string.len(_tt)-3)
+						_ttcdata = false
+					else
+						_tt = _tt .. ch
+					end
+				end
+			end
+			if _tt:sub(1, 1) == ">" then
+				_tt = ""
+			end
+		end
+		i = i + 1
+	end
+	if _ttcdata then
+		error("EOF in CDATA section, expected ]]>")
+	end
+    end) -- end of pcall
+    if not ok then
+        error("error at line " .. tostring(line) .. ": " .. tostring(err))
+    end
+	return rootTag
+end
+
 function geeko.go(link)
 	local schemeEnd = link:find("://", 1, true)
 	local url, text = geeko.url(geeko.currentPath), ""
@@ -300,7 +490,7 @@ function geeko.go(link)
 		text = geeko.fs.readAll(geeko.url(geeko.currentPath).path:sub(2))
 	end
 
-	parsed = require("xml").parse(text) -- only works on Fuchas, to fix
+	parsed = geeko.parseXML(text) -- only works on Fuchas, to fix
 	cx = 1
 	cy = 1
 	geeko.objects = {}
@@ -318,6 +508,11 @@ end
 -- OS init
 if _OSDATA or _OSVERSION then -- Fuchas or OpenOS
 	geeko.fs = fuchasIO()
+	if _OSDATA then
+		geeko.mt = fuchasMT()
+	else
+		geeko.mt = openOSMT()
+	end
 elseif rednet then -- ComputerCraft
 	geeko.fs = ccIO()
 end

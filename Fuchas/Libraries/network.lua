@@ -1,6 +1,7 @@
 local net = {}
 local fs = require("filesystem")
 local sec = require("security")
+local cp = ...
 
 local protocols = nil
 
@@ -66,7 +67,7 @@ function net.protocolList()
 	if protocols == nil then
 		protocols = {}
 		for k, v in fs.list("A:/Fuchas/Drivers/network/") do -- network drivers are specific and aren't compatible with driver API
-			local id, lib = dofile("A:/Fuchas/Drivers/network/" .. k)
+			local id, lib = dofile("A:/Fuchas/Drivers/network/" .. k, cp)
 			protocols[id] = lib
 		end
 	end

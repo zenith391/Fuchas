@@ -190,6 +190,9 @@ local function downloadPackage(src, name, pkg, ver)
 		if ver == 1 then
 			dest = fs.canonical(v) .. "/" .. k
 		end
+		if not fs.exists(fs.path(v)) then
+			fs.makeDirectory(fs.path(v))
+		end
 		io.stdout:write("\tDownloading " .. k .. "..  ")
 		local txt = readFully(githubGet .. src .. "/master/" .. k)
 		if txt == "" then

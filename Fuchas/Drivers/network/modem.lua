@@ -3,6 +3,7 @@
 local protocol = {}
 local event = require("event")
 local listenedPorts = {}
+local component = ...
 local modem = component.modem
 
 function protocol.isProtocolAddress(addr)
@@ -28,7 +29,6 @@ function protocol.listenAsync(port, callback)
 end
 
 function protocol.listen(port)
-	local modem = component.modem
 	local sock = {}
 	modem.open(port)
 	while true do
@@ -43,11 +43,22 @@ function protocol.listen(port)
 	return sock
 end
 
-function protocol.getAddress()
-	return component.list("modem")()
+function protocol.getAddress() -- the public address
+	return modem.address
 end
 
-function protocol.getAddresses()
+function protocol.setComponentAddress(address)
+	if component.type(address) ~= "modem" then
+		error("invalid component")
+	end
+	modem = component.proxy(address)
+end
+
+function protocol.getComponentAddress()
+	return modem.address
+end
+
+function protocol.getAddresses() -- public addresses
 	return {protocol.getAddress()}
 end
 

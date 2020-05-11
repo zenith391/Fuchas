@@ -26,7 +26,7 @@ if path == nil then
 end
 
 local libs = {
-	component = require("stardust/component"),
+	component = require("component").unrestricted,
 	filesystem = require("filesystem"), -- no porting necessary.. yet
 	colors = require("stardust/colors"),
 	rc = require("stardust/rc"),
