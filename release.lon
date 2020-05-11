@@ -1,5 +1,5 @@
 {
-	version = "0.6.0",
+	version = "0.6.1",
 	changelog = [[
 		0.6.1:
 		+ Total UAC rework, based on user keys and is now per-process.

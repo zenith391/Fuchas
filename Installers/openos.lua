@@ -12,7 +12,7 @@ local selected      = 2
 local maxSelect     = 2
 local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
-local repoURLDev    = "https://raw.githubusercontent.com/zenith391/Fuchas/dev/"
+local devRelease    = false
 local downloading   = ""
 
 -- Adorable-Catgirl's uncpio
@@ -237,7 +237,7 @@ end
 
 local function install()
 	local tmpCpio = io.open("/fuchas.cpio", "w")
-	local ok, err = tmpCpio:write(download(repoURL .. "release.cpio"))
+	local ok, err = tmpCpio:write(download(repoURL .. ((devRelease and "release_dev.cpio") or "release.cpio")))
 	if not ok then
 		error("Could not download package: " .. err)
 	end
@@ -260,7 +260,7 @@ local doErase = false
 local function process()
 	if stage == 2 then
 		if selected == 2 then
-			repoURL = repoURLDev
+			devRelease = true
 		end
 		selected = 1
 		stage = 3

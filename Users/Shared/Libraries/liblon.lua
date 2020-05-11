@@ -14,6 +14,7 @@ function lib.loadlon(obj)
 	end
 	return tab()
 end
+lib.unserialize = lib.loadlon
 
 local function formatVal(v)
 	if type(v) == "string" then
@@ -55,5 +56,6 @@ function lib.sertable(tab, depth, pretty)
 	str = str .. newLine .. ((pretty and string.rep("\t", depth-1)) or "") .. "}"
 	return str
 end
+lib.serialize = lib.sertable
 
 return lib
