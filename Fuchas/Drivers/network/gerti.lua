@@ -286,23 +286,6 @@ function GERTi.send(dest, data)
 		transInfo(nodes[dest]["add"], nodes[dest]["port"], "Data", data, -1, 0, iAdd)
 	end
 end
-function GERTi.getConnections()
-	local tempTable = {}
-	for key, value in pairs(connections) do
-		tempTable[key] = {}
-		tempTable[key]["origin"] = value["origin"]
-		tempTable[key]["destination"] = value["dest"]
-		tempTable[key]["ID"] = value["ID"]
-		tempTable[key]["nextHop"] = value["nextHop"]
-		tempTable[key]["port"] = value["port"]
-		tempTable[key]["order"] = value["order"]
-	end
-	return tempTable
-end
-
-function GERTi.getNeighbors()
-	return nodes
-end
 
 function protocol.getAddress()
 	return iAdd
@@ -313,6 +296,8 @@ function protocol.getAddresses()
 end
 
 function protocol.open(addr, port)
+	if addr == "4095.4095:4095.4095" then -- TODO: open broadcast socket
+	end
 	return GERTi.openSocket(addr, false, port)
 end
 
