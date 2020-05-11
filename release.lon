@@ -11,6 +11,7 @@
 		+ Support for ANSI colors (try "type Fuchas/ansi_test.txt")
 		+ "Fushell" now supports command piping (e.g.: "dir |more")
 		+ Optimized scheduler: Fuchas now consumes less CPU time
+		+ Command history
 		0.6.0:
 		+ Shell autocompletion
 		+ OS arguments

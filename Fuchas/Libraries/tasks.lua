@@ -117,7 +117,7 @@ function mod.scheduler()
 			p.func = nil
 		end
 		if coroutine.status(p.thread) == "dead" then -- if it died for some unhandled reason
-			mod.unsafeKill(p)
+			mod.unsafeKill(p) -- no need to safe kill, it's already dead
 		end
 		if p.status == "wait_signal" then
 			if lastEvent ~= nil then

@@ -107,6 +107,31 @@ function string.endsWith(src, s)
 	return (string.sub(src, src:len()-s:len()+1, src:len()) == s)
 end
 
+function string.trim(s)
+	-- trailing spaces
+	local ogs = s
+	for i=1, #s do
+		local c = ogs:sub(i, i)
+		if c == " " then
+			s = s:sub(2, #s)
+		else
+			break
+		end
+	end
+
+	-- ending spaces
+	ogs = s
+	for i=#s, 1, -1 do
+		local c = s:sub(i, i)
+		if c == " " then
+			s = s:sub(1, #s-1)
+		else
+			break
+		end
+	end
+	return s
+end
+
 function string.split(str, sep)
 	if sep == nil then
 		sep = "%s"

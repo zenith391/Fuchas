@@ -291,6 +291,7 @@ function lib.parseCL(cl)
 	local commands = {}
 	for i=1, #strs do
 		local args = {}
+		strs[i] = string.trim(strs[i])
 		local ca = string.toCharArray(strs[i])
 		local istr = false
 		local arg = ""
