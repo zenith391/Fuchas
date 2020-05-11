@@ -212,7 +212,7 @@ local function drawStage()
 		filesystem.makeDirectory("/Users/admin/")
 
 		-- Hash using SHA3-512
-		local sha3 = dofile("/Fuchas/Libraries/sha3.min")
+		local sha3 = dofile("/Fuchas/Libraries/sha3.min.lua")
 		local bin = sha3.bin
 		local hash = bin.stohex(sha3.sha3.sha512(input))
 		local handle = io.open("/Users/" .. uname .. "/account.lon", "w")
