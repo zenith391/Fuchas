@@ -14,6 +14,7 @@ local run           = true
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local devRelease    = false
 local downloading   = ""
+local baseDir = os.getenv("BASE_DIR") or "/"
 
 -- Adorable-Catgirl's uncpio
 local function ext(stream)
@@ -41,9 +42,9 @@ local function ext(stream)
 	local function fwrite()
 		local dir = dent.name:match("(.+)/.*%.?.+")
 		if (dir) then
-			filesystem.makeDirectory("/" .. dir)
+			filesystem.makeDirectory(baseDir .. dir)
 		end
-		local hand = io.open("/" .. dent.name, "w")
+		local hand = io.open(baseDir .. dent.name, "w")
 		hand:write(stream:read(dent.filesize))
 		hand:close()
 	end
@@ -209,13 +210,13 @@ local function drawStage()
 			pwchar = '*'
 		})
 		pwd = pwd:sub(1, pwd:len() - 1) -- remove \n
-		filesystem.makeDirectory("/Users/admin/")
+		filesystem.makeDirectory(baseDir .. "Users/admin/")
 
 		-- Hash using SHA3-512
-		local sha3 = dofile("/Fuchas/Libraries/sha3.min.lua")
+		local sha3 = dofile(baseDir .. "Fuchas/Libraries/sha3.min.lua")
 		local bin = sha3.bin
-		local hash = bin.stohex(sha3.sha3.sha512(input))
-		local handle = io.open("/Users/" .. uname .. "/account.lon", "w")
+		local hash = bin.stohex(sha3.sha3.sha512(pwd))
+		local handle = io.open(baseDir .. "Users/" .. uname .. "/account.lon", "w")
 		handle:write([[
 {
 	name = "]] .. uname .. [[",
@@ -246,7 +247,7 @@ local function install()
 	ext(tmpCpio)
 	tmpCpio:close()
 	filesystem.remove("/fuchas.cpio")
-	local buf, err = io.open("/init.lua", "w")
+	local buf, err = io.open(baseDir .. "init.lua", "w")
 	if buf == nil then
 		error(err)
 	end
