@@ -31,7 +31,6 @@ jobs:
           cd ../..
           find Fuchas Users/Shared .efi | cpio -oHbin > "release.cpio"
           cd ..
-          mv dest/release.cpio .
       - name: Upload build
         run: |
           git add release.cpio
