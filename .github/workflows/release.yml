@@ -35,5 +35,7 @@ jobs:
         run: |
           git add release.cpio
           git add .efi/fuchas.efi2
-          git -c user.name="$INPUT_COMMIT_USER_NAME" -c user.email="$INPUT_COMMIT_USER_EMAIL" commit -m "$INPUT_COMMIT_MESSAGE" --author="$INPUT_COMMIT_AUTHOR" ${INPUT_COMMIT_OPTIONS:+"${INPUT_COMMIT_OPTIONS_ARRAY[@]}"};
+          git config --global user.email "$INPUT_COMMIT_USER_EMAIL"
+          git config --global user.name "$INPUT_COMMIT_USER_NAME"
+          git commit -m "$INPUT_COMMIT_MESSAGE" --author="$INPUT_COMMIT_AUTHOR"
           git push origin
