@@ -15,9 +15,15 @@ local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master
 local devRelease    = false
 local downloading   = ""
 local baseDir = os.getenv("BASE_DIR") or "/"
+local cpioBaseDir = os.getenv("CPIO_BASE_DIR") or "/" -- for fast write speeds
 
-if baseDir:sub(#baseDir, #baseDir) ~= "/" then
+if baseDir:sub(-1) ~= "/" then
 	error("You forgot the '/' at the end of the 'BASE_DIR' environment variable!")
+end
+
+local node = filesystem.findNode(cpioBaseDir)
+if node.fs.isReadOnly() then
+	cpioBaseDir = baseDir
 end
 
 -- Adorable-Catgirl's uncpio
@@ -241,13 +247,13 @@ local function drawStage()
 end
 
 local function install()
-	local tmpCpio = io.open("/fuchas.cpio", "w")
+	local tmpCpio = io.open(cpioBaseDir .. "fuchas.cpio", "w")
 	local ok, err = tmpCpio:write(download(repoURL .. ((devRelease and "release_dev.cpio") or "release.cpio")))
 	if not ok then
 		error("Could not download package: " .. err)
 	end
 	tmpCpio:close()
-	tmpCpio = io.open("/fuchas.cpio", "rb")
+	tmpCpio = io.open(cpioBaseDir .. "fuchas.cpio", "rb")
 	ext(tmpCpio)
 	tmpCpio:close()
 	filesystem.remove("/fuchas.cpio")
