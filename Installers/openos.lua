@@ -219,7 +219,7 @@ local function drawStage()
 		local handle = io.open(baseDir .. "Users/admin/account.lon", "w")
 		handle:write([[
 {
-	name = "]] .. uname .. [[",
+	name = "admin",
 	password = "]] .. hash .. [[",
 	security = "sha3-512"
 }
