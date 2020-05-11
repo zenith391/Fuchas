@@ -21,25 +21,23 @@ local function ext(stream)
 		namesize = 0,
 		filesize = 0
 	}
-	local function readint(amt, rev)
+	
+	local function readint(amt)
 		local tmp = 0
 		for i=1, amt do
 			tmp = bit32.bor(tmp, bit32.lshift(string.byte(stream:read(1)), ((i-1)*8)))
 		end
 		return tmp
 	end
-
 	local function fwrite()
 		local dir = dent.name:match("(.+)/.*%.?.+")
 		if (dir) then
-			--filesystem.makeDirectory("A:/" .. dir)
+			filesystem.makeDirectory("A:/" .. dir)
 		end
-		--local hand = io.open("A:/" .. dent.name, "w")
-		stream:read(dent.filesize)
-		--hand:write(stream:read(dent.filesize))
-		--hand:close()
+		local hand = io.open("A:/" .. dent.name, "w")
+		hand:write(stream:read(dent.filesize))
+		hand:close()
 	end
-
 	while true do
 		dent.magic = readint(2)
 		local rev = false
@@ -55,14 +53,20 @@ local function ext(stream)
 		dent.namesize = readint(2)
 		dent.filesize = bit32.bor(bit32.lshift(readint(2), 16), readint(2))
 		local name = stream:read(dent.namesize):sub(1, dent.namesize-1)
-		if (name == "TRAILER!!!") then break end
+		if (name == "TRAILER!!!") then
+			break
+		end
 		dent.name = name
+		gpu.setBackground(0x000000)
+		gpu.fill(1, 1, 80, 25, ' ')
+		gpu.set(width / 2 - 9, 1, "Fuchas Installation")
+		gpu.set(5, 5, "Downloading..")
+		gpu.set(5, 6, name)
 		
 		if (dent.namesize % 2 ~= 0) then
 			stream:seek("cur", 1)
 		end
 		if (bit32.band(dent.mode, 32768) ~= 0) then
-			print("Extracting " .. name)
 			fwrite()
 		end
 		if (dent.filesize % 2 ~= 0) then
