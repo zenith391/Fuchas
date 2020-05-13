@@ -146,7 +146,7 @@ function buffer.from(handle)
 		setmetatable(tab, {
 			__call = function()
 				i = i + 1
-			if i <= n then return tab[i] end
+				if i <= #tab then return tab[i] end
 			end
 		})
 		return tab

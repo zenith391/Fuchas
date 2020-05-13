@@ -9,6 +9,7 @@
 	<text>"oppm" => "apm"</text>
 	<text>"rm"   => "delete"</text>
 	<text>"cat"  => "type"</text>
+	<text>"set"  => "env"</text>
 	<br></br>
 	<text>Return to <link href="home.ohml">Home</link></text>
 </ohml>

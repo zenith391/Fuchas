@@ -10,9 +10,17 @@ function term.getViewport()
 	return 160, 50, 1, 1, 1, 1
 end
 
+function term.getGlobalArea()
+	return 1, 1, 160, 50
+end
+
 function term.pull(...)
 	-- TODO: blink cursor
 	return event.pull(...)
+end
+
+function term.setCursorBlink(blink)
+	-- TODO!!
 end
 
 function term.getCursor()
@@ -45,7 +53,7 @@ end
 
 function term.write(value, wrap)
 	-- TODO support false wrap value
-	io.stdout:write(value)
+	io.stdout:write(require("stardust/text").detab(value, 8))
 end
 
 function term.bind(gpu)
@@ -58,6 +66,10 @@ end
 
 function term.keyboard()
 	return require("component").screen.getKeyboards()[0]
+end
+
+function term.gpu()
+	return require("component").proxy(require("component").list("gpu")())
 end
 
 return term

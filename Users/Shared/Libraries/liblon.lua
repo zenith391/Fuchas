@@ -37,7 +37,7 @@ function lib.sertable(tab, depth, pretty)
 	for k, v in pairs(tab) do
 		if type(v) == "table" then
 			if type(k) == "number" then
-				str = str .. newLine .. tabStr .. lib.sertable(v, pretty)
+				str = str .. newLine .. tabStr .. lib.sertable(v, depth, pretty)
 			else
 				str = str .. newLine .. tabStr .. "[\"" .. k .. "\"]" .. equalsStr .. lib.sertable(v, depth+1, pretty)
 			end

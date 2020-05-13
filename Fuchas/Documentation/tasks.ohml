@@ -1,0 +1,23 @@
+<ohml version="1.03">
+	<h1>Fuchas Documentation - Library - tasks</h1>
+	<br></br>
+	<text>Tasks library is a replacement for "shin32". It has been introduced in 0.5.0<br><br/>
+			Tasks library allows to create and manage processes.<br><br/>
+			Methods
+			</text>
+	<br><br/>
+	<text>
+		Name | Description<br><br/>
+		----------------------- | -----------<br><br/>
+		newProcess(name, func) | Create a process named `name`. `func` is the function the process will execute.<br><br/>
+		getCurrentProcess() | Returns the current process object. `nil` if no process (only the case during boot)<br><br/>
+		getProcess(pid)| Get the [process object](https://github.com/zenith391/Fuchas/wiki/Tasks-Library#Process-Object) corresponding to the PID<br><br/>
+		getProcessMetrics(pid) | Returns [process metrics](https://github.com/zenith391/Fuchas/wiki/Tasks-Library#Process-Metrics) corresponding to the process pointed by the PID.<br><br/>
+		kill(proc) | Safely kills the process, if a safe kill handler (see below) is set, then it runs it and kill process depending on result (bypass if it does). Else it calls kill(proc).<br><br/>
+		unsafeKill(proc) | Unsafely kills the process.<br><br/>
+		getActiveProcesses() | Returns the number of active processes (same as `#shin32.getProcesses()`.<br><br/>
+		getProcesses() | Returns a table with all active (alive) processes.<br><br/>
+		getPIDs() | Returns a table with the PIDs of all active (alive) processes. Contrary to `getProcesses()` it requires no permission<br><br/>
+		scheduler() | Private function (unaccessible to processes), don't bother it.<br><br/>
+	</text>
+</ohml>

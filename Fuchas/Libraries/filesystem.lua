@@ -310,8 +310,9 @@ end
 function filesystem.makeDirectory(path)
 	local node, rest = findNode(path)
 	if node then
-		if not node.makeDirectory(rest) then
-			error("could not create directory")
+		local ok, err = node.makeDirectory(rest)
+		if not ok then
+			error("could not create directory: " .. tostring(err))
 		end
 	else
 		error("no drive")

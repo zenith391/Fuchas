@@ -4,6 +4,8 @@ lib.clock = os.clock
 lib.date = os.date
 lib.time = os.time
 
+lib.exit = os.exit
+
 lib.getenv = os.getenv
 lib.setenv = os.setenv
 lib.sleep = os.sleep
