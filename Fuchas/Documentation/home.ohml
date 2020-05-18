@@ -2,4 +2,5 @@
 	<h1>Fuchas Documentation - Home</h1>
 	<br></br>
 	<text>Fuchas's default interface is <link href="fushell.ohml">Fushell</link>.</text>
+	<text>Fuchas works with <link href="drivers.ohml">drivers</link> instdead of components.</text>
 </ohml>

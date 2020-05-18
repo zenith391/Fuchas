@@ -1,0 +1,10 @@
+<ohml version="1.03">
+	<h1>Fuchas Documentation -> Drivers</h1>
+	<h2>Drivers</h2>
+	<text>Fuchas has many drivers, like<br></br>
+	- <link href="gpu.ohml">gpu</link><br></br>
+	- printer<br></br>
+	- sound : cp3, pcspeaker
+	</text>
+	<text>Return to <link href="home.ohml">Home</link></text>
+</ohml>

@@ -165,7 +165,25 @@ function spec.new(address)
 	end
 
 	local function freeUnusedBuffer()
-
+		table.sort(buffers, function (a, b) -- sort buffers by size, to prioritize freeing small buffers
+			return a.size < b.size
+		end)
+		for k, v in pairs(buffers) do
+			-- save buffer content to RAM and free it
+			if v.onVram and v.purpose ~= drv.BUFFER_I_WM_R_D then
+				v:bind()
+				v.data = {}
+				for x=1, v.width do
+					for y=1, v.height do
+						data[y*v.width+x] = table.pack(comp.get(x,y))
+					end
+				end
+				v:unbind()
+				v:free()
+				return true
+			end
+		end
+		return false
 	end
 
 	-- Write Once = no gpu operations after first buffer blit
@@ -176,11 +194,20 @@ function spec.new(address)
 	-- About buffers: yup, i'm aware that's an alpha feature that *will* change, i just want to use it on Fuchas
 	function drv.newBuffer(width, height, purpose)
 		local buffer = {}
+
+		local requiredMemory = width*height
+		while comp.freeMemory() < requiredMemory do
+			if not freeUnusedBuffer() then
+				error("not enough vram free")
+			end
+		end
+
 		buffer.id = comp.allocateBuffer(width, height)
-		buffer.size = width*height
+		buffer.size = requiredMemory
 		buffer.width = width
 		buffer.height = height
-		buffer.purpose = purpose
+		buffer.purpose = purpose or drv.BUFFER_I_WM_R_D
+		buffer.onVram = true
 		buffer.proc = require("tasks").getCurrentProcess()
 
 		-- Detach buffer from the process that created it: this operation is
@@ -207,8 +234,39 @@ function spec.new(address)
 			comp.setActiveBuffer(0)
 		end
 
+		local function relocate(t)
+			while comp.freeMemory() < t.size do
+				if not freeUnusedBuffer() then
+					error("not enough vram free")
+				end
+			end
+			buffer.id = comp.allocateBuffer(t.width, t.height)
+
+			-- repopulate buffer with saved content
+			for x=1, t.width do
+				for y=1, t.height do
+					local t = t.data[y+t.width+x]
+					gpu.setForeground(t[2])
+					gpu.setForeground(t[3])
+					gpu.set(x, y, t[1])
+				end
+			end
+			t.data = nil -- free data from RAM
+			table.insert(buffer.proc.exitHandlers, exitHandler) -- re-attach exit handler
+		end
+
 		setmetatable(buffer, {
-			__index = drv
+			__index = function(t, key)
+				if drv[key] then
+					if not t.onVram then
+						t.onVram = true
+						relocate(t)
+					end
+					return drv[key]
+				else
+					return nil
+				end
+			end
 		})
 
 		buffer.exitHandler = function()
