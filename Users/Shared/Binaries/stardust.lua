@@ -25,11 +25,11 @@ if path == nil then
 	return
 end
 
-for k, v in pairs(package.loaded) do
+--[[for k, v in pairs(package.loaded) do
 	if k:sub(1, 8) == "stardust" then
 		package.loaded[k] = nil
 	end
-end
+end]]
 
 local libs = {
 	component = require("component").unrestricted,
@@ -122,7 +122,7 @@ local f, err = load(code, args[1], "bt", env)
 table.remove(args, 1)
 
 if f then
-	xpcall(f(args), debug.traceback)
+	xpcall(f, debug.traceback, args)
 else
 	error(err)
 end

@@ -410,7 +410,7 @@ function filesystem.open(path, mode)
 				self.handle = nil
 				if self.proc ~= nil then
 					for k, v in pairs(self.proc.exitHandlers) do
-						if v == exitHandler then
+						if v == self.exitHandler then
 							table.remove(self.proc.exitHandlers, k)
 							break
 						end

@@ -29,6 +29,7 @@ end
 function spec.new(address)
 	local comp = cp.proxy(address)
 	local drv = {}
+	local buffers = {}
 	local fg = -1
 	local bg = -1
 
@@ -50,8 +51,12 @@ function spec.new(address)
 		end
 	end
 
-	function drv.getResolution()
-		return comp.getViewport()
+	function drv.getResolution(buffer)
+		if buffer then
+			return comp.getBufferSize(buffer)
+		else
+			return comp.getViewport()
+		end
 	end
 
 	function drv.setResolution(w, h)
@@ -131,13 +136,104 @@ function spec.new(address)
 		end
 	})
 
+	-- buffer methods
+	-- x, y: destination position
+	-- sx, sy: source position
+	function drv.blit(src, dst, x, y, sx, sy, width, height)
+
+	end
+
+	function drv.screenBuffer()
+		local buffer = {}
+		buffer.id = comp.allocateBuffer(width, height)
+		buffer.size = width*height
+		buffer.width = width
+		buffer.height = height
+
+		function buffer:free() end
+
+		function buffer:bind()
+			comp.setActiveBuffer(0)
+		end
+
+		function buffer:unbind() end
+
+		setmetatable(buffer, {
+			__index = drv
+		})
+		return buffer
+	end
+
+	local function freeUnusedBuffer()
+
+	end
+
+	-- Write Once = no gpu operations after first buffer blit
+	-- Note that purposes don't disallow operations, so you can still read a WO_NR_D buffer, however it might cause errors as the driver might do optimizations.
+	drv.BUFFER_WO_NR_D = 0 -- Write Once, No Read, Draw : the driver can silently move the buffer to RAM if needed
+	drv.BUFFER_WM_R_D = 1 -- Write Many, Read, Draw : the driver can silently move the buffer to or from RAM if needed
+	drv.BUFFER_I_WM_R_D = 2 -- Important, Write Many, Read, Draw : the buffer will always be in VRAM
+	-- About buffers: yup, i'm aware that's an alpha feature that *will* change, i just want to use it on Fuchas
+	function drv.newBuffer(width, height, purpose)
+		local buffer = {}
+		buffer.id = comp.allocateBuffer(width, height)
+		buffer.size = width*height
+		buffer.width = width
+		buffer.height = height
+		buffer.purpose = purpose
+		buffer.proc = require("tasks").getCurrentProcess()
+
+		function buffer:free()
+			comp.freeBuffer(self.id)
+			for k, v in pairs(self.proc.exitHandlers) do
+				if v == self.exitHandler then
+					table.remove(self.proc.exitHandlers, k)
+					break
+				end
+			end
+		end
+
+		function buffer:bind()
+			comp.setActiveBuffer(self.id)
+		end
+
+		function buffer:unbind()
+			comp.setActiveBuffer(0)
+		end
+
+		setmetatable(buffer, {
+			__index = drv
+		})
+
+		buffer.exitHandler = function()
+			buffer:free()
+		end
+		table.insert(buffer.proc.exitHandlers, exitHandler)
+
+		return buffer
+	end
+
+	function drv.getStatistics()
+		local stats = {
+			freeMemory = (comp.freeMemory and comp.freeMemory()) or -1,
+			totalMemory = (comp.totalMemory and comp.totalMemory()) or -1
+		}
+		stats.usedMemory = stats.totalMemory - stats.freeMemory
+		return stats
+	end
+
 	function drv.getCapabilities()
+		local hasBufs = false
+		if comp.allocateBuffer then
+			hasBufs = true
+		end
 	    return {
 	        paletteSize = drv.getColors(),
 	        hasPalette = true,
 	        hasEditablePalette = true,
 	        editableColors = drv.getPalettedColors(),
-	        hardwareText = true
+	        hardwareText = true,
+	        hardwareBuffers = hasBufs
 	    }
 	end
 	return drv

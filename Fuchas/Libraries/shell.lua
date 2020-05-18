@@ -483,6 +483,7 @@ function lib.read(options)
 			curVisible = true
 		end
 	end
+	hideCursor()
 	table.insert(history, inp)
 	return inp
 end
