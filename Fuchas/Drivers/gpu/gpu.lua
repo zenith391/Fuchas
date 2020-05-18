@@ -183,14 +183,20 @@ function spec.new(address)
 		buffer.purpose = purpose
 		buffer.proc = require("tasks").getCurrentProcess()
 
-		function buffer:free()
-			comp.freeBuffer(self.id)
+		-- Detach buffer from the process that created it: this operation is
+		-- dangerous as it could leave the buffer unclosed until shutdown !
+		function buffer:detach()
 			for k, v in pairs(self.proc.exitHandlers) do
 				if v == self.exitHandler then
 					table.remove(self.proc.exitHandlers, k)
 					break
 				end
 			end
+		end
+
+		function buffer:free()
+			comp.freeBuffer(self.id)
+			self:detach()
 		end
 
 		function buffer:bind()

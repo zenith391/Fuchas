@@ -408,12 +408,17 @@ function filesystem.open(path, mode)
 			if self.handle then
 				self.fs.close(self.handle)
 				self.handle = nil
-				if self.proc ~= nil then
-					for k, v in pairs(self.proc.exitHandlers) do
-						if v == self.exitHandler then
-							table.remove(self.proc.exitHandlers, k)
-							break
-						end
+				self:detach()
+			end
+		end,
+		-- Detach handle from the process that created it: this operation is
+		-- dangerous as it could leave the handle unclosed until shutdown !
+		detach = function(self)
+			if self.proc ~= nil then
+				for k, v in pairs(self.proc.exitHandlers) do
+					if v == self.exitHandler then
+						table.remove(self.proc.exitHandlers, k)
+						break
 					end
 				end
 			end
