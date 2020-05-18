@@ -233,7 +233,7 @@ function geeko.read(tag)
 					hyperlink = v.parent.attr.href,
 					tag = v.parent,
 					color = tonumber(getFirstAttribute(v.parent, "color") or "2020FF", 16),
-					bgcolor = tonumber(getFirstAttribute(v.parent, "bgcolor") or "-1", 16)
+					bgcolor = tonumber(getFirstAttribute(v.parent, "bgcolor") or "0", 16)
 				})
 			elseif v.parent.name == "script" then
 				-- handled by loadScripts
@@ -248,7 +248,7 @@ function geeko.read(tag)
 							height = 1,
 							text = v.content,
 							color = tonumber(getFirstAttribute(v.parent, "color") or "FFFFFF", 16),
-							bgcolor = tonumber(getFirstAttribute(v.parent, "bgcolor") or "-1", 16)
+							bgcolor = tonumber(getFirstAttribute(v.parent, "bgcolor") or "0", 16)
 						})
 					end
 				end
@@ -261,7 +261,7 @@ function geeko.read(tag)
 					height = 1,
 					text = v.content,
 					color = tonumber(getFirstAttribute(v.parent, "color") or "FFFFFF", 16),
-					bgcolor = tonumber(getFirstAttribute(v.parent, "bgcolor") or "-1", 16)
+					bgcolor = tonumber(getFirstAttribute(v.parent, "bgcolor") or "0", 16)
 				})
 			end
 			cx = cx + v.content:len()
@@ -283,7 +283,7 @@ function geeko.read(tag)
 			geeko.read(v)
 			if v.name == "text" or v.name == "h1" or v.name == "h2" or v.name == "h3" or v.name == "h4" or v.name == "h5" then
 				cx = 1
-				cy = cy + 1
+				cy = cy + 2
 			end
 		end
 	end
@@ -340,6 +340,7 @@ function geeko.parseXML(str)
 	local _ott = "" -- old parsing text
 	local _tap = "" -- tag attribute propety (name)
 	local _tav = "" -- tag attribute value
+	local _tavq = 0 -- number of (single or double) quotes in tag attribute value
 	local _tt = "" -- currently parsing text
 	local _ttcdata = false -- is the current parsing text in a CDATA section? (<![CDATA ]]>)
 	local _itap = false -- is parsing attribute property?
@@ -365,6 +366,9 @@ function geeko.parseXML(str)
 			else
 				if ch ~= ' ' and ch ~= '>' then
 					_tav = _tav .. ch
+					if ch == "'" or ch == '"' then
+						_tavq = _tavq + 1
+					end
 				end
 			end
 		end
@@ -384,6 +388,7 @@ function geeko.parseXML(str)
 						_ta[_tap] = load("return " .. _tav)() -- value conversion, insecure
 						_tap = ""
 						_tav = ""
+						_tavq = 0
 					end
 					local tag = {
 						name = _tn,
@@ -394,7 +399,7 @@ function geeko.parseXML(str)
 					table.insert(currentTag.childrens, tag)
 					currentTag = tag
 				end
-			elseif ch == ' ' and not _te then
+			elseif ch == ' ' and not _te and (_tavq == 0 or _tavq == 2) then
 				if _tap ~= "" then
 					local f, err = load("return " .. _tav)
 					if not f then
@@ -404,6 +409,7 @@ function geeko.parseXML(str)
 				end
 				_tap = ""
 				_tav = ""
+				_tavq = 0
 				_sta = true
 				_itap = true
 			elseif not _sta then
@@ -506,9 +512,9 @@ function geeko.go(link)
 end
 
 -- OS init
-if _OSDATA or _OSVERSION then -- Fuchas or OpenOS
+if OSDATA or _OSVERSION then -- Fuchas or OpenOS
 	geeko.fs = fuchasIO()
-	if _OSDATA then
+	if OSDATA then
 		geeko.mt = fuchasMT()
 	else
 		geeko.mt = openOSMT()
