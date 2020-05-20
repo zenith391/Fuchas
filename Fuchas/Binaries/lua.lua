@@ -23,7 +23,7 @@ while true do
 			if type(tab[1]) == "table" then
 				print(require("liblon").sertable(tab[1]))
 			else
-				print(table.concat(tab, "\t"))
+				print(table.unpack(tab))
 			end
 		end, function(err)
 			io.stderr:write(err .. "\n")

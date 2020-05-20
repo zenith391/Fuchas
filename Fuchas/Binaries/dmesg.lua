@@ -3,5 +3,5 @@ while true do
 	if t[1] == "interrupt" then
 		break
 	end
-	print(table.concat(t, "\t"))
+	print(table.unpack(t))
 end

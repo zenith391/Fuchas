@@ -228,8 +228,17 @@ end
 
 -- Redefine kernel basic stdio functions
 
-function print(msg)
-	io.write(tostring(msg) .. "\n")
+function print(...)
+	local parts = table.pack(...)
+	local str = ""
+	for k, v in ipairs(parts) do
+		str = str .. v
+		if k ~= #parts then
+			str = str .. "\t"
+		end
+	end
+	str = str .. "\n"
+	io.write(str)
 end
 
 write = nil

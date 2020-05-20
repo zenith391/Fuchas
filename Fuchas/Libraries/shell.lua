@@ -112,7 +112,12 @@ function lib.createStdOut(gpu)
 	local CSI = ESC .. "%["
 	stream.write = function(self, val)
 		if val:find("\t") then
-			val = val:gsub("\t", "    ")
+			local s = val:find("\t")
+			self:write(val:sub(1, s-1))
+			sh.setX(sh.getX() + 4)
+			sh.setX(sh.getX() - (sh.getX() % 4))
+			val = val:sub(s+1)
+			return self:write(val)
 		end
 		if sh.getX() >= w then
 			sh.setX(0)

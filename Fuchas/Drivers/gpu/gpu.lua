@@ -140,7 +140,8 @@ function spec.new(address)
 	-- x, y: destination position
 	-- sx, sy: source position
 	function drv.blit(src, dst, x, y, sx, sy, width, height)
-
+		src:validate()
+		dst:validate()
 	end
 
 	function drv.screenBuffer()
@@ -157,6 +158,8 @@ function spec.new(address)
 		end
 
 		function buffer:unbind() end
+
+		function buffer:validate() end
 
 		setmetatable(buffer, {
 			__index = drv
@@ -234,34 +237,35 @@ function spec.new(address)
 			comp.setActiveBuffer(0)
 		end
 
-		local function relocate(t)
-			while comp.freeMemory() < t.size do
+		function buffer:validate()
+			if t.onVram then
+				return
+			end
+			while comp.freeMemory() < self.size do
 				if not freeUnusedBuffer() then
 					error("not enough vram free")
 				end
 			end
-			buffer.id = comp.allocateBuffer(t.width, t.height)
+			buffer.id = comp.allocateBuffer(self.width, self.height)
 
 			-- repopulate buffer with saved content
-			for x=1, t.width do
-				for y=1, t.height do
-					local t = t.data[y+t.width+x]
+			for x=1, self.width do
+				for y=1, self.height do
+					local t = self.data[y+self.width+x]
 					gpu.setForeground(t[2])
 					gpu.setForeground(t[3])
 					gpu.set(x, y, t[1])
 				end
 			end
-			t.data = nil -- free data from RAM
+			self.data = nil -- free data from RAM
 			table.insert(buffer.proc.exitHandlers, exitHandler) -- re-attach exit handler
+			t.onVram = true
 		end
 
 		setmetatable(buffer, {
 			__index = function(t, key)
 				if drv[key] then
-					if not t.onVram then
-						t.onVram = true
-						relocate(t)
-					end
+					t:validate()
 					return drv[key]
 				else
 					return nil
