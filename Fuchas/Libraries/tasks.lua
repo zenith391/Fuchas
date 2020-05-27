@@ -15,6 +15,7 @@ function mod.newProcess(name, func)
 		pid = pid, -- reliable pointer to process that help know if a process is dead; TODO: remove
 		status = "created",
 		cpuTime = 0,
+		cpuTimeEstimate = 0, -- used for SJF scheduler
 		lastCpuTime = 0,
 		cpuLoadPercentage = 0,
 		exitHandlers = {},
@@ -89,10 +90,37 @@ local function handleProcessError(err, p)
 	end
 end
 
+-- Debug Utilities --
+local logHandle = nil
+local function startLogging()
+	logHandle = require("filesystem").open("A:/scheduler.csv", "w")
+	logHandle:write("Name,Burst Time\n")
+end
+
+local function writeBurst(name, time)
+	if logHandle then
+		logHandle:write(name .. "," .. tostring(time) .. "\n")
+	end
+end
+
+local function stopLogging()
+	logHandle:close()
+end
+
+-- Scheduler --
 local lastLoadPercentage = 0
 local totalStart = 0
 local minSleepTime = 0
+
+local schedulerMode = "SJF" -- SJF or FCFS
+local sjfAlpha = 0.5 -- alpha value for SJF scheduler
 function mod.scheduler()
+	if not logHandle and false then
+		startLogging()
+		require("event").listen("shutdown", function()
+			stopLogging()
+		end)
+	end
 	if mod.getCurrentProcess() ~= nil then
 		error("only system can use shin32.scheduler()")
 	end
@@ -109,7 +137,16 @@ function mod.scheduler()
 	if totalStart == 0 then
 		totalStart = measure()
 	end
-	for k, p in pairs(processes) do
+	local orderedProcesses = {}
+	for k, v in pairs(processes) do
+		table.insert(orderedProcesses, v)
+	end
+	if schedulerMode == "SJF" then
+		table.sort(orderedProcesses, function(a, b)
+			return a.cpuTimeEstimate < b.cpuTimeEstimate
+		end)
+	end
+	for k, p in pairs(orderedProcesses) do
 		local start = measure()
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
@@ -181,6 +218,7 @@ function mod.scheduler()
 		end
 		local e = measure()
 		p.lastCpuTime = p.lastCpuTime + math.floor(e*1000 - start*1000) -- cpu time used in 1 second
+		writeBurst(e*1000 - start*1000)
 		p.cpuTime = p.cpuTime + math.floor(e*1000 - start*1000)
 	end
 
@@ -191,6 +229,9 @@ function mod.scheduler()
 		for k, p in pairs(processes) do
 			if time ~= 0 then
 				p.cpuLoadPercentage = (p.lastCpuTime / time) * 100
+				if schedulerMode == "SJF" then
+					p.cpuTimeEstimate = sjfAlpha * p.lastCpuTime + (1 - sjfAlpha) * p.cpuTimeEstimate
+				end
 				p.lastCpuTime = 0
 			end
 		end
