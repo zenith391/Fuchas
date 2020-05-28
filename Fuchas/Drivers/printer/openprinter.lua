@@ -6,7 +6,7 @@ function spec.isCompatible(address)
 end
 
 function spec.getName()
-	return "OpenPrinter Driver 1.0"
+	return "OpenPrinter Fuchas Driver"
 end
 
 function spec.getRank()
@@ -37,15 +37,13 @@ function spec.new(address)
 				write = function(self, str)
 					local ln = table.pack(string.find(str, "\n", 1, true))
 					local last = 1
-					for k, v in pairs(ln) do
-						if k ~= "n" then
-							if outbuf ~= nil then
-								printer.writeln(outbuf)
-								outbuf = nil
-							end
-							printer.writeln(string.sub(last, v))
-							last = v+1
+					for k, v in ipairs(ln) do
+						if outbuf ~= nil then
+							printer.writeln(outbuf)
+							outbuf = nil
 						end
+						printer.writeln(string.sub(last, v))
+						last = v+1
 					end
 					if last < str:len() then
 						outbuf = str:sub(last, str:len())
@@ -62,6 +60,7 @@ function spec.new(address)
 				end
 			}
 		end
+		return out
 	end
 end
 

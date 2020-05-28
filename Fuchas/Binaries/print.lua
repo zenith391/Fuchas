@@ -28,13 +28,17 @@ end
 local printer = driver.getDriver("printer")
 if printer == nil then
 	file:close()
-	io.stderr:write("No printer available\n")
+	io.stderr:write("No printer available (default drivers: CC printer, OpenPrinter).\n")
 	return
 end
 
 local txt = file:read("a")
 local out = printer.out()
-out:write(txt)
-out:print()
+local ok, err = pcall(out:write(txt))
+if not ok then
+	io.stderr:write("Printer error: " .. err .. "\n")
+else
+	out:print()
+end
 
 file:close()

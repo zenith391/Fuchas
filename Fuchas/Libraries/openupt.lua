@@ -51,7 +51,7 @@ function lib.readPartitionList(driver)
 			type = driver.readBytes(off+9, 8, true),
 			flags = io.fromunum(driver.readBytes(off+17, 4), true),
 			guid = toTextGUID(driver.readBytes(off+21, 8)),
-			label = driver.readBytes(off+33, 32, true)
+			label = driver.readBytes(off+29, 36, true)
 		}
 		if partition.type ~= "\x00\x00\x00\x00\x00\x00\x00\x00" then -- non-null FS type
 			table.insert(partitions, partition)
@@ -67,7 +67,7 @@ function lib.partitionDriver(driver, partition)
 			return partition.label
 		end,
 		setLabel = function(label)
-			partition.label = label:sub(1, 32)
+			partition.label = label:sub(1, 36)
 			writePartition(driver, partition)
 		end,
 		readBytes = function(addr, len, asString)
@@ -109,7 +109,7 @@ function lib.newPartition(id, start, pend, guid)
 		type = ("\x00"):rep(8),
 		flags = 0,
 		guid = lib.randomGUID(),
-		label = ("\x00"):rep(32)
+		label = ("\x00"):rep(36)
 	}
 end
 
@@ -127,7 +127,7 @@ function lib.writePartition(driver, partition, progressHandler)
 	addTables(data, io.tounum(partition["end"], 4, true))
 	addTables(data, string.toByteArray(partition.type))
 	addTables(data, fromTextGUID(partition.guid))
-	addTables(data, string.toByteArray(partition.label:sub(1, 32)))
+	addTables(data, string.toByteArray(partition.label:sub(1, 36)))
 	if progressHandler then progressHandler("Writing partition #" .. (partition.id+1) .. "..") end
 	driver.writeBytes(off+1, data)
 	if progressHandler then progressHandler("Done writing partition.") end
