@@ -118,19 +118,19 @@ function spec.new(address)
 	drv.palette = setmetatable({}, {
 		__index = function(table, key)
 			if type(key) == "number" then
-				if key >= 0 and key < drv.getPalettedColors() then
+				if key >= 1 and key <= drv.getPalettedColors() then
 					return comp.getPaletteColor(key)
-				elseif key >= drv.getPalettedColors() and key <= drv.getColors() then
+				elseif key > drv.getPalettedColors() and key <= drv.getColors() then
 					return fullPalette[key] -- this can only be the default palette.
 				end
 			end
 		end,
 		__newindex = function(table, key, value)
 			if type(key) == "number" then
-				if key >= 0 and key < drv.getPalettedColors() then
+				if key >= 1 and key <= drv.getPalettedColors() then
 					comp.setPaletteColor(key, value)
 				else
-					error("editable palette indexes are 0 <= k < 16")
+					error("editable palette indexes are 0 < k <= 16")
 				end
 			end
 		end
@@ -178,7 +178,7 @@ function spec.new(address)
 				v.data = {}
 				for x=1, v.width do
 					for y=1, v.height do
-						data[y*v.width+x] = table.pack(comp.get(x,y))
+						data[y*v.width+x] = {comp.get(x,y)}
 					end
 				end
 				v:unbind()
@@ -230,10 +230,12 @@ function spec.new(address)
 		end
 
 		function buffer:bind()
+			self:validate()
 			comp.setActiveBuffer(self.id)
 		end
 
 		function buffer:unbind()
+			self:validate()
 			comp.setActiveBuffer(0)
 		end
 
@@ -243,20 +245,22 @@ function spec.new(address)
 			end
 			while comp.freeMemory() < self.size do
 				if not freeUnusedBuffer() then
-					error("not enough vram free")
+					error("not enough vram free: buffer has been optimized out but cannot be put back in VRAM")
 				end
 			end
 			buffer.id = comp.allocateBuffer(self.width, self.height)
 
 			-- repopulate buffer with saved content
+			self:bind()
 			for x=1, self.width do
 				for y=1, self.height do
-					local t = self.data[y+self.width+x]
+					local t = self.data[y*self.width+x]
 					gpu.setForeground(t[2])
-					gpu.setForeground(t[3])
+					gpu.setBackground(t[3])
 					gpu.set(x, y, t[1])
 				end
 			end
+			self:unbind()
 			self.data = nil -- free data from RAM
 			table.insert(buffer.proc.exitHandlers, exitHandler) -- re-attach exit handler
 			t.onVram = true

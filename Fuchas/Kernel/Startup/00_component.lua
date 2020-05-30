@@ -145,6 +145,6 @@ component = setmetatable({}, {
 	end
 })
 
-package.loaded["driver"] = dofile("A:/Fuchas/Libraries/driver.lua", cp)
-package.loaded["component"] = component
 -- Driver need to be inited here in order to pass original component lib
+package.loadPreBoot("driver", dofile("A:/Fuchas/Libraries/driver.lua", cp))
+package.loadPreBoot("component", component)

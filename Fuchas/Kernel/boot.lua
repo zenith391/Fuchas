@@ -1,6 +1,6 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.6.0",
+	VERSION = "0.6.2",
 	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
@@ -161,23 +161,23 @@ if computer.supportsOEFI() then
 	if not oefiLib.vendor then
 		oefiLib.vendor = {}
 	end
-	package.loaded.oefi = oefiLib
 	if oefiLib.getImplementationName() == "Zorya BIOS" then
-		package.loaded.oefi.vendor = zorya
+		oefiLib.vendor = zorya
 		zorya = nil
 	end
+	package.loadPreBoot("oefi", oefiLib)
 end
 print("(3/5) Loading filesystems")
-_G.package.loaded.filesystem = assert(loadfile("/Fuchas/Libraries/filesystem.lua"))()
+package.loadPreBoot("filesystem", assert(loadfile("/Fuchas/Libraries/filesystem.lua"))())
 _G.io = {}
 print("(4/5) Mounting A: drive..")
 local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
 if not g then
 	print("Error while mounting A drive: " .. h)
 end
-_G.package.loaded.event = assert(loadfile("/Fuchas/Libraries/event.lua"))()
-_G.package.loaded.tasks = assert(loadfile("/Fuchas/Libraries/tasks.lua"))()
-_G.package.loaded.security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
+package.loadPreBoot("event", assert(loadfile("/Fuchas/Libraries/event.lua"))())
+package.loadPreBoot("tasks", assert(loadfile("/Fuchas/Libraries/tasks.lua"))())
+package.loadPreBoot("security", assert(loadfile("/Fuchas/Libraries/security.lua"))())
 
 local nextLetter = string.byte('B')
 for k, v in component.list() do -- TODO: check if letter is over Z
@@ -216,11 +216,59 @@ loadfile = function(path)
 	return load(buffer, "=" .. path, "bt", _G)
 end
 
+local function protectEnv()
+	local toProtect = {"bit32"} -- "package" is auto-protected inside its code (see package.lua)
+	local protected = {}
+	for k, v in pairs(toProtect) do
+		protected[v] = _ENV[v]
+		_ENV[v] = nil
+		local childs = {}
+		for l, w in pairs(protected[v]) do
+			childs[l] = w
+			protected[v][l] = nil
+		end
+		local mt = {
+			__metatable = mt,
+			__index = function(t, key)
+				if childs[key] then
+					return childs[key]
+				end
+				return rawget(t, key)
+			end,
+			__newindex = function(t, key, value)
+				if childs[key] then
+					error("cannot edit protected entry: " .. k .. "." .. key)
+				end
+				rawset(t, key, value)
+			end
+		}
+		setmetatable(protected[v], mt)
+	end
+	local mt = {
+		__metatable = mt,
+		__index = function(t, key)
+			if protected[key] then
+				return protected[key]
+			end
+			return rawget(t, key)
+		end,
+		__newindex = function(t, key, value)
+			if protected[key] then
+				error("cannot edit protected entry: " .. key)
+			end
+			rawset(t, key, value)
+		end
+	}
+	setmetatable(_ENV, mt)
+end
+
 local ok, err = xpcall(function()
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
 		dofile("A:/Fuchas/Kernel/Startup/" .. k)
 	end
+	package.endBootPhase()
+	protectEnv()
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
 		local computer = (computer or package.loaded.computer)

@@ -398,7 +398,7 @@ function filesystem.open(path, mode)
 		end
 	end
 	local cproc = nil
-	if package.loaded.tasks then cproc = require("tasks").getCurrentProcess() end
+	if package.loaded and package.loaded.tasks then cproc = require("tasks").getCurrentProcess() end
 	local stream =
 	{
 		fs = node,

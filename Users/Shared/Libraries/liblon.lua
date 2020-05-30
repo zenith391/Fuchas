@@ -39,7 +39,15 @@ function lib.sertable(tab, depth, pretty)
 			if type(k) == "number" then
 				str = str .. newLine .. tabStr .. lib.sertable(v, depth, pretty)
 			else
-				str = str .. newLine .. tabStr .. "[\"" .. k .. "\"]" .. equalsStr .. lib.sertable(v, depth+1, pretty)
+				local tablePrint
+				if k == "_ENV" then
+					tablePrint = "_ENV"
+				elseif k == "_G" then
+					tablePrint = "_G"
+				else
+					tablePrint = lib.sertable(v, depth+1, pretty)
+				end
+				str = str .. newLine .. tabStr .. "[\"" .. k .. "\"]" .. equalsStr .. tablePrint
 			end
 		else
 			if type(k) == "number" then
