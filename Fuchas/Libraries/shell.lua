@@ -8,7 +8,9 @@ local aliases = {
 	["reboot"] = "power reboot",
 	["shutdown"] = "power off",
 	["cls"] = "clear",
-	["edit"] = "quack"
+	["edit"] = "quack",
+	["fsh"] = "A:/Fuchas/Interfaces/Fushell/main.lua",
+	["concert"] = "A:/Fuchas/Interfaces/Concert/main.lua"
 }
 
 local fs = require("filesystem")

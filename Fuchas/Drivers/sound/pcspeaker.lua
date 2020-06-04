@@ -31,9 +31,9 @@ function spec.new(address)
 
 	function drv.flush()
 		for k, v in pairs(buffer) do
-			computer.beep(v[0], v[1])
-			table.remove(buffer, k)
+			computer.beep(v[2], v[1])
 		end
+		buffer = {}
 	end
 
 	function drv.setSynchronous(sync)

@@ -4,7 +4,8 @@ _G.OSDATA = {
 	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
-		DEFAULT_INTERFACE = "Fushell"
+		DEFAULT_INTERFACE = "Fushell",
+		SAFE_MODE = false -- restrict drivers
 	}
 }
 
@@ -45,6 +46,10 @@ if os_arguments then -- arguments passed by a boot loader
 			end
 		end
 
+		if v == "--safe-mode" then
+			OSDATA.CONFIG["SAFE_MODE"] = true
+		end
+
 		if v == "--interface" then
 			local itf = os_arguments[k+1]
 			if not itf then
@@ -58,7 +63,7 @@ end
 
 _G._OSVERSION = _G.OSDATA.NAME .. " " .. _G.OSDATA.VERSION
 if OSDATA.DEBUG then
-	_OSVERSION = _OSVERSION .. " (debug)"
+	--_OSVERSION = _OSVERSION .. " (debug)"
 end
 
 local screen = nil
@@ -286,15 +291,15 @@ end, function(err)
 has shutdown to prevent damage
 to your computer.
 
+Error trace:
 ]] .. err .. " \n \n " .. [[
+
 If this is the first time you've seen
 this BSOD screen, restart your
 computer.
  If the problem persists,
 ask for help on the OC forum
-(https://oc.cil.li), search for
-Fuchas topic and speak about your
-computer problem as a reply.]])
+(https://oc.cil.li)]])
 		local traceback = debug.traceback(nil, 2)
 		write(traceback)
 		if io then

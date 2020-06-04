@@ -140,18 +140,23 @@ function spec.new(address)
 	-- x, y: destination position
 	-- sx, sy: source position
 	function drv.blit(src, dst, x, y, sx, sy, width, height)
+		width = width or dst.width
+		height = height or dst.height
+		sx = sx or 1
+		sy = sy or 1
+
 		src:validate()
 		dst:validate()
+		comp.bitblt(dst.id, x, y, width, height, src.id, sx, sy)
 	end
 
 	function drv.screenBuffer()
 		local buffer = {}
-		buffer.id = comp.allocateBuffer(width, height)
-		buffer.size = width*height
-		buffer.width = width
-		buffer.height = height
+		buffer.id = 0
 
-		function buffer:free() end
+		function buffer:free()
+			error("cannot free screen buffer")
+		end
 
 		function buffer:bind()
 			comp.setActiveBuffer(0)
@@ -162,7 +167,20 @@ function spec.new(address)
 		function buffer:validate() end
 
 		setmetatable(buffer, {
-			__index = drv
+			__index = function(table, key)
+				if drv[key] then
+					return drv[key]
+				elseif key == "width" then
+					local width, height = comp.getResolution()
+					return width
+				elseif key == "height" then
+					local width, height = comp.getResolution()
+					return height
+				elseif key == "size" then
+					local width, height = comp.getResolution()
+					return width*height
+				end
+			end
 		})
 		return buffer
 	end
@@ -194,7 +212,6 @@ function spec.new(address)
 	drv.BUFFER_WO_NR_D = 0 -- Write Once, No Read, Draw : the driver can silently move the buffer to RAM if needed
 	drv.BUFFER_WM_R_D = 1 -- Write Many, Read, Draw : the driver can silently move the buffer to or from RAM if needed
 	drv.BUFFER_I_WM_R_D = 2 -- Important, Write Many, Read, Draw : the buffer will always be in VRAM
-	-- About buffers: yup, i'm aware that's an alpha feature that *will* change, i just want to use it on Fuchas
 	function drv.newBuffer(width, height, purpose)
 		local buffer = {}
 
@@ -213,6 +230,8 @@ function spec.new(address)
 		buffer.onVram = true
 		buffer.proc = require("tasks").getCurrentProcess()
 
+		table.insert(buffers, buffer)
+
 		-- Detach buffer from the process that created it: this operation is
 		-- dangerous as it could leave the buffer unclosed until shutdown !
 		function buffer:detach()
@@ -226,6 +245,12 @@ function spec.new(address)
 
 		function buffer:free()
 			comp.freeBuffer(self.id)
+			for k, v in ipairs(buffers) do
+				if v == self then
+					table.remove(buffers, k)
+					break
+				end
+			end
 			self:detach()
 		end
 

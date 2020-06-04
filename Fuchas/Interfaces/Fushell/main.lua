@@ -10,7 +10,11 @@ tasks.getCurrentProcess().safeKillHandler = function()
 end
 
 tasks.getCurrentProcess().childErrorHandler = function(proc, err)
-	io.stderr:write(tostring(err) .. "\n")
+	local procType = "process"
+	if proc.isService then
+		procType = "service"
+	end
+	io.stderr:write("Error from " .. procType .. " \"" .. proc.name .. "\": " .. tostring(err) .. "\n")
 end
 
 tasks.getCurrentProcess().permissionGrant = function(perm, pid)
@@ -34,11 +38,14 @@ local function printCentered(str)
 	print(str)
 end
 
-sh.clear()
 -- splash
 print(string.rep("=-", math.floor(rw/2)))
-printCentered(_OSVERSION .. "'s Fushell")
-printCentered("Type \"help\" if you don't know what to do!")
+printCentered(_OSVERSION .. ": FuShell interface")
+if OSDATA.CONFIG["SAFE_MODE"] then
+	printCentered("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
+else
+	printCentered("Type \"help\" if you don't know what to do!")
+end
 printCentered("GitHub: https://github.com/zenith391/Fuchas")
 if computer.getArchitecture() == "Lua 5.2" then
 	for k, v in pairs(computer.getArchitectures()) do
@@ -50,7 +57,6 @@ if computer.getArchitecture() == "Lua 5.2" then
 end
 print(string.rep("-=", math.floor(rw/2)))
 
-os.setenv("PWD", "")
 local drive = "A"
 local run = true
 while run do

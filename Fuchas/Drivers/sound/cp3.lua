@@ -53,7 +53,7 @@ function spec.new(address)
 	end
 
 	function drv.openChannel(channel)
-		if channel > drv.getMaxChannels() or channel < 0 then
+		if channel > drv.getMaxChannels() or channel <= 0 then
 			return false
 		end
 		sound.open(channel)
@@ -61,7 +61,7 @@ function spec.new(address)
 	end
 
 	function drv.closeChannel(channel)
-		if channel > drv.getMaxChannels() or channel < 0 then
+		if channel > drv.getMaxChannels() or channel <= 0 then
 			return false
 		end
 		sound.close(channel)

@@ -6,6 +6,8 @@ local driverSpecs = {}
 local cp = ... -- only package to receive arguments
 local fs = require("filesystem")
 
+local basicDrivers = {"drive", "gpu"} -- driver types allowed to be loaded in safe mode
+
 function driver.searchpath(name, path, sep, rep)
 	checkArg(1, name, "string")
 	checkArg(2, path, "string")
@@ -36,12 +38,23 @@ function driver.changeDriver(type, addr, path)
 		loaded[type] = {}
 		loaded[type]["default"] = getDefaultDriver(type)
 	end
-	loaded[type] = driver
+	loaded[type][addr] = driver
 end
 
 local function findBestDriver(type, addr)
+	if OSDATA.CONFIG["SAFE_MODE"] then
+		local isBasic = false
+		for k, v in pairs(basicDrivers) do
+			if v == type then
+				isBasic = true
+				break
+			end
+		end
+		if not isBasic then
+			return nil
+		end
+	end
 	local sel = nil
-
 	local drvPath
 	if os.getenv then
 		drvPath = os.getenv("DRV_PATH")

@@ -280,6 +280,9 @@ function filesystem.list(path)
 	local node, rest = findNode(path)
 	local result = {}
 	if node then
+		if not node.exists(rest) then
+			error("directory doesn't exists")
+		end
 		result = node.list(rest)
 	else
 		error("no drive found for " .. tostring(path))
@@ -354,19 +357,21 @@ end
 
 function filesystem.open(path, mode)
 	checkArg(1, path, "string")
-	mode = tostring(mode or "r")
+	if not mode then
+		mode = "r"
+	end
 	checkArg(2, mode, "string")
 	assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
 		"bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
 	local attributes = filesystem.getAttributes(path)
 	if attributes.protected then
 		if not require("security").hasPermission("file.protected") then
-			return nil, "not enough permissions"
+			return nil, "not enough permissions (requires permission \"file.protected\")"
 		end
 	end
 	if mode ~= "r" and mode ~= "rb" and attributes.system and package.loaded.security then
 		if not require("security").hasPermission("file.system") then
-			return nil, "not enough permissions"
+			return nil, "not enough permissions (requires permission \"file.system\")"
 		end
 	end
 	if mode ~= "r" and mode ~= "rb" then
