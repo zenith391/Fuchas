@@ -19,26 +19,26 @@ local loaded = {
 }
 
 function package.searchpath(name, path, sep, rep)
-  checkArg(1, name, "string")
-  checkArg(2, path, "string")
-  sep = sep or '.'
-  rep = rep or '/'
-  sep, rep = '%' .. sep, rep
-  name = string.gsub(name, sep, rep)
-  local fs = require("filesystem")
-  local errorFiles = {}
-  for subPath in string.gmatch(path, "([^;]+)") do
-    subPath = string.gsub(subPath, "?", name)
-    if fs.exists(subPath) then
-      local file = fs.open(subPath, "r")
-      if file then
-        file:close()
-        return subPath
-      end
-    end
-    table.insert(errorFiles, "\tno file '" .. subPath .. "'")
-  end
-  return nil, table.concat(errorFiles, "\n")
+	checkArg(1, name, "string")
+	checkArg(2, path, "string")
+	sep = sep or '.'
+	rep = rep or '/'
+	sep, rep = '%' .. sep, rep
+	name = string.gsub(name, sep, rep)
+	local fs = require("filesystem")
+	local errorFiles = {}
+	for subPath in string.gmatch(path, "([^;]+)") do
+		subPath = string.gsub(subPath, "?", name)
+		if fs.exists(subPath) then
+			local file = fs.open(subPath, "r")
+			if file then
+				file:close()
+				return subPath
+			end
+		end
+		table.insert(errorFiles, "\tno file '" .. subPath .. "'")
+	end
+	return nil, table.concat(errorFiles, "\n")
 end
 
 local mtSetup = false
@@ -97,6 +97,17 @@ function require(module)
 		return status
 	else
 		error("already loading: " .. module .. "\n" .. debug.traceback(), 2)
+	end
+end
+
+function package.exists(module)
+	checkArg(1, module, "string")
+	local path
+	_, path = package.searchpath(module, package.path)
+	if path then
+		return true
+	else
+		return false
 	end
 end
 

@@ -194,6 +194,10 @@ function lib.createStdOut(gpu)
 			end
 			return self:write(val:sub(ptrE+1))
 		end
+		if sh.getX()+val:len() > w+2 then
+			self:write(val:sub(1, w-sh.getX()))
+			return self:write("\n" .. val:sub(w))
+		end
 		if val:find("\n") then
 			local s, e = val:find("\n")
 			gpu.drawText(sh.getX(), sh.getY(), val:sub(1, s-1))

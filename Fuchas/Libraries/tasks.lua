@@ -126,7 +126,8 @@ function mod.scheduler()
 	end
 	
 	local measure = computer.uptime
-	local lastEvent = table.pack(event.handlers((minSleepTime == math.huge and 0) or minSleepTime))
+	local lastEvent = table.pack(event.handlers((minSleepTime == math.huge and 0) or math.min(minSleepTime, 1)))
+	-- maximum 1 second of wait to still be responding in case of a new process being created a bit lately
 	if not systemEvent(lastEvent) then
 		lastEvent = nil -- if not propagating
 	end
