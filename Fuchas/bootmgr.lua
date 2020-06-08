@@ -43,13 +43,15 @@ tasks.newProcess("System Interface", function()
 		if l == nil then
 			error(err)
 		end
-		local sound = require("driver").sound
-		if sound and false then -- boot tone
-			sound.openChannel(1)
-			sound.appendFrequency(1, 0.2, 200)
-			sound.flush()
-			if sound.isSynchronous() then
-				sound.closeChannel(1)
+		if false then
+			local sound = require("driver").sound
+			if sound then -- boot tone
+				sound.openChannel(1)
+				sound.appendFrequency(1, 0.2, 200)
+				sound.flush()
+				if sound.isSynchronous() then
+					sound.closeChannel(1)
+				end
 			end
 		end
 		if OSDATA.CONFIG["DEFAULT_INTERFACE"] == "Fushell" then

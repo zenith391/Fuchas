@@ -39,14 +39,13 @@ local function printCentered(str)
 end
 
 -- splash
-print(string.rep("=-", math.floor(rw/2)))
-printCentered(_OSVERSION .. ": FuShell interface")
+--print(string.rep("=-", math.floor(rw/2)))
+print("Fushell in " .. _OSVERSION)
 if OSDATA.CONFIG["SAFE_MODE"] then
 	printCentered("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
 else
-	printCentered("Type \"help\" if you don't know what to do!")
+	print("Type \"help\" if you're new! \"doc\" also helps.")
 end
-printCentered("GitHub: https://github.com/zenith391/Fuchas")
 if computer.getArchitecture() == "Lua 5.2" then
 	for k, v in pairs(computer.getArchitectures()) do
 		if v == "Lua 5.3" then
@@ -55,7 +54,7 @@ if computer.getArchitecture() == "Lua 5.2" then
 		end
 	end
 end
-print(string.rep("-=", math.floor(rw/2)))
+--print(string.rep("-=", math.floor(rw/2)))
 
 local drive = "A"
 local run = true

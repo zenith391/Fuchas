@@ -1,5 +1,5 @@
 --[[
-     Implementation of the VELX fat binary executable format
+     Implementation of the VELX executable format
      (made from the documentation at
      https://github.com/Adorable-Catgirl/Random-OC-Docs/blob/master/formats/velx/v1.md)
 ]]

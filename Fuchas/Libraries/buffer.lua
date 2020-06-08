@@ -7,7 +7,9 @@ function buffer.pipedStreams(unbuffered)
 	local inputStream = {}
 	local outputStream = {
 		write = function(self, v)
-			table.insert(data, 1, v)
+			for _, char in ipairs(string.toCharArray(v)) do
+				table.insert(data, 1, char)
+			end
 		end,
 		seek = function() end,
 		close = function(self)
@@ -17,24 +19,27 @@ function buffer.pipedStreams(unbuffered)
 		end,
 		seekable = function()
 			return false
-		end
+		end,
+		closed = false
 	}
 	inputStream = {
 		read = function(self, t)
 			if not t then t = 1 end
 			local str = ""
 			for i=1, t do
-				local d = table.remove(data)
-				if not d then
-					break
-				end
-				str = str .. d
 				if #data == 0 then break end
+				local d = table.remove(data)
+				str = str .. d
 			end
 			if str:len() == 0 then
+				coroutine.yield() -- the program shouldn't have to take in account cooperative multitasking's quirks
+				-- the yield is necessary for the process to be able to put in data
 				return nil
 			end
 			return str
+		end,
+		remaining = function()
+			return #data > 0
 		end,
 		seek = function() end,
 		close = function(self)
@@ -58,38 +63,59 @@ function buffer.from(handle)
 	local stream = {}
 	stream.stream = handle
 	stream.buf = ""
-	stream.size = 128
-	stream.close = function(self)
+	stream.size = 256
+
+	function stream:close()
 		self.stream:close()
 		stream.closed = true
 	end
-	stream.write = function(self, val)
+	
+	function stream:write(val)
 		return self.stream:write(val)
 	end
+
 	function stream:fillBuffer()
 		if self.buf and self.buf:len() == 0 then
 			self.buf = self.stream:read(self.size)
 		end
 	end
+
+	function stream:remaining()
+		if not self:hasRemaining() then
+			error("the underlying stream doesn't have remaining()")
+		end
+		return self.stream:remaining()
+	end
+
+	function stream:hasRemaining()
+		return self.stream.remaining
+	end
+
 	function stream:readBuffer(len)
 		local steps = math.ceil(len/self.size)
 		local str = ""
 		for i=1, steps do
 			self:fillBuffer()
 			if self.buf == nil then
+				self.buf = ""
 				if str:len() > 0 then
 					return str
 				else
 					return nil
 				end
 			end
-			local part = self.buf:sub(1, len%self.size)
-			self.buf = self.buf:sub(len%self.size+1, self.buf:len()) -- cut the read part
+			local partLen = len%self.size
+			if len == math.huge then
+				partLen = self.size-1
+			end
+			local part = self.buf:sub(1, partLen)
+			self.buf = self.buf:sub(partLen+1, self.buf:len()) -- cut the read part
 			str = str .. part
-			len = len - len%self.size
+			len = len - partLen
 		end
 		return str
 	end
+
 	function stream:read(f)
 		if not f then
 			f = "a"
@@ -130,10 +156,16 @@ function buffer.from(handle)
 		end
 		return nil, "invalid mode"
 	end
-	stream.setvbuf = function(mode, size)
+
+	function stream:seekable()
+		return self.stream:seekable()
+	end
+
+	function stream:setvbuf(mode, size)
 		-- TODO
 	end
-	stream.lines = function(self, f)
+
+	function stream:lines()
 		local tab = {}
 		while true do
 			local line = self.read(self, "l")
@@ -151,7 +183,8 @@ function buffer.from(handle)
 		})
 		return tab
 	end
-	stream.seek = function(self, whence, offset)
+
+	function stream:seek(whence, offset)
 		self.buf = ""
 		return self.stream:seek(whence, offset)
 	end

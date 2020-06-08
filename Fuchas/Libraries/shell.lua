@@ -247,27 +247,28 @@ function lib.parse(tab)
 	return ntab, options
 end
 
-function lib.resolve(path)
-	local p = path
+function lib.resolve(path, alwaysResolve)
+	checkArg(1, path, "string")
 	local paths = string.split(os.getenv("PATH"), ";")
-	table.insert(paths, os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD"))
+	table.insert(paths, 1, os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD"))
 	local exts = string.split(os.getenv("PATHEXT"), ";")
 	table.insert(exts, "")
 
-	if fs.exists(p) then
-		return p
+	if fs.exists(path) then
+		return path
 	end
 
 	for _, pt in pairs(paths) do
 		pt = fs.canonical(pt)
 		for _, ext in pairs(exts) do
-			local np = pt .. "/" .. p .. ext
+			local np = pt .. "/" .. path .. ext
 			if fs.exists(np) then
 				return np
 			end
 		end
 	end
 
+	if alwaysResolve then return path end
 	return nil
 end
 
@@ -406,9 +407,9 @@ function lib.read(options)
 				if historyIndex > 1 then
 					historyIndex = historyIndex - 1
 					hideCursor()
-					cursor.x = cursor.x - string.len(inp)
-					io.write((" "):rep(string.len(inp)))
-					cursor.x = cursor.x - string.len(inp)
+					cursor.x = cursor.x - unicode.len(inp)
+					io.write((" "):rep(unicode.len(inp)))
+					cursor.x = cursor.x - unicode.len(inp)
 					io.write(history[historyIndex])
 					inp = history[historyIndex]
 					displayCursor()
@@ -417,18 +418,18 @@ function lib.read(options)
 				if historyIndex < #history then
 					historyIndex = historyIndex + 1
 					hideCursor()
-					cursor.x = cursor.x - string.len(inp)
+					cursor.x = cursor.x - unicode.len(inp)
 					io.write(history[historyIndex])
 					inp = history[historyIndex]
 					displayCursor()
 				end
 			elseif d ~= 0 then
-				c = string.char(d)
+				c = unicode.char(d)
 				if c ~= '\r' then
 					if d == 8 then -- backspace
-						if string.len(inp) > 0 then
+						if unicode.len(inp) > 0 then
 							hideCursor()
-							inp = string.sub(inp, 1, string.len(inp) - 1)
+							inp = unicode.sub(inp, 1, unicode.len(inp) - 1)
 							cursor.x = cursor.x - 1
 							io.write(" ")
 							cursor.x = cursor.x - 1

@@ -3,7 +3,7 @@ local comp = require("component")
 local gpu = comp.proxy(comp.list("gpu")())
 
 -- Serialize unsigned number (max 32-bit)
-function io.tounum(number, count, littleEndian)
+function io.tounum(number, count, littleEndian, toString)
 	local data = {}
 	
 	if count > 4 then
@@ -20,6 +20,13 @@ function io.tounum(number, count, littleEndian)
 			data[count-i+1] = bit32.band(number, 0xFF)
 			number = bit32.rshift(number, 8)
 		end
+	end
+	if toString then
+		local s = ""
+		for k, v in ipairs(data) do
+			s = s .. string.char(v)
+		end
+		return s
 	end
 	return data
 end
@@ -87,7 +94,8 @@ function io.createStdIn()
 	local stream = {}
 
 	stream.read = function(self)
-
+		require("event").pull()
+		return nil
 	end
 
 	stream.write = function(self)
@@ -201,11 +209,11 @@ function io.pipedProc(func, name, mode)
 	if not mode then mode = "r" end
 	local proc = require("tasks").newProcess(name, func)
 	if mode == "r" then
-		local inp, out = require("buffer").pipedStreams(true)
+		local inp, out = require("buffer").pipedStreams(false)
 		proc.io.stdout = out
 		return inp, proc
 	elseif mode == "w" then
-		local inp, out = require("buffer").pipedStreams(true)
+		local inp, out = require("buffer").pipedStreams(false)
 		proc.io.stdin = inp
 		return out, proc
 	end
@@ -232,7 +240,7 @@ function print(...)
 	local parts = table.pack(...)
 	local str = ""
 	for k, v in ipairs(parts) do
-		str = str .. v
+		str = str .. tostring(v)
 		if k ~= #parts then
 			str = str .. "\t"
 		end

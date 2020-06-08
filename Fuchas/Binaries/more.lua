@@ -23,5 +23,4 @@ while not io.stdin.closed do
 			dy = 0
 		end
 	end
-	coroutine.yield()
 end

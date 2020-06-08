@@ -182,7 +182,9 @@ end
 function filesystem.isDirectory(path)
 	if not filesystem.exists(path) then return false end
 	local node, rest = findNode(path)
-	if node == nil then return false end
+	if not node then
+		return false
+	end
 	return node.isDirectory(rest)
 end
 
@@ -300,9 +302,6 @@ function filesystem.list(path)
 	local i = 1
 	setmetatable(set, {
 		__call = function()
-			if i == #keys+1 then
-				return nil
-			end
 			i = i + 1
 			return keys[i-1], set[keys[i-1]]
 		end

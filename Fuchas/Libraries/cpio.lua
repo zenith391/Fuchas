@@ -35,7 +35,7 @@ function cpio.parse(stream)
 		local nameSize = readShort()
 		local fileSize = readStrangeInt()
 
-		local path = stream:read(nameSize)
+		local path = stream:read(nameSize):sub(1, nameSize-1)
 		if nameSize % 2 ~= 0 then
 			stream:seek(1)
 		end
@@ -47,7 +47,7 @@ function cpio.parse(stream)
 			stream:seek(1)
 		end
 
-		archive[path] = {
+		table.insert(archive, {
 			mode = mode,
 			uid = uid,
 			gid = gid,
@@ -56,27 +56,33 @@ function cpio.parse(stream)
 			nlink = nlink,
 			rdev = rdev,
 			mtime = mtime,
+			name = path,
 			data = data
-		}
+		})
 	end
 	return archive
 end
 
 -- Write a parsed archive file to a stream
 function cpio.write(arc, stream)
-	local inc = 0 -- increment counter used for "dev" and "ino" fields
+	local inc = 3 -- increment counter used for "ino" fields
 
 	local function writeStrangeInt(int)
 		local msb = bit32.rshift(bit32.band(int, 0xFFFF0000), 16)
 		local lsb = bit32.band(int, 0x0000FFFF)
-		stream:write(io.tounum(msb, 2, true))
-		stream:write(io.tounum(lsb, 2, true))
+		stream:write(io.tounum(msb, 2, true, true))
+		stream:write(io.tounum(lsb, 2, true, true))
 	end
-
-	for path, entry in pairs(arc) do
-		stream:write(io.tounum(tonumber("070707", 8), 4, true)) -- magic
-		stream:write(io.tounum(entry.dev or inc, 2, true)) -- dev
-		stream:write(io.tounum(entry.ino or inc, 2, true)) -- ino
+	table.insert(arc, {
+		data = "",
+		name = "TRAILER!!!",
+		mode = 0
+	})
+	for _, entry in pairs(arc) do
+		local path = entry.name
+		stream:write(io.tounum(tonumber("070707", 8), 2, true, true)) -- magic
+		stream:write(io.tounum(entry.dev or 0x800, 2, true, true)) -- dev
+		stream:write(io.tounum(entry.ino or inc, 2, true, true)) -- ino
 		local mode = entry.mode
 		if not entry.mode then
 			if entry.isDirectory then
@@ -87,16 +93,31 @@ function cpio.write(arc, stream)
 				error("cannot write non-file and non-directory entry, use \"mode\" field to do so.")
 			end
 		end
-		stream:write(io.tounum(mode, 2, true)) -- mode
-		stream:write(io.tounum(entry.uid or 0, 2, true)) -- uid
-		stream:write(io.tounum(entry.gid or 0, 2, true)) -- gid
-		stream:write(io.tounum(entry.rdev or 0, 2, true)) -- rdev
+		if entry.isDirectory then
+			if not entry.nlink then
+				entry.nlink = 2
+			elseif entry.nlink < 2 then
+				entry.nlink = 2
+			end
+		end
+		mode = bit32.bor(mode, tonumber("0000777", 8)) -- all permissions
+		stream:write(io.tounum(mode, 2, true, true)) -- mode
+		stream:write(io.tounum(entry.uid or 0, 2, true, true)) -- uid
+		stream:write(io.tounum(entry.gid or 0, 2, true, true)) -- gid
+		stream:write(io.tounum(entry.nlink or 1, 2, true, true)) -- nlink
+		stream:write(io.tounum(entry.rdev or 0, 2, true, true)) -- rdev
 		writeStrangeInt(entry.mtime or 0) -- mtime
-		stream:write(io.tounum(path:len(), 2, true)) -- namesize
+		stream:write(io.tounum(path:len()+1, 2, true, true)) -- namesize
 		writeStrangeInt(entry.data:len()) -- filesize
 
-		stream:write(path)
+		stream:write(path .. "\0")
+		if (path:len() + 1) % 2 ~= 0 then
+			stream:write("\0")
+		end
 		stream:write(entry.data)
+		if entry.data:len() % 2 ~= 0 then
+			stream:write("\0")
+		end
 		
 		inc = inc + 1
 	end
