@@ -79,7 +79,7 @@ tasks.newProcess("System Interface", function()
 						goto continue
 					end
 					local proc = tasks.newProcess(name, f)
-					proc.isSurface = true
+					proc.isService = true
 					::continue::
 				end
 			end
@@ -100,7 +100,7 @@ tasks.newProcess("System Interface", function()
 						goto continue
 					end
 					local proc = tasks.newProcess(name, f)
-					proc.isSurface = true
+					proc.isService = true
 					::continue::
 				end
 			end

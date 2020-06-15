@@ -23,7 +23,9 @@ if ops.o or ops.output and args[1] then
 				entry.data = s:read("a")
 				s:close()
 			end
-			table.insert(archive, entry)
+			if line ~= ".dir" or ops.a then
+				table.insert(archive, entry)
+			end
 		end
 	end
 
@@ -34,8 +36,10 @@ elseif ops.e or ops.extract then
 	io.stderr:write("Extract not yet supported.\n")
 else
 	print("Usage:")
-	print("cpio [-o|-e] <file>")
-	print("-e|--extract: Extract a CPIO archive to PWD")
-	print("-o|--output: Write a CPIO archive")
-	print("Can be used like so: 'find . | cpio -o myCpio.cpio'")
+	print("cpio [-o|-e] [-a] <file>")
+	print("  -e|--extract: Extract a CPIO archive to PWD")
+	print("  -o|--output: Write a CPIO archive")
+	print("  -a: If present, will include the .dir files (Fuchas permission file on managed disks),")
+	print("      it can be useful for moving data between Fuchas computers.")
+	print("  Can be used like so: 'find . | cpio -o myCpio.cpio'")
 end

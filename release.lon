@@ -1,45 +1,39 @@
 {
-	version = "0.6.1",
+	version = "0.6.2",
 	changelog = [[
-		0.6.1:
-		+ Total UAC rework, based on user keys and is now per-process.
-		+ PIDs always increase
-		+ Improved permissions/security on multitask: process metrics and PID listing
-		+ `package.path`
-		+ Fixed massive security fault: unprotected A:/Users/Shared could override A:/Fuchas/Binaries in the load order.
-		+ Improved "lua" prompt
-		+ Support for ANSI colors (try "type Fuchas/ansi_test.txt")
-		+ "Fushell" now supports command piping (e.g.: "dir |more")
-		+ Optimized scheduler: Fuchas now consumes less CPU time
-		+ Command history
-		0.6.0:
-		+ Shell autocompletion
-		+ OS arguments
-		+ "buffer" library for buffered streams
-		+ CPU metrics
-		+ Concert task manager
-		+ Architecture-dependent package files (different file depending on having Lua 5.2 or 5.3)
-		+ Warning displayed when Lua 5.3 is supported but not enabled
-		+ Optimization of OCDraw (merging) and GPU drivers (avoid setting multiple time the same color)
-		+ New driver format (less file loading): faster startup time
-		+ Inter-Process Communication (IPC)
-		+ FPM has been renamed to Application Package Manager (APM)
-		+ APM packages are installed on current user's directory by default.
-		+ New "-g" option in APM for installing in shared/global user directory.
-		+ Fixed many technical issues
-		+ Added OpenUPT library
-		+ Fuchas's Advanced Lua: added string.toByteArray
-		+ Temporary filesystem mounted at "T:"
-		+ Released "format" program
-		+ Added "echo" command
-		+ Fuchas now implements (almost) every standard I/O function! Including io.popen
-		+ Non-standard "write" function removed, use "io.write"
-		+ Improved OS API
-		+ Support for different standanrd IO streams (stdout, stdin, stderr) per process and for stream piping
-		+ Replaced "pwd" by "cd" (cd offers same feature, clearer, when runned without arguments)
-		+ Started "Kabam" interface, this will soon be the default, eventually replacing Fushell
-		+ os.exit()
-		+ Removed obsolete/deprecated IO methods
-		+ Removed AwesomeCatgirl
+		0.6.2:
+		Core OS:
+			+ Fixed Concert
+			+ Fushell boot screen is now lighter
+			+ New in-OS documentation using OHML
+			+ Working shell command history
+			+ Working Stardust project: you can run OpenOS binaries on Fuchas
+			+ Detachable file handles
+			+ Horizontal tab is now an actual tab (not just converted to 4 spaces)
+			+ The scheduler is now using an SJF algorithm
+			+ "package" and "bit32" are now protected.
+			+ Added services : processes that auto-run at start
+			+ Added "service" tool to manage services
+			+ Added safe mode : non-essential drivers and services are not loaded, press F1 while booting to go in safe mode
+			+ Removed zorya-modules folder on the github (wasn't installed anyways)
+			+ Added support for reading and writing CPIO and VELX files.
+			+ Removed automatic Unicode which turned out to be bad
+			+ Improved process piping, fixed a bug and buffered them
+		Tools:
+			+ Added "cpio" tool to package and extract CPIOs
+			+ Added "find" command for use with "cpio" tool (and others)
+			+ "dmesg" command
+			+ "apm info" command
+		Lua API:
+			+ print(...) now calls tostring
+			+ "string.trim(s)" to remove trailing spaces
+			+ io.tounum can now convert result to string using toString argument
+			+ Added alwaysResolve argument to shell.resolve, if true it will returns the original path when no resolve was found.
+		Drivers:
+			+ The GPU driver can automatically move buffers from and to RAM when VRAM is missing.
+			+ The GPU driver now supports OC buffers
+			+ New driver using for CC printers
+		Installers:
+			+ Fix the OpenOS installer
 	]]
 }

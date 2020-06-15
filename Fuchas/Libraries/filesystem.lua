@@ -68,7 +68,7 @@ end
 function filesystem.get(path)
 	local node, rest = findNode(path)
 	if node then
-		path = filesystem.canonical(path)
+		rest = filesystem.canonical(rest)
 		return node, rest
 	end
 	return nil, "no such file system"
@@ -266,7 +266,7 @@ function filesystem.getAttributes(path, raw)
 		elseif bit32 and bit32.band then
 			return {
 				readOnly = (bit32.band(attr, 1) == 1), -- always read-only
-				system = (bit32.band(attr, 2) == 2), -- protected in Read
+				system = (bit32.band(attr, 2) == 2), -- protected in Write
 				protected = (bit32.band(attr, 4) == 4), -- protected in Read/Write
 				hidden = (bit32.band(attr, 8) == 8), -- hidden
 				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
@@ -373,15 +373,10 @@ function filesystem.open(path, mode)
 			return nil, "not enough permissions (requires permission \"file.system\")"
 		end
 	end
-	if mode ~= "r" and mode ~= "rb" then
-		local parts = segments(path)
-		if parts[#parts] == ".dir" then
-			return nil, "file not found"
-		end
+	if attributes.readOnly and mode ~= "r" and mode ~= "rb" then
+		return nil, "file is read-only"
 	end
 	local node, rest = findNode(path)
-	local segs = segments(path)
-	table.remove(segs, 1)
 	if not node then
 		return nil, "drive not found"
 	end

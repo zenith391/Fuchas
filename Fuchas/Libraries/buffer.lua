@@ -63,7 +63,10 @@ function buffer.from(handle)
 	local stream = {}
 	stream.stream = handle
 	stream.buf = ""
-	stream.size = 256
+	stream.wbuf = ""
+	stream.size = require("config").buffer.readBufferSize
+	stream.wsize = require("config").buffer.defaultWriteBufferSize
+	stream.wmode = "full"
 
 	function stream:close()
 		self.stream:close()
@@ -71,7 +74,26 @@ function buffer.from(handle)
 	end
 	
 	function stream:write(val)
-		return self.stream:write(val)
+		checkArg(1, val, "string")
+		if self.wmode == "no" then
+			return self.stream:write(val)
+		elseif self.wmode == "full" then
+			local remaining = self.wsize - self.wbuf:len()
+			local firstPart = val:sub(1, remaining)
+			self.wbuf = self.wbuf .. firstPart
+			if val:len() > remaining then
+				local secondPart = val:sub(remaining+1)
+				self:flush()
+				self:write(secondPart)
+			end
+		end
+	end
+
+	function stream:flush()
+		if self.wbuf:len() > 0 then
+			self.stream:write(self.wbuf)
+		end
+		self.wbuf = ""
 	end
 
 	function stream:fillBuffer()
@@ -118,7 +140,7 @@ function buffer.from(handle)
 
 	function stream:read(f)
 		if not f then
-			f = "a"
+			f = "l"
 		end
 		if f == "a" or f == "*a" then -- the * before a or l and others is deprecated in Lua 5.3
 			local s = ""
@@ -131,7 +153,7 @@ function buffer.from(handle)
 				s = s .. r
 			end
 			return s
-		elseif f == "l" or f == "*l" then
+		elseif f == "l" or f == "*l" or f == "L" or f == "*L" then
 			local s = ""
 			while true do
 				local r = self:read(1)
@@ -146,6 +168,13 @@ function buffer.from(handle)
 					if r:find("\r") then
 						self:read(1) -- skip \n
 					end
+					if f == "L" or f == "*L" then
+						if r:find("\r") then
+							s = s .. "\r\n"
+						else
+							s = s .. "\n"
+						end
+					end
 					return s
 				end
 				s = s .. r
@@ -158,17 +187,34 @@ function buffer.from(handle)
 	end
 
 	function stream:seekable()
-		return self.stream:seekable()
+		if self.stream.seekable then
+			return self.stream:seekable()
+		else
+			if self.stream.seek then
+				return true
+			else
+				return false
+			end
+		end
 	end
 
 	function stream:setvbuf(mode, size)
-		-- TODO
+		checkArg(1, mode, "string")
+		if not size then
+			size = require("config").buffer.defaultWriteBufferSize
+		end
+		size = math.max(math.min(size, require("config").buffer.maxWriteBufferSize), 1)
+		if mode ~= "full" and mode ~= "line" then
+			error("invalid vbuf mode " .. mode)
+		end
+		self.wmode = mode
+		self.wsize = size
 	end
 
 	function stream:lines()
 		local tab = {}
 		while true do
-			local line = self.read(self, "l")
+			local line = self:read("l")
 			if line == nil then
 				break
 			end
@@ -185,6 +231,7 @@ function buffer.from(handle)
 	end
 
 	function stream:seek(whence, offset)
+		self:flush()
 		self.buf = ""
 		return self.stream:seek(whence, offset)
 	end

@@ -87,13 +87,13 @@ function velx.write(velx, stream)
 		stream:write(velx.archiveType)
 	end
 
-	stream:write(io.tounum(velx.programSection:len(), 3, true))
-	stream:write(io.tounum(velx.osSection:len(), 3, true))
-	stream:write(io.tounum(velx.signatureSection:len(), 3, true))
+	stream:write(io.tounum(velx.programSection:len(), 3, true, true))
+	stream:write(io.tounum(velx.osSection:len(), 3, true, true))
+	stream:write(io.tounum(velx.signatureSection:len(), 3, true, true))
 	if velx.archiveType == "none" then
-		stream:write(io.tounum(0, 4, true))
+		stream:write(io.tounum(0, 4, true, true))
 	else
-		stream:write(io.tounum(velx.archiveSize, 3, true))
+		stream:write(io.tounum(velx.archiveSize, 3, true, true))
 	end
 
 	stream:write(velx.programSection)

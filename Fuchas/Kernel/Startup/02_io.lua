@@ -2,6 +2,7 @@ local fs = require("filesystem")
 local comp = require("component")
 local gpu = comp.proxy(comp.list("gpu")())
 
+-- These functions are to be used for programs to be compatible between Lua 5.2 and 5.3
 -- Serialize unsigned number (max 32-bit)
 function io.tounum(number, count, littleEndian, toString)
 	local data = {}
@@ -141,7 +142,7 @@ _G.gy = nil
 
 function io.open(filename, mode)
 	if not fs.isDirectory(filename) then
-		local h, err = fs.open(filename, mode)
+		local h, err = fs.open(filename, mode or "r")
 		if not h then
 			return nil, err
 		end
@@ -168,7 +169,7 @@ function io.output(file)
 		return io.stdout
 	else
 		if type(file) == "string" then -- file name
-			io.input(io.open(file, "w"))
+			io.output(io.open(file, "w"))
 		else
 			local proc = require("tasks").getCurrentProcess()
 			proc.io.stdout = file

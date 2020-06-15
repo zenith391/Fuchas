@@ -14,6 +14,10 @@ function protocol.cancelAsync(id)
 	event.cancel(id)
 end
 
+function protocol.getOSILayer()
+	return 2
+end
+
 function protocol.listenAsync(port, callback)
 	local f = nil
 	modem.open(port)
