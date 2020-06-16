@@ -54,7 +54,8 @@ function lib.setCursor(col, row)
 end
 
 function lib.clear()
-	driver.gpu.fill(1, 1, 160, 50, 0)
+	local w, h = driver.gpu.getResolution()
+	driver.gpu.fill(1, 1, w, h, 0)
 	lib.setCursor(1, 1)
 end
 
@@ -85,7 +86,6 @@ end
 function lib.createStdOut(gpu)
 	local stream = {}
 	local sh = require("shell")
-	local w, h = gpu.getResolution()
 	stream.gpu = gpu
 	stream.close = function(self)
 		return false -- unclosable stream
@@ -112,6 +112,10 @@ function lib.createStdOut(gpu)
 	}
 	local ESC = string.char(0x1B)
 	local CSI = ESC .. "%["
+	local w, h = gpu.getResolution()
+	require("event").listen("screen_resized", function(_, nw, nh)
+		w, h = gpu.getResolution() -- getResolution() returns viewport on purpose and that's what we want
+	end)
 	stream.write = function(self, val)
 		if val:find("\t") then
 			local s = val:find("\t")
@@ -122,7 +126,7 @@ function lib.createStdOut(gpu)
 			return self:write(val)
 		end
 		if sh.getX() >= w then
-			sh.setX(0)
+			sh.setX(1)
 			sh.setY(sh.getY() + 1)
 		end
 		local ptr, ptrE, ptrC = val:find(CSI .. "(.*)H") -- move cursor, in order: pattern start, pattern end, pattern capture
@@ -203,14 +207,14 @@ function lib.createStdOut(gpu)
 			gpu.drawText(sh.getX(), sh.getY(), val:sub(1, s-1))
 			sh.setX(1)
 			sh.setY(sh.getY() + 1)
-			if sh.getY() == h then
+			if sh.getY() >= h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
 				gpu.fill(1, h, w, 1)
 				sh.setY(sh.getY() - 1)
 			end
 			return self:write(val:sub(e+1))
 		else
-			if sh.getY() == h then
+			if sh.getY() >= h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
 				gpu.fill(1, h, w, 1)
 				sh.setY(sh.getY() - 1)
