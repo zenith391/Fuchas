@@ -18,11 +18,11 @@ function spec.new(address)
 	local drv = {}
 	local tape = cp.proxy(address)
 
-	local function sync(off)
+	local function sync(npos)
 		if tape.getPosition then pos = tape.getPosition() end
-		if pos ~= off then
-			tape.seek(off - pos)
-			pos = off
+		if pos ~= npos then
+			tape.seek(npos - pos)
+			pos = npos
 		end
 	end
 
@@ -59,7 +59,7 @@ function spec.new(address)
 			end
 			data = d
 		end
-		sync(off)
+		sync(offset)
 		tape.write(data)
 	end
 

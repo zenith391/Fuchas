@@ -16,8 +16,8 @@ local function titleBar(win)
 		self:initRender()
 		self.canvas.fillRect(1, 1, win.width, 1, 0xCCCCCC)
 		self.canvas.drawText(2, 1, win.title, 0xFFFFFF)
-		self.canvas.drawText(win.width - 5, 1, "⣤ ⠶", 0xFFFFFF)
-		self.canvas.drawText(win.width - 1, 1, "X", 0xFF0000)
+		self.canvas.drawText(win.width - 5, 1, unicode.char(0x25CB) .. " " .. unicode.char(0x25C9), 0xFFFFFF)
+		self.canvas.drawText(win.width - 1, 1, unicode.char(0x25A3), 0xFF0000)
 		draw.drawContext(self.context)
 	end
 	return comp

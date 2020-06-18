@@ -19,6 +19,7 @@
 			+ Added support for reading and writing CPIO and VELX files.
 			+ Removed automatic Unicode which turned out to be bad
 			+ Improved process piping, fixed a bug and buffered them
+			+ Better unicode support in "shell" library, options are now correctly parsed (ex: --a=test or -abc are now possible)
 		Tools:
 			+ Added "cpio" tool to package and extract CPIOs
 			+ Added "find" command for use with "cpio" tool (and others)
@@ -33,6 +34,7 @@
 			+ The GPU driver can automatically move buffers from and to RAM when VRAM is missing.
 			+ The GPU driver now supports OC buffers
 			+ New driver using for CC printers
+			+ Fixed "ctape" driver
 		Installers:
 			+ Fix the OpenOS installer
 	]]

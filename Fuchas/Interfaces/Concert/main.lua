@@ -20,9 +20,10 @@ local taskBar = wins.newWindow()
 local focusedWin = nil
 local selectedWin = nil
 
+local w, h = require("driver").gpu.getResolution()
 do
 	startMenu.undecorated = true
-	startMenu.y = 35
+	startMenu.y = h - 15
 	startMenu.x = 1
 	startMenu.width = 25
 	startMenu.height = 15
@@ -65,7 +66,7 @@ dofile("A:/Fuchas/Interfaces/Concert/csysguard.lua")
 
 do
 	taskBar.undecorated = true
-	taskBar.y = 50
+	taskBar.y = h
 	taskBar.x = 1
 	taskBar.width = 160
 	taskBar.height = 1

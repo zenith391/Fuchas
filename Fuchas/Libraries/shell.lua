@@ -119,7 +119,7 @@ function lib.createStdOut(gpu)
 	stream.write = function(self, val)
 		if val:find("\t") then
 			local s = val:find("\t")
-			self:write(val:sub(1, s-1))
+			self:write(unicode.sub(val, 1, s-1))
 			sh.setX(sh.getX() + 4)
 			sh.setX(sh.getX() - (sh.getX() % 4))
 			val = val:sub(s+1)
@@ -137,30 +137,30 @@ function lib.createStdOut(gpu)
 				local y = tonumber(split[1]) or 1
 				local x = tonumber(split[2]) or 1
 				lib.setCursor(x, y)
-				return self:write(val:sub(ptrE+1))
+				return self:write(unicode.sub(val, ptrE+1))
 			end
 		end
 		ptr, ptrE = val:find(ESC .. "c") -- clear
 		if ptr then
-			self:write(val:sub(1, ptr-1))
+			self:write(unicode.sub(val, 1, ptr-1))
 			lib.clear()
-			return self:write(val:sub(ptrE+1))
+			return self:write(unicode.sub(val, ptrE+1))
 		end
 		ptr, ptrE = val:find(CSI .. "%?25h")
 		if ptr then
 			self:write(val:sub(1, ptr-1))
 			-- TODO: show cursor
-			return self:write(val:sub(ptrE+1))
+			return self:write(unicode.sub(val, ptrE+1))
 		end
 		ptr, ptrE = val:find(CSI .. "%?25l")
 		if ptr then
 			self:write(val:sub(1, ptr-1))
 			-- TODO: hide cursor
-			return self:write(val:sub(ptrE+1))
+			return self:write(unicode.sub(val, ptrE+1))
 		end
 		ptr, ptrE, ptrC = val:find(CSI .. "([%d;]+)m")
 		if ptr then
-			self:write(val:sub(1, ptr-1))
+			self:write(unicode.sub(val, 1, ptr-1))
 			local sgrs = string.split(ptrC, ";")
 			for i=1, #sgrs do
 				local sgr = tonumber(sgrs[i])
@@ -198,13 +198,13 @@ function lib.createStdOut(gpu)
 			end
 			return self:write(val:sub(ptrE+1))
 		end
-		if sh.getX()+val:len() > w+2 then
-			self:write(val:sub(1, w-sh.getX()))
-			return self:write("\n" .. val:sub(w))
+		if sh.getX()+unicode.len(val) > w+1 then
+			self:write(unicode.sub(val, 1, w-sh.getX()+1))
+			return self:write(unicode.sub(val, w+1))
 		end
 		if val:find("\n") then
 			local s, e = val:find("\n")
-			gpu.drawText(sh.getX(), sh.getY(), val:sub(1, s-1))
+			gpu.drawText(sh.getX(), sh.getY(), unicode.sub(val, 1, s-1))
 			sh.setX(1)
 			sh.setY(sh.getY() + 1)
 			if sh.getY() >= h then
@@ -212,7 +212,7 @@ function lib.createStdOut(gpu)
 				gpu.fill(1, h, w, 1)
 				sh.setY(sh.getY() - 1)
 			end
-			return self:write(val:sub(e+1))
+			return self:write(unicode.sub(val, e+1))
 		else
 			if sh.getY() >= h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
@@ -220,7 +220,7 @@ function lib.createStdOut(gpu)
 				sh.setY(sh.getY() - 1)
 			end
 			gpu.drawText(sh.getX(), sh.getY(), val)
-			sh.setX(sh.getX() + string.len(val))
+			sh.setX(sh.getX() + unicode.wlen(val))
 		end
 		return true
 	end
@@ -235,13 +235,18 @@ function lib.parse(tab)
 	local options = {}
 	for _, v in pairs(tab) do
 		if v:len() > 0 then
-			if v:sub(1, 2) == "--" then
-				options[v:sub(3, v:len())] = true
-				print(v)
-			elseif v:sub(1, 1) == "-" then
-				options[v:sub(2, 2)] = true
-				if v:len() > 3 then
-					options[v:sub(2, 2)] = v:sub(4, v:len())
+			if unicode.sub(v, 1, 2) == "--" then
+				local pos = string.find(v, "=")
+				if pos then
+					local key = unicode.sub(v, 3, pos-1)
+					local val = unicode.sub(v, pos+1)
+					options[key] = val
+				else
+					options[unicode.sub(v, 3, unicode.len(v))] = true
+				end
+			elseif unicode.sub(v, 1, 1) == "-" then
+				for _, ch in pairs(string.toCharArray(unicode.sub(v, 2))) do
+					options[ch] = true
 				end
 			else
 				table.insert(ntab, v)
@@ -333,10 +338,10 @@ function lib.parseCL(cl)
 				end
 			end
 		end
+		if istr then
+			error("parse error: long-argument not ended with double-quote (\")")
+		end
 		if arg ~= "" then
-			if istr then
-				error("parse error: long-argument not ended with \"")
-			end
 			table.insert(args, arg)
 		end
 		table.insert(commands, args)
@@ -439,7 +444,7 @@ function lib.read(options)
 							cursor.x = cursor.x - 1
 							displayCursor()
 							if options.onType then
-								options.onType(inp, inp:len())
+								options.onType(inp, unicode.len(inp))
 							end
 						end
 					elseif d > 0x1F and d ~= 0x7F then

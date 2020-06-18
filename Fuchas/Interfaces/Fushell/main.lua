@@ -59,7 +59,7 @@ end
 local drive = "A"
 local run = true
 while run do
-	while true do -- used for break (to act as "continue" in other other languages)
+	::continue::
 	os.setenv("PWD_DRIVE", drive)
 	io.write(drive .. ":/" .. os.getenv("PWD") .. ">")
 	local ok, l = pcall(sh.read, {
@@ -76,7 +76,11 @@ while run do
 		l = l:sub(1, l:len()-1)
 		async = true
 	end
-	local commands = sh.parseCL(l)
+	local ok, commands = pcall(sh.parseCL, l)
+	if not ok then
+		io.stderr:write(commands .. "\n")
+		goto continue
+	end
 	local chainStream = nil
 	for i=1, #commands do
 		local args = commands[i]
@@ -91,11 +95,11 @@ while run do
 			if args[1]:sub(2, 2) == ":" then
 				if not fs.isMounted(args[1]:sub(1, 1)) then
 					print("No such drive: " .. args[1]:sub(1, 1))
-					break
+					goto continue
 				end
 				drive = args[1]:sub(1, 1)
 				os.setenv("PWD", "")
-				break
+				goto continue
 			end
 		end
 		
@@ -164,8 +168,7 @@ while run do
 			end)
 		else
 			print("No such command or external file found.")
-			break
+			goto continue
 		end
 	end
-	end -- end of "continue" while
 end

@@ -7,18 +7,6 @@ local _lower = string.lower
 local _upper = string.upper
 local uni = false -- turns out that feature was a bad idea and let to undefined behaviours more than anything else
 
-function string.setUnicodeEnabled(u)
-	uni = u
-end
-
-function string.isUnicodeEnabled()
-	return uni
-end
-
-function string.toggleUnicode()
-	uni = not uni
-end
-
 function string.toCharArray(s)
 	local chars = {}
 	for i = 1, unicode.len(s) do

@@ -30,7 +30,12 @@ function lib.component()
 			local x,y,w,h = draw.getContextBounds(self.context)
 			if x~=self.x or y~=self.y or w~=self.width or h~=self.height then
 				draw.moveContext(self.context, self.x, self.y)
-				draw.setContextSize(self.context, self.width, self.height)
+				if w~=self.width or h~=self.height then
+					draw.closeContext(self.context)
+					self.context = nil
+					self.width = w
+					self.height = h
+				end
 			end
 		end
 		if self.context == nil  then

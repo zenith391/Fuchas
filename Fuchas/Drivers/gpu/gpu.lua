@@ -254,6 +254,9 @@ function spec.new(address)
 			self:detach()
 		end
 
+		--- It should be called just before a GPU operation, as a coroutine.yield() (ex: I/O) could
+		--- give the lead to another process that would also use buffer:bind(), but the binded
+		--- buffer is global.
 		function buffer:bind()
 			self:validate()
 			comp.setActiveBuffer(self.id)
