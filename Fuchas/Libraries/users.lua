@@ -22,12 +22,7 @@ local function retrieveUsers()
 		if configStream then
 			local config = require("liblon").loadlon(configStream)
 			configStream:close()
-			table.insert(users, {
-				name = config.name,
-				pathName = config.pathName,
-				password = config.password,
-				security = config.security,
-			})
+			table.insert(users, config)
 		end
 	end
 end
@@ -89,7 +84,7 @@ end
 local function randomSalt(len)
 	local binsalt = ""
 	for i=1, len do
-		binsalt = binsalt .. math.floor(math.random() * 255))
+		binsalt = binsalt .. string.char(math.floor(math.random() * 255))
 	end
 	return binsalt
 end
