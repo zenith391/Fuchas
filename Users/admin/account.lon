@@ -1,5 +1,6 @@
 {
 	name = "admin",
-	password = "d4bec2c7b8149fbe104e8de48d9b7b226c868c78c16659030e81f8f8e45491a0f0be5e395ca75bed64dd886acba8ec05414e06bf8a28d3211823cc5ff62a89e8",
-	security = "sha3-512"
+	password = "d4bec2c7b8149fbe104e8de48d9b7b226c868c78c16659030e81f8f8e45491a0f0be5e395ca75bed64dd886acba8ec05414e06bf8a28d3211823cc5ff62a89e8", -- just equivalent to "admin"
+	security = "sha3-512",
+	salt = "$@^PO!°]"
 }

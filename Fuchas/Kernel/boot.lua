@@ -285,6 +285,10 @@ end, function(err)
 			x = 1
 			y = 1
 		end
+		if gpu.setActiveBuffer then
+			gpu.setActiveBuffer(0)
+		end
+		gpu.setForeground(0xFFFFFF)
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 160, 50, " ")
 		write([[A problem has been detected and Fuchas

@@ -34,20 +34,24 @@ function lib.drawContext(ctxn)
 		gpu.drawText(1, 4, "RAM: " .. usedMem .. "/" .. totalMem .. " KiB")
 		local stats = gpu.getStatistics()
 		if caps.hardwareBuffers then
-			local total = stats.totalMemory
-			local free = stats.usedMemory
-			local usedVMem = math.floor((total - free) / 1024)
-			local totalVMem = math.floor(total / 1024)
-			gpu.drawText(1, 5, "VRAM: " .. usedMem .. "/" .. totalMem .. " KiB")
+			local usedVMem = math.floor(stats.usedMemory / 1000)
+			local totalVMem = math.floor(stats.totalMemory / 1000)
+			gpu.drawText(1, 5, "VRAM: " .. usedVMem .. "/" .. totalVMem .. " KB")
 		else
 			gpu.drawText(1, 5, "VRAM: not supported")
 		end
 	end
-	--lib.tryMerge(ctx.drawBuffer)
+	if ctx.buffer then
+		ctx.buffer:bind()
+	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
 		local x = v.x
 		local y = v.y
+		if not ctx.buffer and x and y then
+			x = ctx.x + x - 1
+			y = ctx.y + y - 1
+		end
 		local width = v.width
 		local height = v.height
 		local color = v.color
@@ -56,8 +60,12 @@ function lib.drawContext(ctxn)
 			g.fill(x, y, width, height)
 		elseif t == "drawText" and x <= rw and y <= rh then
 			local back = v.color2
-			if not back and x >= 1 then _, _, back = g.get(x, y) end
-			g.setColor(back)
+			if not back and x >= 1 then
+				_, _, back = g.get(x, y)
+			end
+			if back then
+				g.setColor(back)
+			end
 			g.drawText(x, y, v.text, color)
 		elseif t == "copy" then
 			local x2, y2 = i.x2, i.y2
@@ -83,16 +91,24 @@ function lib.drawContext(ctxn)
 			g[t](table.unpack(v.args))
 		end
 	end
+	if ctx.buffer then
+		gpu.blit(ctx.buffer, gpu.screenBuffer(), ctx.x, ctx.y)
+		ctx.buffer:unbind()
+	end
 	ctx.drawBuffer = {}
 end
 
-local function pushToBuf(ctx, func, ...)
-	if caps.hardwareBuffers then
+local function pushToBuf(ctx, func, x, y, ...)
+	if ctx.buffer then
 		ctx.buffer:bind()
-		gpu[func](...)
+		gpu[func](x, y, ...)
 		ctx.buffer:unbind()
 	else
-		table.insert(ctx.drawBuffer, {type=func,args={...}})
+		if x and y then
+			table.insert(ctx.drawBuffer, {type=func,args={ctx.x+x, ctx.y+y, ...}})
+		else
+			table.insert(ctx.drawBuffer, {type=func,args={x, y, ...}})
+		end
 	end
 end
 
@@ -110,8 +126,8 @@ end
 
 function lib.newContext(x, y, width, height, braille)
 	local ctx = {}
-	ctx.x = (x or 1)-1
-	ctx.y = (y or 1)-1
+	ctx.x = (x or 1)
+	ctx.y = (y or 1)
 	ctx.width = width or 160
 	ctx.height = height or 50
 	ctx.braille = braille
@@ -135,8 +151,8 @@ end
 
 function lib.moveContext(ctx, x, y)
 	local c = contexts[ctx]
-	c.x = x-1
-	c.y = y-1
+	c.x = x
+	c.y = y
 end
 
 function lib.canvas(ctxn)
@@ -150,8 +166,6 @@ function lib.canvas(ctxn)
 		if y + height > ctx.height+1 then
 			height = ctx.height - y+1
 		end
-		x = x + ctx.x
-		y = y + ctx.y
 		vgpu.setColor(color)
 		vgpu.fill(x, y, width, height)
 	end
@@ -187,8 +201,6 @@ function lib.canvas(ctxn)
 		if y > ctx.height then
 			y = ctx.height
 		end
-		x = x + ctx.x
-		y = y + ctx.y
 		local draw = {}
 		draw.x = x
 		draw.y = y

@@ -33,8 +33,6 @@ function lib.component()
 				if w~=self.width or h~=self.height then
 					draw.closeContext(self.context)
 					self.context = nil
-					self.width = w
-					self.height = h
 				end
 			end
 		end

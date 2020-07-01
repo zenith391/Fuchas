@@ -2,7 +2,11 @@ local shell = require("shell")
 local gpu = require("driver").gpu
 local args, opts = shell.parse(...)
 
-if #args < 2 then
+if #args == 0 then
+	local width, height = gpu.getResolution()
+	print(width .. " " .. height)
+	return
+elseif #args ~= 2 then
 	io.stderr:write("Usage: resolution [width] [height]\n")
 	return
 end
@@ -15,4 +19,8 @@ if not width or not height then
 	return
 end
 
-gpu.setResolution(width, height)
+local ok, err = pcall(gpu.setResolution, width, height)
+
+if not ok then
+	io.stderr:write("error: " .. err .. "\n")
+end

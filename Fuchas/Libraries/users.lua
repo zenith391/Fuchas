@@ -86,6 +86,41 @@ function lib.logout()
 	return true
 end
 
+local function randomSalt(len)
+	local binsalt = ""
+	for i=1, len do
+		binsalt = binsalt .. math.floor(math.random() * 255))
+	end
+	return binsalt
+end
+
+function lib.createUser(username, ops)
+	local passwd = ops.password
+	local perms = ops.permissions
+	ops.algorithm = ops.algorithm or "sha3-512"
+	local algo = hashes[ops.algorithm]
+	if not algo then
+		error("no such hash algorithm: " .. ops.algorithm)
+	end
+	security.requirePermission("file.system")
+	security.requirePermission("users.create")
+
+	local salt = randomSalt(64)
+	local hash = algo(salt .. passwd)
+
+	local user = {
+		name = username,
+		security = ops.algorithm,
+		password = hash,
+		salt = salt
+	}
+	table.insert(users, user)
+	filesystem.makeDirectory("A:/Users/" .. username)
+	local stream = io.open("A:/Users/" .. username .. "/account.lon", "w")
+	stream:write(require("liblon").sertable(user))
+	stream:close()
+end
+
 function lib.login(username, passwd)
 	if user ~= nil then
 		local ok, reason = lib.logout()
@@ -103,7 +138,7 @@ function lib.login(username, passwd)
 		if v.name == username then
 			if v.security ~= "none" and hashes[v.security] then
 				local algo = hashes[v.security]
-				local hash = algo("$@^PO!°]" .. passwd) -- salt + passwd; salt against rainbow tables
+				local hash = algo(v.salt .. passwd) -- salt + passwd; salt against rainbow tables
 				if v.password == hash then
 					userLogin(v)
 					return true

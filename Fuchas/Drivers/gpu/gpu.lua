@@ -139,9 +139,9 @@ function spec.new(address)
 	-- buffer methods
 	-- x, y: destination position
 	-- sx, sy: source position
-	function drv.blit(src, dst, x, y, sx, sy, width, height)
-		width = width or dst.width
-		height = height or dst.height
+	function drv.blit(src, dst, x, y, width, height, sx, sy)
+		width = width or src.width
+		height = height or src.height
 		sx = sx or 1
 		sy = sy or 1
 
@@ -196,11 +196,12 @@ function spec.new(address)
 				v.data = {}
 				for x=1, v.width do
 					for y=1, v.height do
-						data[y*v.width+x] = {comp.get(x,y)}
+						v.data[y*v.width+x] = {comp.get(x,y)}
 					end
 				end
 				v:unbind()
-				v:free()
+				comp.freeBuffer(v.id)
+				v.onVram = false
 				return true
 			end
 		end
@@ -218,7 +219,7 @@ function spec.new(address)
 		local requiredMemory = width*height
 		while comp.freeMemory() < requiredMemory do
 			if not freeUnusedBuffer() then
-				error("not enough vram free")
+				error("not enough free vram")
 			end
 		end
 
@@ -244,7 +245,12 @@ function spec.new(address)
 		end
 
 		function buffer:free()
-			comp.freeBuffer(self.id)
+			if self.onVram then
+				local ok, err = comp.freeBuffer(self.id)
+				if not ok then
+					error("could not free buffer:" .. tostring(err))
+				end
+			end
 			for k, v in ipairs(buffers) do
 				if v == self then
 					table.remove(buffers, k)
@@ -268,30 +274,29 @@ function spec.new(address)
 		end
 
 		function buffer:validate()
-			if t.onVram then
+			if self.onVram then
 				return
 			end
 			while comp.freeMemory() < self.size do
 				if not freeUnusedBuffer() then
-					error("not enough vram free: buffer has been optimized out but cannot be put back in VRAM")
+					error("not enough free vram: buffer has been optimized out but cannot be put back in VRAM")
 				end
 			end
 			buffer.id = comp.allocateBuffer(self.width, self.height)
 
 			-- repopulate buffer with saved content
+			self.onVram = true
 			self:bind()
 			for x=1, self.width do
 				for y=1, self.height do
 					local t = self.data[y*self.width+x]
-					gpu.setForeground(t[2])
-					gpu.setBackground(t[3])
-					gpu.set(x, y, t[1])
+					comp.setForeground(t[2])
+					comp.setBackground(t[3])
+					comp.set(x, y, t[1])
 				end
 			end
 			self:unbind()
 			self.data = nil -- free data from RAM
-			table.insert(buffer.proc.exitHandlers, exitHandler) -- re-attach exit handler
-			t.onVram = true
 		end
 
 		setmetatable(buffer, {

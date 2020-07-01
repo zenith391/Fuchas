@@ -91,6 +91,12 @@ function lib.hasPermission(perm, pid)
 	end
 end
 
+function lib.requirePermission(perm)
+	if not lib.hasPermission(perm) then
+		error("permission required : " .. perm, 2)
+	end
+end
+
 function lib.getPermissions(pid)
 	local proc = pid or currentProcess().pid
 	local copy = {}
