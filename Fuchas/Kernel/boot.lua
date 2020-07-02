@@ -106,7 +106,7 @@ function gy() -- temporary cursor Y accessor
 end
 
 local lastFore = 0
-local function write(msg, fore)
+function _G.write(msg, fore)
 	if not screen or not gpu then
 		return
 	end
@@ -117,29 +117,18 @@ local function write(msg, fore)
 			gpu.setForeground(fore)
 			lastFore = fore
 		end
-		if msg:find("\n") then
-			for line in msg:gmatch("([^\n]+)") do
-				if y == h then
-					gpu.copy(1, 2, w, h - 1, 0, -1)
-					gpu.fill(1, h, w, 1, " ")
-					y = y - 1
-				end
-				gpu.set(x, y, line)
-				x = 1
-				y = y + 1
-			end
-		else
+		for line in msg:gmatch("([^\n]+)") do
 			if y == h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
 				gpu.fill(1, h, w, 1, " ")
 				y = y - 1
 			end
-			gpu.set(x, y, msg)
-			x = x + msg:len()
+			gpu.set(x, y, line)
+			x = 1
+			y = y + 1
 		end
 	end
 end
-_G.write = write
 
 function print(msg, fore)
 	write(tostring(msg) .. "\n", fore)
@@ -292,17 +281,17 @@ end, function(err)
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 160, 50, " ")
 		write([[A problem has been detected and Fuchas
-has shutdown to prevent damage
+has halted to prevent damage
 to your computer.
 
 Error trace:
 ]] .. err .. " \n \n " .. [[
 
 If this is the first time you've seen
-this BSOD screen, restart your
+this error screen, restart your
 computer.
  If the problem persists,
-ask for help on the OC forum
+ask for help on the OpenComputers forum
 (https://oc.cil.li)]])
 		local traceback = debug.traceback(nil, 2)
 		write(traceback)
