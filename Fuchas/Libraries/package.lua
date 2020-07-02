@@ -144,8 +144,9 @@ end
 local lib = setmetatable({}, {
 	__index = package,
 	__newindex = function()
-		error()
-	end
+		error("package is read-only")
+	end,
+	__metatable = {}
 })
 
 return package
