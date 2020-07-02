@@ -152,30 +152,23 @@ function io.open(filename, mode)
 end
 
 function io.input(file)
-	if not file then
-		return io.stdin
-	else
-		if type(file) == "string" then -- file name
-			io.input(io.open(file, "r"))
-		else
-			local proc = require("tasks").getCurrentProcess()
-			proc.io.stdin = file
+	if file then
+		if type(file) == "string" then
+			file = assert(io.open(file, "r"))
 		end
+		require("tasks").getCurrentProcess().io.stdin = file
 	end
+	return io.stdin
 end
 
 function io.output(file)
-	if not file then
-		return io.stdout
-	else
-		if type(file) == "string" then -- file name
-			io.output(io.open(file, "w"))
-		else
-			local proc = require("tasks").getCurrentProcess()
-			proc.io.stdout = file
-			proc.io.stderr = io.createStdErr() -- recreate stderr to be matching stdout
+	if file then
+		if type(file) == "string" then
+			file = assert(io.open(file, "r"))
 		end
+		require("tasks").getCurrentProcess().io.stdout = file
 	end
+	return io.stdout
 end
 
 function io.flush()
@@ -184,8 +177,8 @@ function io.flush()
 	end
 end
 
-function io.read()
-	return io.stdin:read()
+function io.read(fmt)
+	return io.stdin:read(fmt)
 end
 
 function io.close(file)
