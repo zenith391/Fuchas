@@ -222,7 +222,7 @@ local function protectEnv()
 			protected[v][l] = nil
 		end
 		local mt = {
-			__metatable = mt,
+			__metatable = {},
 			__index = function(t, key)
 				if childs[key] then
 					return childs[key]
@@ -239,7 +239,7 @@ local function protectEnv()
 		setmetatable(protected[v], mt)
 	end
 	local mt = {
-		__metatable = mt,
+		__metatable = {},
 		__index = function(t, key)
 			if protected[key] then
 				return protected[key]
