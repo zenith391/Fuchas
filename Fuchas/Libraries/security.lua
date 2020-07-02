@@ -12,13 +12,23 @@ local function currentProcess()
 	return proc
 end
 
+-- TODO! Implement https://github.com/zenith391/Fuchas/wiki
 local function loadUserPermissions()
 	local fileStream = io.open("A:/Fuchas/permissions.lon")
 	if not fileStream then
-		error("SYSTEM ERROR! CANNOT LOAD USER PERMISSIONS FILE !!!")
+		error("Could not load permissions, 0 permissions given.")
 	end
 	userPerms = require("liblon").loadlon(fileStream)
 	fileStream:close()
+end
+
+function lib.lateInit()
+	if not userPermsLoaded then
+		loadUserPermissions()
+		userPermsLoaded = true
+	else
+		error("cannot run late init twice")
+	end
 end
 
 function lib.revoke(pid)
@@ -35,10 +45,6 @@ function lib.revoke(pid)
 end
 
 local function initPerms(pid)
-	if not userPermsLoaded then
-		loadUserPermissions()
-		userPermsLoaded = true
-	end
 	if package.loaded.users then
 		local user = package.loaded.users.getUser()
 		if user ~= nil then

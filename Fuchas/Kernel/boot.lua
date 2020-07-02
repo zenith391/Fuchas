@@ -1,9 +1,9 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.6.2",
+	VERSION = "0.7.0-beta",
 	DEBUG = true,
 	CONFIG = {
-		NO_52_COMPAT = false, -- mode that disable unsecure Lua 5.2 compatibility like bit32 on Lua 5.3 for security.
+		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
 		DEFAULT_INTERFACE = "Fushell",
 		SAFE_MODE = false -- restrict drivers
 	}
@@ -182,7 +182,8 @@ if not g then
 end
 package.loadPreBoot("event", assert(loadfile("/Fuchas/Libraries/event.lua"))())
 package.loadPreBoot("tasks", assert(loadfile("/Fuchas/Libraries/tasks.lua"))())
-package.loadPreBoot("security", assert(loadfile("/Fuchas/Libraries/security.lua"))())
+local security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
+package.loadPreBoot("security", security)
 
 local nextLetter = string.byte('B')
 for k, v in component.list() do -- TODO: check if letter is over Z
@@ -222,7 +223,7 @@ loadfile = function(path)
 end
 
 local function protectEnv()
-	local toProtect = {"bit32"} -- "package" is auto-protected inside its code (see package.lua)
+	local toProtect = {"bit32", "string", "debug", "coroutine"} -- "package" is auto-protected inside its code (see package.lua)
 	local protected = {}
 	for k, v in pairs(toProtect) do
 		protected[v] = _ENV[v]
@@ -273,6 +274,7 @@ local ok, err = xpcall(function()
 		dofile("A:/Fuchas/Kernel/Startup/" .. k)
 	end
 	package.endBootPhase()
+	security.lateInit()
 	protectEnv()
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)

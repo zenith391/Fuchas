@@ -3,7 +3,7 @@
 
 Fuchas is an Operating System with multi-tasking, security and multi-user with UAC features. It is an OS made in Lua that can run on the [OpenComputers mod](https://github.com/MightyPirates/OpenComputers).
 
-The project is active and continueously updated. You can find update announcements at [the forum post](https://oc.cil.li/topic/1852-fuchas/)
+The project is active and continueously updated. You can find update announcements at [the forum post](https://oc.cil.li/topic/1852-fuchas/) or look at the `CHANGELOG`.
 
 ## Install
 ### From OpenOS (most OC computers)

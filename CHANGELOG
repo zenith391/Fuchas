@@ -1,5 +1,6 @@
-0.6.2:
+0.7.0:
 	Core OS:
+		+ Huge security improvements
 		+ Fixed Concert
 		+ Fushell boot screen is now lighter
 		+ New in-OS documentation using OHML

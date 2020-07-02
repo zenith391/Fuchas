@@ -133,7 +133,7 @@ function lib.login(username, passwd)
 		if v.name == username then
 			if v.security ~= "none" and hashes[v.security] then
 				local algo = hashes[v.security]
-				local hash = algo(v.salt .. passwd) -- salt + passwd; salt against rainbow tables
+				local hash = algo(v.salt .. passwd)
 				if v.password == hash then
 					userLogin(v)
 					return true

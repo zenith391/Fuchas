@@ -60,49 +60,53 @@ tasks.newProcess("System Interface", function()
 		os.setenv("PWD", "")
 		if not OSDATA.CONFIG["SAFE_MODE"] then
 			local fileStream = io.open("A:/Fuchas/services.lon")
-			local services = require("liblon").loadlon(fileStream)
+			local ok, services = pcall(require("liblon").loadlon, fileStream)
 			fileStream:close()
-			if fs.exists("A:/Fuchas/Services") then
-				for k, v in fs.list("A:/Fuchas/Services") do
-					local fp = fs.concat("A:/Fuchas/Services/", k)
-					local name = k:sub(1, k:len()-4)
-					for _, n in ipairs(services.enabled) do
-						if name == n then
-							goto found
+			if ok and services then
+				if fs.exists("A:/Fuchas/Services") then
+					for k, v in fs.list("A:/Fuchas/Services") do
+						local fp = fs.concat("A:/Fuchas/Services/", k)
+						local name = k:sub(1, k:len()-4)
+						for _, n in ipairs(services.enabled) do
+							if name == n then
+								goto found
+							end
 						end
-					end
-					goto continue
-					::found::
-					local f, err = loadfile(fp)
-					if not f then
-						io.stderr:write("Error while loading service '" .. k .. "': " .. err .. "\n")
 						goto continue
-					end
-					local proc = tasks.newProcess(name, f)
-					proc.isService = true
-					::continue::
-				end
-			end
-			if fs.exists("A:/Users/Shared/Services") then
-				for k, v in fs.list("A:/Users/Shared/Services") do
-					local fp = fs.concat("A:/Users/Shared/Services", k)
-					local name = k:sub(1, k:len()-4)
-					for _, n in ipairs(services.enabled) do
-						if name == n then
-							goto found
+						::found::
+						local f, err = loadfile(fp)
+						if not f then
+							io.stderr:write("Error while loading service '" .. k .. "': " .. err .. "\n")
+							goto continue
 						end
+						local proc = tasks.newProcess(name, f)
+						proc.isService = true
+						::continue::
 					end
-					goto continue
-					::found::
-					local f, err = loadfile(fp)
-					if not f then
-						io.stderr:write("Error while loading service '" .. k .. "': " .. err .. "\n")
-						goto continue
-					end
-					local proc = tasks.newProcess(name, f)
-					proc.isService = true
-					::continue::
 				end
+				if fs.exists("A:/Users/Shared/Services") then
+					for k, v in fs.list("A:/Users/Shared/Services") do
+						local fp = fs.concat("A:/Users/Shared/Services", k)
+						local name = k:sub(1, k:len()-4)
+						for _, n in ipairs(services.enabled) do
+							if name == n then
+								goto found
+							end
+						end
+						goto continue
+						::found::
+						local f, err = loadfile(fp)
+						if not f then
+							io.stderr:write("Error while loading service '" .. k .. "': " .. err .. "\n")
+							goto continue
+						end
+						local proc = tasks.newProcess(name, f)
+						proc.isService = true
+						::continue::
+					end
+				end
+			else
+				io.stderr:write("[Warning] Invalid services.lon file!\n\n")
 			end
 		end
 		return l()
