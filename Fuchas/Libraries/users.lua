@@ -149,9 +149,4 @@ function lib.login(username, passwd)
 	return false, "no user with username \"" .. username .. "\" was found."
 end
 
-setmetatable(lib, {
-		__newindex = function() error "users is protected" end,
-		__metatable = {}
-})
-
-return lib
+return package.protect(lib, "users")

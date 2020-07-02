@@ -106,11 +106,4 @@ function lib.getPermissions(pid)
 	return copy
 end
 
-setmetatable(lib, {
-		__newindex = function()
-			error("the security lib is protected")
-		end,
-		__metatable = {}
-})
-
-return lib
+return package.protect(lib, "security")

@@ -106,7 +106,7 @@ function gy() -- temporary cursor Y accessor
 end
 
 local lastFore = 0
-function _G.write(msg, fore)
+local function write(msg, fore)
 	if not screen or not gpu then
 		return
 	end
@@ -129,6 +129,7 @@ function _G.write(msg, fore)
 		end
 	end
 end
+_G.write = write
 
 function print(msg, fore)
 	write(tostring(msg) .. "\n", fore)
@@ -288,7 +289,7 @@ Error trace:
 ]] .. err .. " \n \n " .. [[
 
 If this is the first time you've seen
-this error screen, restart your
+this BSOD, restart your
 computer.
  If the problem persists,
 ask for help on the OpenComputers forum

@@ -20,10 +20,6 @@ function string.width(...)
 	return unicode.wlen(...)
 end
 
-string.rawlen = string.len
-string.rawsub = string.sub
-string.rawreverse = reverse
-
 function string.startsWith(src, s)
 	return (string.sub(src, 1, #s) == s)
 end
