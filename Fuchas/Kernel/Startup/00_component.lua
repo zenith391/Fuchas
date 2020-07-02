@@ -142,9 +142,10 @@ component = setmetatable({}, {
 		if sec.hasPermission("critical.component.set") then
 			cp[key] = value
 		end
-	end
+	end,
+	__metatable = {}
 })
 
--- Driver need to be inited here in order to pass original component lib
+-- Driver needs to be initialized here in order to pass original component lib
 package.loadPreBoot("driver", dofile("A:/Fuchas/Libraries/driver.lua", cp))
 package.loadPreBoot("component", component)
