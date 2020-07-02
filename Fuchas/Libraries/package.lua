@@ -140,6 +140,10 @@ function package.endBootPhase()
 	booting = false
 end
 
+function package.protect(lib, name)
+  return setmetatable(lib, {__newindex = function()error((name or "lib") .. " is read-only"), __metatable = {}})
+end
+
 -------------------------------------------------------------------------------
 local lib = setmetatable({}, {
 	__index = package,
