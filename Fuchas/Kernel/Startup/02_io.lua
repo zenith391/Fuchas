@@ -8,7 +8,7 @@ function io.tounum(number, count, littleEndian, toString)
 	local data = {}
 	
 	if count > 4 then
-		error("lua bit32 only supports 32-bit numbers")
+		error("only 32-bit numbers are supported")
 	end
 	
 	if littleEndian then
@@ -47,7 +47,7 @@ function io.fromunum(data, littleEndian, count)
 	end
 	
 	if count > 4 then
-		error("lua bit32 only supports 32-bit numbers")
+		error("only 32-bit numbers are supported")
 	end
 	
 	if count == 1 then
@@ -152,30 +152,26 @@ function io.open(filename, mode)
 end
 
 function io.input(file)
-	if not file then
-		return io.stdin
-	else
-		if type(file) == "string" then -- file name
-			io.input(io.open(file, "r"))
-		else
-			local proc = require("tasks").getCurrentProcess()
-			proc.io.stdin = file
-		end
+	if type(file) == "string" then
+		file = io.open(file, "r")
 	end
+	local proc = require("tasks").getCurrentProcess()
+	if file then
+		proc.io.stdin = file
+	end
+	return proc.io.stdin
 end
 
 function io.output(file)
-	if not file then
-		return io.stdout
-	else
-		if type(file) == "string" then -- file name
-			io.output(io.open(file, "w"))
-		else
-			local proc = require("tasks").getCurrentProcess()
-			proc.io.stdout = file
-			proc.io.stderr = io.createStdErr() -- recreate stderr to be matching stdout
-		end
+	if type(file) == "string" then
+		file = io.open(file, "w")
 	end
+	local proc = require("tasks").getCurrentProcess()
+	if file then
+		proc.io.stdout = file
+		proc.io.stderr = io.createStdErr()
+	end
+	return proc.io.stdout
 end
 
 function io.flush()

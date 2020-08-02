@@ -1,12 +1,4 @@
 -- String
-local _char = string.char
-local _len = string.len
-local _sub = string.sub
-local _reserve = string.reverse
-local _lower = string.lower
-local _upper = string.upper
-local uni = false -- turns out that feature was a bad idea and let to undefined behaviours more than anything else
-
 function string.toCharArray(s)
 	local chars = {}
 	for i = 1, unicode.len(s) do
@@ -17,8 +9,8 @@ end
 
 function string.toByteArray(s)
 	local bytes = {}
-	for i = 1, string.rawlen(s) do
-		table.insert(bytes, string.byte(string.rawsub(s, i, i)))
+	for i = 1, #s do
+		table.insert(bytes, string.byte(s:sub(i, i)))
 	end
 	return bytes
 end
@@ -27,72 +19,12 @@ function string.width(...)
 	return unicode.wlen(...)
 end
 
-function string.len(str)
-	if uni then
-		return unicode.len(str)
-	else
-		return _len(str)
-	end
-end
-
-function string.rawlen(str)
-	return _len(str)
-end
-
-function string.sub(str, i, j)
-	if uni then
-		return unicode.sub(str, i, j)
-	else
-		return _sub(str, i, j)
-	end
-end
-
-function string.rawsub(str, i, j)
-	return _sub(str, i, j)
-end
-
-function string.char(...)
-	if uni then
-		return unicode.char(...)
-	else
-		return _char(...)
-	end
-end
-
-function string.reverse(str)
-	if uni then
-		return unicode.reverse(str)
-	else
-		return _reverse(str)
-	end
-end
-
-function string.rawreverse(str)
-	return _reverse(str)
-end
-
-function string.upper(str)
-	if uni then
-		return unicode.upper(str)
-	else
-		return _upper(str)
-	end
-end
-
-function string.lower(str)
-	if uni then
-		return unicode.lower(str)
-	else
-		return _lower(str)
-	end
-end
-
 function string.startsWith(src, s)
-	return (string.sub(src, 1, s:len()) == s)
+	return (string.sub(src, 1, #s) == s)
 end
 
 function string.endsWith(src, s)
-	return (string.sub(src, src:len()-s:len()+1, src:len()) == s)
+	return (string.sub(src, #src-#s+1, #src) == s)
 end
 
 function string.trim(s)
@@ -142,48 +74,6 @@ function table.getn(table)
 	end
 	return i
 end
-
--- "Convenient" Lua extensions (deprecated)
-
-function try(func)
-	error("please report this as an issue on Fuchas's github page! try/catch unsupported")
-	local fin = function(handler)
-		handler()
-	end
-	local this = {}
-	this = {
-		catch = function(handler, filter)
-			local ok, ex = xpcall(func, function(err)
-				local exception = {
-					trace = debug.traceback(nil, 2),
-					details = err
-				}
-				return exception
-			end)
-			if not ok then
-				handler(ex)
-			end
-			this.catch = nil
-			return this
-		end,
-		finally = fin
-	}
-	return this
-end
-
-function ifOr(bool, one, two)
-	error("please report this as an issue on Fuchas's github page: ifOr unsupported")
-	return (bool and one) or two
-end
-
--- Try/Catch Example:
--- try(function()
---   print("Hello World")
--- end).catch(function(ex)
---   print("Error: " .. ex.details)
--- end).finally(function()
---   print("Function ended")
--- end)
 
 if _VERSION ~= "Lua 5.2" and not OSDATA.CONFIG["NO_52_COMPAT"] then
     load([[
