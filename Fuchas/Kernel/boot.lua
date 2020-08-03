@@ -268,6 +268,8 @@ local function protectEnv()
 	setmetatable(_ENV, mt)
 end
 
+computer.pushSignal("Finish starting Fuchas!")
+
 local ok, err = xpcall(function()
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
@@ -294,8 +296,7 @@ end, function(err)
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 160, 50, " ")
 		write([[A problem has been detected and Fuchas
-has shutdown to prevent damage
-to your computer.
+has shut down to prevent damage to your computer.
 
 Error trace:
 ]] .. err .. " \n \n " .. [[
