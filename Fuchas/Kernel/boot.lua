@@ -300,12 +300,10 @@ to your computer.
 Error trace:
 ]] .. err .. " \n \n " .. [[
 
-If this is the first time you've seen
-this BSOD screen, restart your
-computer.
- If the problem persists,
-ask for help on the OC forum
-(https://oc.cil.li)]])
+If this is the first time you've seen this BSOD,
+restart your computer. If the problem persists,
+ask for help on the OpenComputers forum at
+https://oc.cil.li]])
 		local traceback = debug.traceback(nil, 2)
 		write(traceback)
 		if io then

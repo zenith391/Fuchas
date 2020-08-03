@@ -49,11 +49,21 @@ end
 if computer.getArchitecture() == "Lua 5.2" then
 	for k, v in pairs(computer.getArchitectures()) do
 		if v == "Lua 5.3" then
+				printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is available but not in use.")
+		  	if OSDATA.CONFIG["AUTO_SET_ARCH"] then
+				printCentered("/!\\ Switching to the Lua 5.3 architecture in 3 seconds. Fuchas will restart.")
+				os.sleep(3)
+				computer.setArchitecture("Lua 5.3")
+			end
 			printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
-			printCentered("/!\\ You cannot login on password protected account with Lua 5.2!")
+			printCentered("/!\\ You cannot log into a password protected account with Lua 5.2!")
+			goto cont
 		end
 	end
+	printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is unavailable.")
+	printCentered("/!\\ You will be unable to log in to any password protected accounts.")
 end
+::cont::
 --print(string.rep("-=", math.floor(rw/2)))
 
 local drive = "A"
