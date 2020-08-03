@@ -89,6 +89,19 @@ local function randomSalt(len)
 	return binsalt
 end
 
+function lib.getById(uid)
+	for _, user in pairs(users) do
+		if user.userId == uid then
+			local copy = {}
+			for k, v in pairs(user) do
+				copy[k] = v
+			end
+			return copy
+		end
+	end
+	return nil, "no such user"
+end
+
 function lib.createUser(username, ops)
 	local passwd = ops.password
 	local perms = ops.permissions

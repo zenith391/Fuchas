@@ -137,9 +137,6 @@ function lib.format(driver, progressHandler)
 	if progressHandler then progressHandler("Writing boot code..") end
 	driver.writeBytes(1, defaultBootCode)
 	for i=0, 7 do
-		--if progressHandler then progressHandler("Erasing partition #" .. (i+1) .. "..") end
-		--driver.writeBytes(25*512+i*64+1, ("\x00"):rep(64))
-		--if progressHandler then progressHandler("Done erasing partition.") end
 		lib.writePartition(driver, lib.newPartition(i), progressHandler)
 	end
 	if progressHandler then progressHandler("Done formatting.") end

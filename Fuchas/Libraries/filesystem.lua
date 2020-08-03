@@ -207,14 +207,13 @@ function filesystem.getAttributes(path, raw)
 			attr = node.getAttributes(path)
 		else
 			local dir = nil
-			local issame = false
+			local isDirectory = false
 			if filesystem.isDirectory(path) then
 				dir = path
 				if dir:sub(dir:len(), dir:len()) ~= "/" then
 					dir = dir .. "/"
 				end
-				--print(dir)
-				issame = true
+				isDirectory = true
 			else
 				dir = filesystem.path(path)
 			end
@@ -222,7 +221,7 @@ function filesystem.getAttributes(path, raw)
 				local node2, rest2 = findNode(dir .. ".dir")
 				local content = readAll(node2, rest2)
 				local dirAttr = string.byte(content:sub(1, 1))
-				if issame then
+				if isDirectory then
 					attr = dirAttr
 				else
 					local filesNum = string.byte(content:sub(2, 2))
@@ -272,8 +271,7 @@ function filesystem.getAttributes(path, raw)
 				noExecute = (bit32.band(attr, 16) == 16) -- not executable (even if the filename suggests it)
 			}
 		else
-			return {} -- unsafe, but only way as we're on Lua 5.2 and we don't have bit32.
-			-- Breaking compatibility (using OS arguments) is recommended if on Lua 5.3
+			error("missing bit32")
 		end
 	end
 end

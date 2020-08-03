@@ -435,7 +435,7 @@ function lib.read(options)
 			elseif d ~= 0 then
 				c = unicode.char(d)
 				if c ~= '\r' then
-					if d == 8 then -- backspace
+					if d == 8 or d == 0x0E or d == 0xD3 then -- backspace
 						if unicode.len(inp) > 0 then
 							hideCursor()
 							inp = unicode.sub(inp, 1, unicode.len(inp) - 1)

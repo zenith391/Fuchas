@@ -21,6 +21,11 @@ if baseDir:sub(-1) ~= "/" then
 	error("You forgot the '/' at the end of the 'BASE_DIR' environment variable!")
 end
 
+node = filesystem.findNode(baseDir)
+if node.fs.isReadOnly() then
+	error("Base directory (" .. baseDir .. ") is read-only, are you trying to install from floppy?")
+end
+
 local node = filesystem.findNode(cpioBaseDir)
 if node.fs.isReadOnly() then
 	cpioBaseDir = baseDir
@@ -248,6 +253,9 @@ end
 
 local function install()
 	local tmpCpio = io.open(cpioBaseDir .. "fuchas.cpio", "w")
+	if not tmpCpio then
+		error("error reading cpio, are you installing from floppy?")
+	end
 	local ok, err = tmpCpio:write(download(repoURL .. ((devRelease and "release_dev.cpio") or "release.cpio")))
 	if not ok then
 		error("Could not download package: " .. err)

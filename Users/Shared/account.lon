@@ -1,5 +1,6 @@
 {
 	name = "guest",
 	pathName = "Shared",
-	security = "none"
+	security = "none",
+	userId = 1000
 }
