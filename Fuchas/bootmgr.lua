@@ -125,6 +125,8 @@ tasks.newProcess("System Interface", function()
 	end
 end)
 
+computer.pushSignal("init")
+
 while true do
 	tasks.scheduler()
 end
