@@ -5,7 +5,8 @@ _G.OSDATA = {
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
 		DEFAULT_INTERFACE = "Fushell",
-		SAFE_MODE = false -- restrict drivers
+		SAFE_MODE = false, -- restrict drivers
+    AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
 	}
 }
 
@@ -56,6 +57,14 @@ if os_arguments then -- arguments passed by a boot loader
 				error("missing argument to '--interface'")
 			end
 			OSDATA.CONFIG.DEFAULT_INTERFACE = itf
+		end
+
+		if v == "--no-auto-setarch" then
+			OSDATA.CONFIG.AUTO_SET_ARCH = false
+		end
+
+		if v == "--auto-setarch" then
+			OSDATA.CONFIG.AUTO_SET_ARCH = true
 		end
 	end
 	os_arguments = nil
@@ -268,6 +277,8 @@ local function protectEnv()
 	setmetatable(_ENV, mt)
 end
 
+computer.pushSignal("Finish starting Fuchas!")
+
 local ok, err = xpcall(function()
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
@@ -294,18 +305,15 @@ end, function(err)
 		gpu.setBackground(0x0000FF)
 		gpu.fill(1, 1, 160, 50, " ")
 		write([[A problem has been detected and Fuchas
-has shutdown to prevent damage
-to your computer.
+has shut down to prevent damage to your computer.
 
 Error trace:
 ]] .. err .. " \n \n " .. [[
 
-If this is the first time you've seen
-this BSOD screen, restart your
-computer.
- If the problem persists,
-ask for help on the OC forum
-(https://oc.cil.li)]])
+If this is the first time you've seen this BSOD,
+restart your computer. If the problem persists,
+ask for help on the OpenComputers forum at
+https://oc.cil.li]])
 		local traceback = debug.traceback(nil, 2)
 		write(traceback)
 		if io then

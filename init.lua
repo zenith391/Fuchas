@@ -7,7 +7,7 @@ if (...) then
 	os_arguments = ...
 end
 
-loadfile = load([[return function(file)
+loadfile = function(file)
 	local pc,cp = computer or package.loaded.computer, component or package.loaded.component
 	local addr, invoke = pc.getBootAddress(), cp.invoke
 	local handle, reason = invoke(addr, "open", file)
@@ -20,5 +20,6 @@ loadfile = load([[return function(file)
 	until not data
 	invoke(addr, "close", handle)
 	return load(buffer, "=" .. file, "bt", _G)
-end]], "=loadfile", "bt", _G)()
+end
+
 loadfile("Fuchas/Kernel/boot.lua")()
