@@ -1,6 +1,5 @@
 local event = require("event")
 local mod = {}
-
 local incr = 1
 local currentProc = nil
 local processes = {}
@@ -122,7 +121,7 @@ function mod.scheduler()
 		end)
 	end
 	if mod.getCurrentProcess() ~= nil then
-		error("only system can use shin32.scheduler()")
+		error("only system can use tasks.scheduler()")
 	end
 	
 	local measure = computer.uptime

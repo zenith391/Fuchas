@@ -63,6 +63,7 @@ tasks.newProcess("System Interface", function()
 			local ok, services = pcall(require("liblon").loadlon, fileStream)
 			fileStream:close()
 			if ok and services then
+        print("Starting services")
 				if fs.exists("A:/Fuchas/Services") then
 					for k, v in fs.list("A:/Fuchas/Services") do
 						local fp = fs.concat("A:/Fuchas/Services/", k)
@@ -124,8 +125,6 @@ tasks.newProcess("System Interface", function()
 		error(err)
 	end
 end)
-
-computer.pushSignal("init")
 
 while true do
 	tasks.scheduler()
