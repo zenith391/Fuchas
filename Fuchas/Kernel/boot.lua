@@ -5,7 +5,8 @@ _G.OSDATA = {
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
 		DEFAULT_INTERFACE = "Fushell",
-		SAFE_MODE = false -- restrict drivers
+		SAFE_MODE = false, -- restrict drivers
+    AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
 	}
 }
 
@@ -56,6 +57,14 @@ if os_arguments then -- arguments passed by a boot loader
 				error("missing argument to '--interface'")
 			end
 			OSDATA.CONFIG.DEFAULT_INTERFACE = itf
+		end
+
+		if v == "--no-auto-setarch" then
+			OSDATA.CONFIG.AUTO_SET_ARCH = false
+		end
+
+		if v == "--auto-setarch" then
+			OSDATA.CONFIG.AUTO_SET_ARCH = true
 		end
 	end
 	os_arguments = nil
