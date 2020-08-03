@@ -277,11 +277,11 @@ local function protectEnv()
 	setmetatable(_ENV, mt)
 end
 
-computer.pushSignal("Finish starting Fuchas!")
 
 local ok, err = xpcall(function()
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
 		print("(5/5) Loading " .. k .. "..")
+		computer.pushSignal("this_is_dumb")
 		dofile("A:/Fuchas/Kernel/Startup/" .. k)
 	end
 	package.endBootPhase()
