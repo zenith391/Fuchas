@@ -6,7 +6,7 @@ _G.OSDATA = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
 		DEFAULT_INTERFACE = "Fushell",
 		SAFE_MODE = false, -- restrict drivers
-    AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
+    	AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
 	}
 }
 
@@ -190,6 +190,7 @@ if not g then
 	print("Error while mounting A drive: " .. h)
 end
 package.loadPreBoot("event", assert(loadfile("/Fuchas/Libraries/event.lua"))())
+package.loadPreBoot("log", assert(loadfile("/Fuchas/Libraries/log.lua"))())
 package.loadPreBoot("tasks", assert(loadfile("/Fuchas/Libraries/tasks.lua"))())
 local security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
 package.loadPreBoot("security", security)
@@ -327,10 +328,11 @@ end)
 local computer = (computer or package.loaded.computer)
 local t0 = computer.uptime() + 30
 --gpu.set(1, y+3, "Error: " .. err)
-gpu.set(1, y+4, "Press any key to reboot now.")
+local _, height = gpu.getViewport()
+gpu.set(1, height-1, "Press any key to reboot now.")
 while computer.uptime() <= t0 do
-	gpu.fill(1, y+2, 160, 1, " ")
-	gpu.set(1, y+2, "Auto-reboot in " .. math.ceil(t0 - computer.uptime()))
+	gpu.fill(1, height, 160, 1, " ")
+	gpu.set(1, height, "Auto-reboot in " .. math.ceil(t0 - computer.uptime()))
 	if computer.pullSignal(1) == "key_down" then
 		break
 	end

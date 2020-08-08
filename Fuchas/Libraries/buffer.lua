@@ -69,6 +69,7 @@ function buffer.from(handle)
 	stream.wmode = "full"
 
 	function stream:close()
+		self:flush()
 		self.stream:close()
 		stream.closed = true
 	end

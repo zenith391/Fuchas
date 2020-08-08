@@ -194,12 +194,37 @@ function filesystem.setAttributes(path, raw)
 		if node.setAttributes then
 			node.setAttributes(path, raw)
 		else
-			
+			local dir = nil
+			local isDirectory = false
+			if filesystem.isDirectory(path) then
+				dir = path
+				if dir:sub(dir:len(), dir:len()) ~= "/" then
+					dir = dir .. "/"
+				end
+				isDirectory = true
+			else
+				dir = filesystem.path(path)
+			end
+
+			local dirAttr = 0
+			local filesAttrs = {}
+			if filesystem.exists(dir .. ".dir") then
+			end
+
+			local node2, rest2 = findNode(dir .. ".dir")
+
+			local content = io.tounum(dirAttr, 4)
+			for k, v in pairs(filesAttrs) do
+				content = content .. string.char(#k) .. k
+				content = content .. io.tounum(v, 4)
+			end
+			writeAllTo(node2, rest2, content)
 		end
 	end
 end
 
 function filesystem.getAttributes(path, raw)
+	if not io.fromunum then return {} end -- this can only happen before complete boot, and isn't security fault as io is protected after boot.
 	local attr = nil
 	local node, rest = findNode(path)
 	if node then
@@ -220,27 +245,27 @@ function filesystem.getAttributes(path, raw)
 			if filesystem.exists(dir .. ".dir") then
 				local node2, rest2 = findNode(dir .. ".dir")
 				local content = readAll(node2, rest2)
-				local dirAttr = string.byte(content:sub(1, 1))
+				local dirAttr = io.fromunum(content:sub(1, 4))
 				if isDirectory then
 					attr = dirAttr
 				else
-					local filesNum = string.byte(content:sub(2, 2))
-					local addr = 3
+					local filesNum = io.fromunum(content:sub(5, 6))
+					local addr = 7
 					for i=1, filesNum do
 						local len = string.byte(content:sub(addr, addr))
 						local name = dir .. content:sub(addr+1, addr+1+len)
-						local att = content:sub(addr+2+len, addr+2+len)
+						local att = content:sub(addr+2+len, addr+5+len)
 						if name == path then
-							attr = att
+							attr = io.fromunum(att)
 						end
-						addr = addr + len + 3
+						addr = addr + len + 6
 					end
 					if attr == nil then
 						attr = dirAttr -- no attributes for the specific file
 					end
 				end
 			else
-				if dir:len() <= 3 then
+				if dir:len() <= 3 then -- root path, like A:/
 					attr = 0
 				else
 					attr = filesystem.getAttributes(filesystem.path(dir), true)

@@ -6,6 +6,19 @@ local gpu = comp.proxy(comp.list("gpu")())
 -- Serialize unsigned number (max 32-bit)
 function io.tounum(number, count, littleEndian, toString)
 	local data = {}
+
+	if _VERSION == "Lua 5.3" then -- use string.pack on Lua 5.3
+		local endianess = (littleEndian and "<") or ">"
+		return load([[
+			local number, count, endianess, toString = ...
+			local str = string.pack(endianess .. "I" .. count, number)
+			if toString then
+				return str
+			else
+				return table.pack(str:byte(1, #str))
+			end
+		]])(number, count, endianess, toString)
+	end
 	
 	if count > 4 then
 		error("only 32-bit numbers are supported")
@@ -34,16 +47,17 @@ end
 
 -- Unserialize unsigned number (max 32-bit)
 function io.fromunum(data, littleEndian, count)
-	count = count or 0
-	if count == 0 then
-		if type(data) == "string" then
-			count = data:len()
-		else
-			count = #data
-		end
-	end
+	count = count or #data
 	if type(data) ~= "string" then
 		data = string.char(table.unpack(data))
+	end
+
+	if _VERSION == "Lua 5.3" then -- use string.unpack on Lua 5.3
+		local endianess = (littleEndian and "<") or ">"
+		return load([[
+			local data, count, endianess = ...
+			return string.unpack(endianess .. "I" .. count, data)
+		]])(data, count, endianess)
 	end
 	
 	if count > 4 then
@@ -77,17 +91,18 @@ function io.fromunum(data, littleEndian, count)
 	end
 end
 
-function io.createStdErr()
+function io.createStdErr(stdout)
 	local stream = {}
+	stdout = stdout or io.stdout
 	stream.write = function(self, val)
 		local fg = gpu.getForeground()
 		gpu.setForeground(0xFF0000)
-		local b = io.stdout:write(val)
+		local b = (io.stdout or stdout):write(val)
 		gpu.setForeground(fg)
 		return true
 	end
-	stream.read = io.stdout.read
-	stream.close = io.stdout.close
+	stream.read = stdout.read
+	stream.close = stdout.close
 	return stream
 end
 
@@ -95,8 +110,7 @@ function io.createStdIn()
 	local stream = {}
 
 	stream.read = function(self)
-		require("event").pull()
-		return nil
+		return require("shell").read()
 	end
 
 	stream.write = function(self)
@@ -110,32 +124,8 @@ function io.createStdIn()
 end
 
 local termStdOut = require("shell").createStdOut(require("driver").gpu)
-local termStdErr = nil
+local termStdErr = io.createStdErr(termStdOut)
 local termStdIn = io.createStdIn()
-
-setmetatable(io, {
-	__index = function(self, k)
-		local proc = require("tasks").getCurrentProcess()
-		if proc == nil then
-			if k == "stdout" then
-				return termStdOut
-			elseif k == "stderr" then
-				return termStdErr
-			elseif k == "stdin" then
-				return termStdIn
-			end
-		else
-			if k == "stdout" then
-				return proc.io.stdout
-			elseif k == "stderr" then
-				return proc.io.stderr
-			elseif k == "stdin" then
-				return proc.io.stdin
-			end
-		end
-	end
-})
-termStdErr = io.createStdErr()
 
 require("shell").setCursor(1, gy())
 _G.gy = nil
@@ -245,5 +235,31 @@ function print(...)
 	str = str .. "\n"
 	io.write(str)
 end
+
+setmetatable(io, {
+	__index = function(self, k)
+		local proc = require("tasks").getCurrentProcess()
+		if proc == nil then
+			if k == "stdout" then
+				return termStdOut
+			elseif k == "stderr" then
+				return termStdErr
+			elseif k == "stdin" then
+				return termStdIn
+			end
+		else
+			if k == "stdout" then
+				return proc.io.stdout
+			elseif k == "stderr" then
+				return proc.io.stderr
+			elseif k == "stdin" then
+				return proc.io.stdin
+			end
+		end
+	end,
+	__newindex = function()
+		error("cannot set io")
+	end
+})
 
 write = nil

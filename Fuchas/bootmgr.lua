@@ -54,16 +54,13 @@ tasks.newProcess("System Interface", function()
 				end
 			end
 		end
-		if OSDATA.CONFIG["DEFAULT_INTERFACE"] == "Fushell" then
-			require("shell").clear()
-		end
 		os.setenv("PWD", "")
 		if not OSDATA.CONFIG["SAFE_MODE"] then
 			local fileStream = io.open("A:/Fuchas/services.lon")
 			local ok, services = pcall(require("liblon").loadlon, fileStream)
 			fileStream:close()
 			if ok and services then
-        print("Starting services")
+				print("Starting services")
 				if fs.exists("A:/Fuchas/Services") then
 					for k, v in fs.list("A:/Fuchas/Services") do
 						local fp = fs.concat("A:/Fuchas/Services/", k)
@@ -109,6 +106,10 @@ tasks.newProcess("System Interface", function()
 			else
 				io.stderr:write("[Warning] Invalid services.lon file!\n\n")
 			end
+		end
+		if OSDATA.CONFIG["DEFAULT_INTERFACE"] == "Fushell" then
+			require("shell").clear()
+			print()
 		end
 		return l()
 	end, function(err)

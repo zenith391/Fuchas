@@ -1,4 +1,5 @@
 local event = require("event")
+local logger = require("log")("Tasks Scheduler")
 local mod = {}
 local incr = 1
 local currentProc = nil
@@ -8,6 +9,8 @@ function mod.newProcess(name, func)
 	local pid
 	pid = incr
 	incr = incr + 1
+	logger.debug("Creating process " .. name)
+	logger.debug("Using I/O : " .. tostring(io.stdout) .. ", " .. tostring(io.stderr) .. ", " .. tostring(io.stdin))
 	local proc = {
 		name = name,
 		func = func,

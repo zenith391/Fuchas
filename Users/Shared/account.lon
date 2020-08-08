@@ -2,5 +2,6 @@
 	name = "guest",
 	pathName = "Shared",
 	security = "none",
-	userId = 1000
+	userId = 1000,
+	groups = {}
 }
