@@ -2,6 +2,7 @@ local sh = require("shell")
 local fs = require("filesystem")
 local tasks = require("tasks")
 local driver = require("driver")
+local users = require("users")
 
 -- Avoid killing (safely) system process with a custom quit handler
 tasks.getCurrentProcess().safeKillHandler = function()
@@ -39,39 +40,45 @@ local function printCentered(str)
 end
 
 -- splash
---print(string.rep("=-", math.floor(rw/2)))
-print("Fushell in " .. _OSVERSION)
-if OSDATA.CONFIG["SAFE_MODE"] then
-	printCentered("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
-else
-	print("Type \"help\" if you're new! \"doc\" also helps.")
-end
-if computer.getArchitecture() == "Lua 5.2" then
-	for k, v in pairs(computer.getArchitectures()) do
-		if v == "Lua 5.3" then
-				printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is available but not in use.")
-		  	if OSDATA.CONFIG["AUTO_SET_ARCH"] then
-				printCentered("/!\\ Switching to the Lua 5.3 architecture in 3 seconds. Fuchas will restart.")
-				os.sleep(3)
-				computer.setArchitecture("Lua 5.3")
-			end
-			printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
-			printCentered("/!\\ You cannot log into a password protected account with Lua 5.2!")
-			goto cont
-		end
+if not os.getenv("INTERFACE") then -- if this is launched at boot
+	print("Fushell in " .. _OSVERSION)
+	if OSDATA.CONFIG["SAFE_MODE"] then
+		printCentered("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
+	else
+		print("Type \"help\" if you're new! \"doc\" also helps.")
 	end
-	printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is unavailable.")
-	printCentered("/!\\ You will be unable to log in to any password protected accounts.")
+	if computer.getArchitecture() == "Lua 5.2" then
+		for k, v in pairs(computer.getArchitectures()) do
+			if v == "Lua 5.3" then
+					printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is available but not in use.")
+			  	if OSDATA.CONFIG["AUTO_SET_ARCH"] then
+					printCentered("/!\\ Switching to the Lua 5.3 architecture in 3 seconds. Fuchas will restart.")
+					os.sleep(3)
+					computer.setArchitecture("Lua 5.3")
+				end
+				printCentered("/!\\ Please switch to Lua 5.3 by shift-clicking on your CPU or APU")
+				printCentered("/!\\ You cannot log into a password protected account with Lua 5.2!")
+				goto cont
+			end
+		end
+		printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is unavailable.")
+		printCentered("/!\\ You will be unable to log in to any password protected accounts.")
+	end
+	::cont::
 end
-::cont::
---print(string.rep("-=", math.floor(rw/2)))
+
+os.setenv("INTERFACE", "Fushell")
 
 local drive = "A"
 local run = true
 while run do
 	::continue::
 	os.setenv("PWD_DRIVE", drive)
-	io.write(drive .. ":/" .. os.getenv("PWD") .. ">")
+	local user = users.getUser()
+	if user ~= nil then
+		io.write(user.name .. "# ")
+	end
+	io.write(drive .. ":/" .. os.getenv("PWD") .. "> ")
 	local ok, l = pcall(sh.read, {
 		["autocomplete"] = sh.fileAutocomplete
 	})

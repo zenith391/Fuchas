@@ -109,7 +109,6 @@ tasks.newProcess("System Interface", function()
 		end
 		if OSDATA.CONFIG["DEFAULT_INTERFACE"] == "Fushell" then
 			require("shell").clear()
-			print()
 		end
 		return l()
 	end, function(err)
