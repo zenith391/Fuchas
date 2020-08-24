@@ -5,7 +5,12 @@ local incr = 1
 local currentProc = nil
 local processes = {}
 
-function mod.newProcess(name, func)
+--[[
+	name: process name
+	func: process function
+	onlyIPC: true if the process should only use IPC to communicate with parent process (using main memory in this mode is DISALLOWED!)
+]]
+function mod.newProcess(name, func, onlyIPC)
 	local pid
 	pid = incr
 	incr = incr + 1
@@ -37,9 +42,6 @@ function mod.newProcess(name, func)
 		end,
 		join = function(self)
 			mod.waitFor(self)
-		end,
-		commitOperation = function(self, op)
-			self.operation = op
 		end
 	}
 	local currProc = mod.getCurrentProcess()

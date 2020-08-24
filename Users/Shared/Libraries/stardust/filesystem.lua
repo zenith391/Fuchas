@@ -42,7 +42,16 @@ function fs.proxy(filter)
 end
 
 function fs.mount(fs, path)
-	return nil, "cannot mount from stardust: not yet supported"
+	local letter = path:sub(1, 1)
+	local idx = 1
+	while fs.isMounted(letter) do
+		idx = idx + 1
+		if idx > #path then
+			return nil, "no drive letter free for the specified path"
+		end
+		letter = path:sub(idx, idx)
+	end
+	return fs.mountDrive(fs, path)
 end
 
 function fs.mounts()

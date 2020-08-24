@@ -1,5 +1,6 @@
 local shell = require("shell")
 local fs = require("filesystem")
+local part = require("partition")
 
 local args, options = shell.parse(...)
 
@@ -33,9 +34,8 @@ if options.p == "osdi" then
 	io.stderr:write("OSDI partition table is not yet supported.\n")
 	return
 elseif options.p == "openupt" then
-	local openupt = require("openupt")
 	print("Formatting..")
-	openupt.format(drive, function(str)
+	part.openupt1().format(drive, function(str)
 		print(str)
 	end)
 elseif options.p == "none" then

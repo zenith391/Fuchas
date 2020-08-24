@@ -83,6 +83,7 @@ end
 local env = {
 	require = req,
 	_OSVERSION = "OpenOS 1.7.5",
+	_VERSION = _VERSION,
 	io = require("stardust/io"),
 	math = _G.math,
 	coroutine = _G.coroutine,

@@ -1,8 +1,8 @@
 return {
 	buffer = {
-		readBufferSize = 256,
-		defaultWriteBufferSize = 128,
-		maxWriteBufferSize = 2048
+		readBufferSize = 2048,
+		defaultWriteBufferSize = 2048,
+		maxWriteBufferSize = 64*1024
 	}
 }
 -- TODO: load from/save to file

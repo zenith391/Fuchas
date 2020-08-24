@@ -202,7 +202,7 @@ function buffer.from(handle)
 	function stream:setvbuf(mode, size)
 		checkArg(1, mode, "string")
 		if not size then
-			size = require("config").buffer.defaultWriteBufferSize
+			size = self.wsize
 		end
 		size = math.max(math.min(size, require("config").buffer.maxWriteBufferSize), 1)
 		if mode ~= "full" and mode ~= "line" then
