@@ -37,5 +37,4 @@ for k, v in list do
 	x = x + k:len() + 1
 	if not ops.i then x = math.huge end
 end
-print(" ")
-gpu.setForeground(0xFFFFFF)
+print()

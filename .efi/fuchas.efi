@@ -16,7 +16,7 @@ loadfile = load([[return function(file)
 	return load(buffer, "=" .. file, "bt", _G)
 end]], "=loadfile", "bt", _G)()
 
-local oefiapi = oefi or table.pack(...)[1]
+local oefiapi = oefi or select(1, ...)
 local f, err = loadfile("Fuchas/Kernel/boot.lua")
 if f then
 	f()

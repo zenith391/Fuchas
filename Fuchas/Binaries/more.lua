@@ -15,7 +15,7 @@ while not io.stdin.closed do
 		io.write(line)
 		buf = buf:sub(idx+1)
 		dy = dy + 1
-		if dy >= rh then
+		if dy > rh then
 			print("-- More --")
 			require("event").pull("key_down")
 			shell.setY(shell.getY()-1)

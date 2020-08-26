@@ -76,6 +76,9 @@ local function execCmd(l)
 		l = l:sub(1, l:len()-1)
 		async = true
 	end
+
+	l = string.gsub(l, "%$(%g+)", os.getenv)
+
 	local ok, commands = pcall(sh.parseCL, l)
 	local chainStream = nil
 	if not ok then
