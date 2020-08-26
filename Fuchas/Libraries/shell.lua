@@ -120,8 +120,7 @@ function lib.createStdOut(gpu)
 		if val:find("\t") then
 			local s = val:find("\t")
 			self:write(unicode.sub(val, 1, s-1))
-			sh.setX(sh.getX() + 4)
-			sh.setX(sh.getX() - (sh.getX() % 4))
+			sh.setX(sh.getX() + 4 - ((sh.getX()-1) % 4))
 			val = val:sub(s+1)
 			return self:write(val)
 		end
@@ -259,7 +258,7 @@ end
 function lib.resolve(path, alwaysResolve)
 	checkArg(1, path, "string")
 	local paths = string.split(os.getenv("PATH"), ";")
-	table.insert(paths, 1, os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD"))
+	table.insert(paths, 1, os.getenv("PWD"))
 	local exts = string.split(os.getenv("PATHEXT"), ";")
 	table.insert(exts, "")
 
@@ -277,8 +276,28 @@ function lib.resolve(path, alwaysResolve)
 		end
 	end
 
-	if alwaysResolve then return path end
+	if alwaysResolve then
+		local pwd = os.getenv("PWD")
+		if path:sub(2, 3) == ":/" then
+			return path
+		else
+			return pwd .. "/" .. path
+		end
+	end
 	return nil
+end
+
+function lib.resolveToPwd(path)
+	if fs.exists(path) then
+		return path
+	end
+
+	local pwd = os.getenv("PWD")
+	if path:sub(2, 3) == ":/" then
+		return path
+	else
+		return pwd .. "/" .. path
+	end
 end
 
 function lib.write(obj)
@@ -362,7 +381,7 @@ local function hideCursor()
 end
 
 function lib.fileAutocomplete(s, sp)
-	local path = os.getenv("PWD_DRIVE") .. ":/" .. os.getenv("PWD")
+	local path = os.getenv("PWD")
 	local choices = {}
 	--if not fs.exists(path .. sp[#sp]) then
 	--	if fs.exists(fs.path(path .. sp[#sp])) then

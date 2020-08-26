@@ -57,17 +57,17 @@ elseif ops.r then
 	end
 else
 	print("Uptime: " .. computer.uptime() .. " seconds")
-	print("Total CPU load: " .. tostring(total):sub(1,5) .. "%")
 
 	for _, pid in pairs(tasks.getPIDs()) do
 		local m = tasks.getProcessMetrics(pid)
 		minNameLength = math.max(minNameLength, #m.name+2)
 		minPIDLength = math.max(minPIDLength, #tostring(pid)+2)
-		minLoadLength = math.max(minLoadLength, #(tostring(m.cpuLoadPercentage):sub(1,5))+2)
+		minLoadLength = math.max(minLoadLength, #(tostring(m.cpuLoadPercentage):sub(1,5))+3)
 		minStatusLength = math.max(minStatusLength, #m.status+2)
 		minTimeLength = math.max(minTimeLength, #tostring(m.cpuTime)+4)
 		total = total + m.cpuLoadPercentage
 	end
+	print("Total CPU load: " .. tostring(total):sub(1,5) .. "%")
 
 	print(("-"):rep(minNameLength+minPIDLength+minLoadLength+minStatusLength+minTimeLength+6))
 	io.write("|" .. padCenter("Name", minNameLength) .. "|")
@@ -87,7 +87,7 @@ else
 		local m = tasks.getProcessMetrics(pid)
 	    io.write("|" .. padCenter(m.name, minNameLength) .. "|")
 	    io.write(padCenter(tostring(pid), minPIDLength) .. "|")
-	    io.write(padCenter(tostring(m.cpuLoadPercentage):sub(1,5), minLoadLength) .. "|")
+	    io.write(padCenter(tostring(m.cpuLoadPercentage):sub(1,5).."%", minLoadLength) .. "|")
 	    io.write(padCenter(tostring(m.cpuTime).."ms", minTimeLength) .. "|")
 	    io.write(padCenter(m.status, minStatusLength) .. "|")
 	    io.write("\n")

@@ -1,6 +1,6 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
-	VERSION = "0.7.0-beta",
+	VERSION = "0.7.0",
 	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)

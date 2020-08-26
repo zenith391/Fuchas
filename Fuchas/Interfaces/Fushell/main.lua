@@ -42,8 +42,9 @@ end
 -- splash
 if not os.getenv("INTERFACE") then -- if this is launched at boot
 	print("Fushell in " .. _OSVERSION)
+	os.setenv("PWD", "A:/")
 	if OSDATA.CONFIG["SAFE_MODE"] then
-		printCentered("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
+		print("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
 	else
 		print("Type \"help\" if you're new! \"doc\" also helps.")
 	end
@@ -69,53 +70,33 @@ end
 
 os.setenv("INTERFACE", "Fushell")
 
-local drive = "A"
-local run = true
-while run do
-	::continue::
-	os.setenv("PWD_DRIVE", drive)
-	local user = users.getUser()
-	if user ~= nil then
-		io.write(user.name .. "# ")
-	end
-	io.write(drive .. ":/" .. os.getenv("PWD") .. "> ")
-	local ok, l = pcall(sh.read, {
-		["autocomplete"] = sh.fileAutocomplete
-	})
-	io.write("\n")
-	if not ok and string.endsWith(l, "interrupted") then
-		print("Ctrl+Alt+C: Restarting")
-		computer.shutdown(true)
-		return
-	end
+local function execCmd(l)
 	local async = false
 	if string.endsWith(l, "&") then
 		l = l:sub(1, l:len()-1)
 		async = true
 	end
 	local ok, commands = pcall(sh.parseCL, l)
+	local chainStream = nil
 	if not ok then
 		io.stderr:write(commands .. "\n")
 		goto continue
 	end
-	local chainStream = nil
 	for i=1, #commands do
 		local args = commands[i]
 		if #args == 0 then
 			args[1] = ""
 		end
 		if args[1] == "exit" then -- special case: exit cmd
-			run = false
-			return
+			return false
 		end
 		if args[1]:len() == 2 then
 			if args[1]:sub(2, 2) == ":" then
 				if not fs.isMounted(args[1]:sub(1, 1)) then
-					print("No such drive: " .. args[1]:sub(1, 1))
+					print("No such drive: " .. args[1]:sub(1, 1):upper())
 					goto continue
 				end
-				drive = args[1]:sub(1, 1)
-				os.setenv("PWD", "")
+				os.setenv("PWD", args[1]:sub(1, 1):upper() .. ":/")
 				goto continue
 			end
 		end
@@ -188,4 +169,27 @@ while run do
 			goto continue
 		end
 	end
+	::continue::
+	return true
+end
+
+local drive = "A"
+local run = true
+while run do
+	::continue::
+	local user = users.getUser()
+	if user ~= nil then
+		io.write(user.name .. "# ")
+	end
+	io.write(os.getenv("PWD") .. ">")
+	local ok, l = pcall(sh.read, {
+		["autocomplete"] = sh.fileAutocomplete
+	})
+	io.write("\n")
+	if not ok and string.endsWith(l, "interrupted") then
+		print("Ctrl+Alt+C: Restarting")
+		computer.shutdown(true)
+		return
+	end
+	run = execCmd(l)
 end

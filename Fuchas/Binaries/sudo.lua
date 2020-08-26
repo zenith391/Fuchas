@@ -1,6 +1,7 @@
 -- executes command as "admin" (* permission)
 local security = require("security")
 local shell = require("shell")
+local users = require("users")
 local args, opts = shell.parse(...)
 
 if #args < 1 and not opts.s then
@@ -14,17 +15,26 @@ if not opts.s then
 end
 
 local name = opts["user"] or opts["u"] or "admin"
-io.write("[sudo] Password of " .. name .. ": ")
-local pass = shell.read({
-	history = {},
-	pwchar = '*'
-})
-io.write(" \n")
+local doLogin = true
+if users.getUser() then
+	if users.getUser().username == name then
+		doLogin = false
+	end
+end
 
-local ok, reason = require("users").login(name, pass)
-if not ok then
-	io.stderr:write("Could not login because " .. reason .. "\n")
-	return
+if doLogin then
+	io.write("[sudo] Password of " .. name .. ": ")
+	local pass = shell.read({
+		history = {},
+		pwchar = '*'
+	})
+	io.write(" \n")
+
+	local ok, reason = users.login(name, pass)
+	if not ok then
+		io.stderr:write("Could not login because " .. reason .. "\n")
+		return
+	end
 end
 
 if opts.s then

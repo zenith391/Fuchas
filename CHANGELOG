@@ -1,6 +1,6 @@
 0.7.0:
 	Core OS:
-		+ Huge security improvements
+		+ Security improvements
 		+ Fixed Concert
 		+ Fushell boot screen is now lighter
 		+ New in-OS documentation using OHML
@@ -22,7 +22,10 @@
 		+ Added "cpio" tool to package and extract CPIOs
 		+ Added "find" command for use with "cpio" tool (and others)
 		+ "dmesg" command
-		+ "apm info" command
+		+ "apm info" sub-command
+		+ "move" command
+		+ Improved "pl" command
+		+ Added "-s" flag to sudo, to launch a shell with sudo.
 	Lua API:
 		+ print(...) now calls tostring
 		+ "string.trim(s)" to remove trailing spaces

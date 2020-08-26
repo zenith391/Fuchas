@@ -1,9 +1,8 @@
 local filesystem = require("filesystem")
 local shell = require("shell")
 local gpu = require("driver").getDriver("gpu")
-local drive = os.getenv("PWD_DRIVE")
 local pwd = os.getenv("PWD")
-local fullPath = drive .. ":/" .. pwd
+local fullPath = pwd
 local x = 1
 local vw, vh = gpu.getResolution()
 

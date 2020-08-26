@@ -9,17 +9,17 @@ local processes = {}
 	name: process name
 	func: process function
 	onlyIPC: true if the process should only use IPC to communicate with parent process (using main memory in this mode is DISALLOWED!)
+	         this also allows the process to benefit from asymetric multi-processing if available.
 ]]
 function mod.newProcess(name, func, onlyIPC)
 	local pid
 	pid = incr
 	incr = incr + 1
 	logger.debug("Creating process " .. name)
-	logger.debug("Using I/O : " .. tostring(io.stdout) .. ", " .. tostring(io.stderr) .. ", " .. tostring(io.stdin))
 	local proc = {
 		name = name,
 		func = func,
-		pid = pid, -- reliable pointer to process that help know if a process is dead; TODO: remove
+		pid = pid, -- reliable pointer to process that help know if a process is dead
 		status = "created",
 		cpuTime = 0,
 		cpuTimeEstimate = 0, -- used for SJF scheduler
@@ -115,9 +115,10 @@ end
 local lastLoadPercentage = 0
 local totalStart = 0
 local minSleepTime = 0
+local canSleep = true
 
 local schedulerMode = "SJF" -- SJF or FCFS
-local sjfAlpha = 0.5 -- alpha value for SJF scheduler
+local sjfAlpha = 0.3 -- alpha value for SJF scheduler
 function mod.scheduler()
 	if not logHandle and false then
 		startLogging()
@@ -130,8 +131,7 @@ function mod.scheduler()
 	end
 	
 	local measure = computer.uptime
-	local lastEvent = table.pack(event.handlers((minSleepTime == math.huge and 0) or math.min(minSleepTime, 1)))
-	-- maximum 1 second of wait to still be responding in case of a new process being created a bit lately
+	local lastEvent = table.pack(event.handlers((not canSleep and 0) or minSleepTime, 1))
 	if not systemEvent(lastEvent) then
 		lastEvent = nil -- if not propagating
 	end
@@ -139,6 +139,7 @@ function mod.scheduler()
 		event.exechandlers(lastEvent)
 	end
 	minSleepTime = math.huge
+	canSleep = true
 	if totalStart == 0 then
 		totalStart = measure()
 	end
@@ -152,11 +153,13 @@ function mod.scheduler()
 		end)
 	end
 	for k, p in pairs(orderedProcesses) do
+		--logger.info(p.name .. ": " .. p.status)
 		local start = measure()
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
 			p.status = "ready"
 			p.func = nil
+			canSleep = false
 		end
 		if coroutine.status(p.thread) == "dead" then -- if it died for some unhandled reason
 			mod.unsafeKill(p) -- no need to safe kill, it's already dead
@@ -191,9 +194,6 @@ function mod.scheduler()
 				ok, ret, a1 = coroutine.resume(p.thread)
 			end
 			currentProc = nil
-			if p.status ~= "dead" then
-				p.status = "ready"
-			end
 			if not ok then
 				if p.errorHandler then
 					currentProc = p
@@ -208,17 +208,16 @@ function mod.scheduler()
 			if ret == "sleep" then
 				p.status = "sleeping"
 				p.timeout = computer.uptime() + a1
-			end
-			if ret == "pull_event" then
+			elseif ret == "pull_event" then
 				if a1 then
 					p.timeout = computer.uptime() + a1
 				else
 					p.timeout = math.huge
 				end
 				p.status = "wait_signal"
-			end
-			if p.status == "ready" then
-				minSleepTime = math.huge
+			elseif p.status ~= "dead" then
+				p.status = "ready"
+				canSleep = false
 			end
 		end
 		local e = measure()
@@ -227,9 +226,10 @@ function mod.scheduler()
 		p.cpuTime = p.cpuTime + math.floor(e*1000 - start*1000)
 	end
 
-	if measure() > lastLoadPercentage+1 then -- 1 second
+	if computer.uptime() > lastLoadPercentage+1 then -- 1 second
 		local totalEnd = measure()
 		local time = math.floor(totalEnd*1000 - totalStart*1000)
+		time = 1000
 
 		for k, p in pairs(processes) do
 			if time ~= 0 then
@@ -240,8 +240,8 @@ function mod.scheduler()
 				p.lastCpuTime = 0
 			end
 		end
-		totalStart = 0
-		lastLoadPercentage = measure()
+		--totalStart = 0
+		lastLoadPercentage = computer.uptime()
 	end
 end
 

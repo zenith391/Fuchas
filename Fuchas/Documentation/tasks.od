@@ -1,0 +1,54 @@
+Fuchas Documentation > Library > tasks
+
+Tasks library allows to create and manage processes.
+It is a replacement for shin32 and has been introduced in 0.5.0
+	
+## Methods
+
+newProcess(name, func):
+	Create a process named `name`. `func` is the function the process will execute.
+getCurrentProcess():
+	Returns the current process object. `nil` if no process (only the case during boot)
+getProcess(pid):
+	Get the process object corresponding to the PID.
+	Permission required: process.edit or scheduler.list
+getProcessMetrics(pid):
+	Returns process metrics corresponding to the process pointed by the PID.
+kill(proc):
+	Safely kills the process, this means that if a safe kill handler (see below) is set,
+	the handler will be executed and if it returns true, the process will be killed.
+unsafeKill(proc):
+	Unsafely kills the process.
+getProcesses():
+	Returns a table with all active (alive) processes.
+	Permission required: scheduler.list
+getPIDs():
+	Returns a table with the PIDs of all active (alive) processes. Contrary to `getProcesses()` it requires no permission
+
+## Process Object
+	{
+		name = "Example",
+		pid = pid, -- reliable pointer to process that help know if a process is dead
+		status = "ready", -- the status of the process, see Process Statuses
+		cpuTime = 0, 
+		cpuTimeEstimate = 0, -- used for SJF scheduler
+		lastCpuTime = 0,
+		cpuLoadPercentage = 0, -- CPU load of this process from 0 to 100
+		exitHandlers = {}, -- executed when process exits
+		events = {}, -- event queue
+		io = {
+			stdout = io.stdout, -- process's stdout
+			stderr = io.stderr, -- process's stderr
+			stdin = io.stdin -- process's stdin
+		},
+		errorHandler = nil -- the (optional) function called in case of error
+	}
+
+### Functions
+process:detach() :
+	Detach the process from its parent.
+process:kill() :
+	Kill the process, same as tasks.kill(process)
+process:join() :
+	Wait for the process to finish, same as tasks.waitFor(process)
+

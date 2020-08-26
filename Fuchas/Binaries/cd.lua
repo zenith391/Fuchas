@@ -1,11 +1,10 @@
 local args = ...
 
 local filesystem = require("filesystem")
-local drive = os.getenv("PWD_DRIVE")
 local pwd = os.getenv("PWD")
-local fullPath = drive .. ":/" .. pwd
+local drive = pwd:sub(1, 3)
 
-local current = filesystem.canonical(fullPath)
+local current = filesystem.canonical(pwd)
 
 if #args < 1 then
 	print(current .. "/")
@@ -13,22 +12,21 @@ if #args < 1 then
 end
 
 if args[1]:sub(1, 1) == '/' then
-	pwd = ""
-	args[1] = args[1]:sub(2, args[1]:len())
+	pwd = drive
+	args[1] = args[1]:sub(2)
 end
-local canon = filesystem.canonical(pwd) .. "/"
+local canon = filesystem.canonical(pwd:sub(4)) .. "/"
 if canon:sub(1, 1) == '/' then
 	canon = canon:sub(2, canon:len())
-	print(canon)
 end
 local newPath = canon .. args[1]
-local effectivePath = drive .. ":" .. filesystem.canonical(newPath)
+local effectivePath = drive .. filesystem.canonical(newPath)
 if filesystem.exists(effectivePath) and filesystem.isDirectory(effectivePath) then
-	os.setenv("PWD", filesystem.canonical(newPath))
+	os.setenv("PWD", effectivePath)
 else
 	if not filesystem.exists(effectivePath) then
-		print(drive .. ":" .. newPath .. " doesn't exists.")
+		print(newPath .. " doesn't exists.")
 	else
-		print(drive .. ":" .. newPath .. " isn't a directory.")
+		print(newPath .. " isn't a directory.")
 	end
 end

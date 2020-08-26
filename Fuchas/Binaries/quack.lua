@@ -51,6 +51,15 @@ local function drawText()
 	end
 end
 
+local function drawLine(y, line)
+	shell.setCursor(1, y)
+	io.stdout:write(line)
+end
+
+local function width(line)
+	return unicode.wlen(line:gsub("\t", "    "))
+end
+
 ---------------------------------------------
 
 do
@@ -70,7 +79,7 @@ end
 while true do
 	local evt = table.pack(event.pull(0.5))
 	local name = evt[1]
-	if name == "interrupted" then
+	if name == "interrupt" then
 		break
 	end
 	if name == "key_down" then
@@ -94,7 +103,7 @@ while true do
 				drawBottomBar()
 			end
 		elseif keyCode == 205 then -- right
-			if cx <= #lines[cy] then
+			if cx <= width(lines[cy]) then
 				cx = cx + 1
 				drawBottomBar()
 			end
@@ -130,8 +139,8 @@ while true do
 				gpu.drawText(1, cy-sy+1, lines[cy] .. (" "):rep(rw-#lines[cy]))
 				drawBottomBar()
 			elseif keyChar >= 0x20 then
-				lines[cy] = lines[cy]:sub(1,cx-1) .. string.char(evt[3]) .. lines[cy]:sub(cx)
-				gpu.drawText(1, cy-sy+1, lines[cy])
+				lines[cy] = unicode.sub(lines[cy], 1, cx-1) .. unicode.char(evt[3]) .. unicode.sub(lines[cy], cx)
+				drawLine(cy-sy+1, lines[cy])
 				cx = cx + 1
 			end
 		end

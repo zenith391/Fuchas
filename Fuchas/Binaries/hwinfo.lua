@@ -13,13 +13,13 @@ if computer.supportsOEFI() then
 end
 
 if not computer.getDeviceInfo then
-	print("\tYour computer doesn't support extended hardware information.")
+	print("\tThis computer doesn't support extended hardware information.")
 	return
 end
-local info = computer.getDeviceInfo()
+local ok, info = pcall(computer.getDeviceInfo())
 print("Hardware Info:")
-if info == nil then
-	print("\tYour computer doesn't support extended hardware information.")
+if not ok or info == nil then
+	print("\tThis computer doesn't support extended hardware information.")
 	return
 end
 

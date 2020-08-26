@@ -119,11 +119,12 @@ function driver.isDriverAvailable(path)
 	return (ok ~= nil)
 end
 
+--[[
 function loadDriver(path)
 	checkArg(1, path, "string")
 	if not loading[path] then
 		local available, driver, status, step
-		step, driver, status = "not found", driver.searchpath(path, shin32.getSystemVar("DRV_PATH"))
+		step, driver, status = "not found", driver.searchpath(path, os.getenv("DRV_PATH"))
 		if driver then
 			step, driver, status = "loadfile failed", loadfile(driver)
 		end
@@ -142,6 +143,7 @@ function loadDriver(path)
 		error("already loading: " .. path .. "\n" .. debug.traceback(), 2)
 	end
 end
+]]
 
 function driver.delay(lib, file)
 	local mt = {
