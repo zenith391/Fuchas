@@ -34,17 +34,11 @@ function spec.new(address)
 	local bg = -1
 
 	function drv.getColors()
-		if getTier(comp) == 1 then
-			return 2
-		elseif getTier(comp) == 2 then
-			return 16
-		elseif getTier(comp) == 3 then
-			return 256
-		end
+		return bit32.lshift(1, comp.getDepth())
 	end
 
 	function drv.getPalettedColors()
-		if getTier(comp) == 1 then
+		if comp.getDepth() < 4 then
 			return 2
 		else
 			return 16

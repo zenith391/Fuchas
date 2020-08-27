@@ -14,15 +14,28 @@ local colorScheme = {
 }
 
 local keywords = {
-	"local", "for", "do", "if", "then", "while", "elseif",
-	"and", "or", "not", "~", "&", "|", "^",
-	">", "<", "<=", ">=", "==", "~="
+	"local ", "for ", "do ", "elseif ", "if ", "else ", "then ", "while ", "in ", "end", "return",
+	"and ", "or ", "not ", "~", "&", "|", "^", "+", "-", "*", "//", "/",
+	">", "<", "<=", ">=", "==", "~=", "=",
 }
 
-local oldPalette = {}
-for i=1, 16 do
-	oldPalette[i] = gpu.palette[i]
-	--gpu.palette[i] = 
+local syntax = {}
+
+local colorSchemeArray = {}
+
+for _, v in pairs(colorScheme) do
+	table.insert(colorSchemeArray, v)
+end
+
+local oldPalette
+if gpu.getColors() < 2 then -- monochrome
+	colorScheme.background = 0x000000
+else
+	oldPalette = {}
+	for i=1, #colorSchemeArray do
+		oldPalette[i] = gpu.palette[i]
+		gpu.palette[i] = colorSchemeArray[i]
+	end
 end
 
 local rw, rh = gpu.getResolution()
@@ -30,6 +43,7 @@ local cx, cy = 1, 1
 local sx, sy = 1, 1
 local cur = true
 local curC = ""
+local curFG = 0
 
 local args, options = shell.parse(...)
 local file = args[1]
@@ -51,6 +65,10 @@ if filesystem.isDirectory(file) then
 	return
 end
 
+local fileLanguage = options["file-language"] or "lua"
+if options["no-syntax-highlightning"] then
+	fileLanguage = "text"
+end
 local lines = nil
 
 local function drawBottomBar(state)
@@ -64,18 +82,6 @@ local function drawBottomBar(state)
 	gpu.setForeground(0xFFFFFF)
 end
 
-local function drawText()
-	local y = sy
-	for _, line in pairs(lines) do
-		shell.setCursor(1, y)
-		io.stdout:write(line)
-		y = y + 1
-		if y > rh - sy then
-			break
-		end
-	end
-end
-
 local function save()
 	local stream = io.open(file, "w")
 	for _, line in pairs(lines) do
@@ -84,9 +90,32 @@ local function save()
 	stream:close()
 end
 
-local function drawLine(y, line)
-	shell.setCursor(1, y)
-	io.stdout:write(line)
+local function drawLine(y, line, ly)
+	--shell.setCursor(1, y)
+	--io.stdout:write(line)
+	local lineSyntax = syntax[cy]
+
+	local x = 1
+	gpu.setColor(colorScheme.background)
+	for k, hl in pairs(lineSyntax) do
+		local part = line:sub(hl.highlightStart, hl.highlightEnd)
+		local formatted = part:gsub("\t", "    ")
+		gpu.drawText(x, y, formatted, colorScheme[hl.highlight])
+		x = x + #formatted
+	end
+end
+
+local function drawText()
+	local y = sy
+	for _, line in pairs(lines) do
+		cy = y
+		drawLine(y, line)
+		y = y + 1
+		if y > rh - sy then
+			break
+		end
+	end
+	cy = 1
 end
 
 local function width(line)
@@ -107,6 +136,91 @@ local function charPosition(line, cx)
 	return pos
 end
 
+local function syntaxParse(language, lines, lineNo)
+	local syntax = {}
+	local highlight = "foreground"
+	local highlightStart = 1
+
+	local function pushHighlight(k, pos)
+		if not syntax[k] then
+			syntax[k] = {}
+		end
+		table.insert(syntax[k], {
+			line = k,
+			highlight = highlight,
+			highlightStart = highlightStart,
+			highlightEnd = pos-1
+		})
+		highlightStart = pos
+	end
+
+	if language == "lua" then
+		for k, line in pairs(lines) do
+			if not lineNo or (k == lineNo) then
+				local word = ""
+				local pc = nil -- previous char
+				local isEscaping = 0
+				for pos, c in pairs(string.toCharArray(line)) do
+					if isEscaping > 0 then
+						isEscaping = isEscaping - 1
+					end
+					if c == "\"" and isEscaping==0 then
+						if highlight == "string" then
+							pushHighlight(k, pos+1)
+							highlight = "foreground"
+						elseif highlight == "foreground" then
+							pushHighlight(k, pos)
+							highlight = "string"
+						end
+						word = ""
+					elseif c == "\\" then
+						if isEscaping==1 then
+							isEscaping = 0
+						else
+							isEscaping = 2
+						end
+					else
+						word = word .. c
+						if highlight == "foreground" then
+							for _, keyword in pairs(keywords) do
+								if keyword:sub(#keyword, #keyword) == " " then
+									if pos == #line then
+										keyword = keyword:sub(1, #keyword-1)
+									end
+								end
+								if string.endsWith(word, keyword) then
+									word = ""
+									pushHighlight(k, pos-#keyword+1)
+									highlight = "keyword"
+									pushHighlight(k, pos+1)
+									highlight = "foreground"
+								end
+							end
+							if string.startsWith(word, "--") then
+								word = ""
+								pushHighlight(k, pos-1)
+								highlight = "comment"
+								pushHighlight(k, #line+1)
+								highlight = "foreground"
+							end
+						end
+					end
+					pc = c
+				end
+				pushHighlight(k, #line+1)
+				highlightStart = 1
+			end
+		end
+	else
+		for k, line in pairs(lines) do
+			pushHighlight(k, #line+1)
+			highlightStart = 1
+		end
+	end
+
+	return syntax
+end
+
 ---------------------------------------------
 
 do
@@ -117,12 +231,13 @@ end
 
 gpu.fill(1, 1, 160, 50, colorScheme.background)
 shell.setCursor(1, 1)
+syntax = syntaxParse(fileLanguage, lines)
 drawText()
 drawBottomBar()
 
 local function eraseCursor()
 	gpu.setColor(colorScheme.background)
-	gpu.setForeground(colorScheme.foreground)
+	gpu.setForeground(curFG)
 	gpu.drawText(cx, cy-sy+1, curC)
 end
 
@@ -199,6 +314,7 @@ while true do
 				if cx > 1 then
 					local pos = charPosition(lines[cy], cx)
 					lines[cy] = unicode.sub(lines[cy], 1, pos-2) .. unicode.sub(lines[cy], pos)
+					syntax = syntaxParse(fileLanguage, lines, cy)
 					gpu.setColor(colorScheme.background)
 					gpu.drawText(1, cy-sy+1, (" "):rep(rw))
 					drawLine(cy-sy+1, lines[cy])
@@ -210,16 +326,20 @@ while true do
 					cy = cy - 1
 					cx = width(lines[cy])+1
 					lines[cy] = lines[cy] .. line
+					syntax = syntaxParse(fileLanguage, lines, cy)
 					drawLine(cy-sy+1, lines[cy])
 				end
 			elseif keyChar == 127 then
-				lines[cy] = lines[cy]:sub(1,cx-1) .. lines[cy]:sub(cx+1)
+				lines[cy] = unicode.sub(lines[cy], 1, cx-1) .. unicode.sub(lines[cy], cx+1)
+				syntax = syntaxParse(fileLanguage, lines, cy)
 				gpu.setColor(colorScheme.background)
-				gpu.drawText(1, cy-sy+1, lines[cy] .. (" "):rep(rw-#lines[cy]))
+				gpu.drawText(1, cy-sy+1, (" "):rep(rw-#lines[cy]))
+				drawLine(1, cy-sy+1, lines[cy])
 			elseif keyChar == 13 then 
 				local p1 = lines[cy]:sub(1, cx-1)
 				local p2 = lines[cy]:sub(cx)
 				lines[cy] = p1
+				syntax = syntaxParse(fileLanguage, lines, cy)
 				gpu.setColor(colorScheme.background)
 				gpu.drawText(1, cy-sy+1, (" "):rep(rw))
 				drawLine(cy-sy+1, lines[cy])
@@ -227,6 +347,7 @@ while true do
 				table.insert(lines, cy, p2)
 				gpu.copy(1, cy-sy+1, rw, rh-(cy-sy+1), 0, 1)
 				gpu.drawText(1, cy-sy+1, (" "):rep(rw))
+				syntax = syntaxParse(fileLanguage, lines, cy)
 				drawLine(cy-sy+1, lines[cy])
 				drawBottomBar()
 				cx = 1
@@ -240,6 +361,7 @@ while true do
 				local pos = charPosition(lines[cy], cx)
 				lines[cy] = unicode.sub(lines[cy], 1, pos-1) .. unicode.char(evt[3]) .. unicode.sub(lines[cy], pos)
 				gpu.setColor(colorScheme.background)
+				syntax = syntaxParse(fileLanguage, lines, cy)
 				drawLine(cy-sy+1, lines[cy])
 				cx = cx + 1
 			end
@@ -250,7 +372,7 @@ while true do
 		if cur then
 			gpu.setColor(0xFFFFFF)
 			gpu.setForeground(0)
-			curC = gpu.get(cx, cy-sy+1)
+			curC, curFG = gpu.get(cx, cy-sy+1)
 			gpu.drawText(cx, cy-sy+1, " ")
 			gpu.setColor(0)
 		else
@@ -261,6 +383,8 @@ while true do
 end
 
 shell.clear()
-for i=1, 16 do
-	gpu.palette[i] = oldPalette[i]
+if gpu.getColors() > 2 then
+	for i=1, #colorSchemeArray do
+		gpu.palette[i] = oldPalette[i]
+	end
 end
