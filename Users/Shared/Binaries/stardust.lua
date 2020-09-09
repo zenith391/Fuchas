@@ -48,38 +48,6 @@ local libs = {
 	buffer = require("buffer") -- TODO: re-implement
 }
 
-local function req(name)
-	if libs[name] then
-		return libs[name]
-	else
-		return require(name)
-	end
-end
-
-local function loadfile(path)
-	local file, reason = require("stardust/filesystem").open(path, "r")
-	if not file then
-		return nil, reason
-	end
-	local buffer = ""
-	local data, reason = "", ""
-	while data do
-		data, reason = file:read(math.huge)
-		buffer = buffer .. (data or "")
-	end
-	file:close()
-	return load(buffer, "=" .. path, "bt", _G)
-end
-
-local function dofile(file, ...)
-	local program, reason = loadfile(file)
-	if program then
-		return program(...)
-	else
-		error(reason)
-	end
-end
-
 local env = {
 	require = req,
 	_OSVERSION = "OpenOS 1.7.5",
@@ -115,6 +83,48 @@ local env = {
 	loadfile = loadfile,
 	dofile = dofile
 }
+
+local openOSLibPath = "A:/usr/lib"
+
+local function req(name)
+	if libs[name] then
+		return libs[name]
+	else
+		local ok, lib = pcall(require(name))
+		if not ok then
+			local handle = io.open(openOSLibPath .. "/" .. name, "r")
+			local code = handle:read("a")
+			handle:close()
+			return load(code, name, "bt", env)()
+		else
+			return lib
+		end
+	end
+end
+
+local function loadfile(path)
+	local file, reason = require("stardust/filesystem").open(path, "r")
+	if not file then
+		return nil, reason
+	end
+	local buffer = ""
+	local data, reason = "", ""
+	while data do
+		data, reason = file:read(math.huge)
+		buffer = buffer .. (data or "")
+	end
+	file:close()
+	return load(buffer, "=" .. path, "bt", _G)
+end
+
+local function dofile(file, ...)
+	local program, reason = loadfile(file)
+	if program then
+		return program(...)
+	else
+		error(reason)
+	end
+end
 
 local handle = io.open(path)
 local code = handle:read("a")

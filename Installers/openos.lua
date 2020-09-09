@@ -246,7 +246,7 @@ local function drawStage()
 {
 	name = "admin",
 	password = "]] .. hash .. [[",
-	salt = "]] .. salt .. [[",
+	salt = "]] .. string.format("%q", salt) .. [[",
 	security = "sha3-512",
 	userId = 0,
 	groups = {}
