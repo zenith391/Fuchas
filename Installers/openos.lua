@@ -240,14 +240,16 @@ local function drawStage()
 		end
 
 		local salt = randomSalt(32)
-		local hash = bin.stohex(sha3.sha3.sha512(test .. pwd))
+		local hash = bin.stohex(sha3.sha3.sha512(salt .. pwd))
 		local handle = io.open(baseDir .. "Users/admin/account.lon", "w")
 		handle:write([[
 {
 	name = "admin",
 	password = "]] .. hash .. [[",
 	salt = "]] .. salt .. [[",
-	security = "sha3-512"
+	security = "sha3-512",
+	userId = 0,
+	groups = {}
 }
 ]])
 		handle:close()
