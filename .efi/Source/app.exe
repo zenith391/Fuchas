@@ -5,7 +5,7 @@ computer.supportsOEFI = function()
 end
 
 loadfile = load([[return function(file)
-	local addr, invoke = computer.getBootAddress(), component.invoke
+	local addr, invoke = oefi.getBootAddress(), component.invoke
 	local handle, reason = invoke(addr, "open", file)
 	assert(handle, reason)
 	local buffer = ""

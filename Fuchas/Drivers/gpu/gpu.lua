@@ -97,6 +97,7 @@ function spec.new(address)
 		end
 		comp.set(x, y, tostring(text))
 	end
+	drv.set = drv.drawText
 
 	function drv.getColor()
 		return comp.getBackground(), comp.getForeground()

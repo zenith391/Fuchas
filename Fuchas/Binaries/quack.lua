@@ -14,9 +14,10 @@ local colorScheme = {
 }
 
 local keywords = {
-	"local ", "for ", "do ", "elseif ", "if ", "else ", "then ", "while ", "in ", "end", "return",
-	"and ", "or ", "not ", "~", "&", "|", "^", "+", "-", "*", "//", "/",
+	"local ", "for ", "do ", "elseif ", "if ", "else ", "then ", "while ", "in ", "end ", "return ", "break ",
+	" and ", " or ", " not ", "~", "&", "|", "^", "+", "-", "*", "//", "/",
 	">", "<", "<=", ">=", "==", "~=", "=",
+	"nil ", "true ", "false "
 }
 
 local syntax = {}
@@ -90,52 +91,6 @@ local function save()
 	stream:close()
 end
 
-local function drawLine(y, line, ly)
-	--shell.setCursor(1, y)
-	--io.stdout:write(line)
-	local lineSyntax = syntax[cy]
-
-	local x = 1
-	gpu.setColor(colorScheme.background)
-	for k, hl in pairs(lineSyntax) do
-		local part = line:sub(hl.highlightStart, hl.highlightEnd)
-		local formatted = part:gsub("\t", "    ")
-		gpu.drawText(x, y, formatted, colorScheme[hl.highlight])
-		x = x + #formatted
-	end
-end
-
-local function drawText()
-	local y = sy
-	for _, line in pairs(lines) do
-		cy = y
-		drawLine(y, line)
-		y = y + 1
-		if y > rh - sy then
-			break
-		end
-	end
-	cy = 1
-end
-
-local function width(line)
-	return unicode.wlen(line:gsub("\t", "    "))
-end
-
-local function charPosition(line, cx)
-	local pos = 0
-	local i = 1
-	while i <= cx do
-		pos = pos + 1
-		if line:sub(pos, pos) == "\t" then
-			i = i + 4
-		else
-			i = i + 1
-		end
-	end
-	return pos
-end
-
 local function syntaxParse(language, lines, lineNo)
 	local syntax = {}
 	local highlight = "foreground"
@@ -202,6 +157,7 @@ local function syntaxParse(language, lines, lineNo)
 								highlight = "comment"
 								pushHighlight(k, #line+1)
 								highlight = "foreground"
+								break
 							end
 						end
 					end
@@ -219,6 +175,54 @@ local function syntaxParse(language, lines, lineNo)
 	end
 
 	return syntax
+end
+
+local function drawLine(y, line, ly)
+	local lineSyntax = syntax[cy]
+	if not lineSyntax then
+		syntax = syntaxParse(fileLanguage, lines, cy)
+		lineSyntax = syntax[cy]
+	end
+
+	local x = 1
+	gpu.setColor(colorScheme.background)
+	for k, hl in pairs(lineSyntax) do
+		local part = unicode.sub(line, hl.highlightStart, hl.highlightEnd)
+		local formatted = part:gsub("\t", "    ")
+		gpu.drawText(x, y, formatted, colorScheme[hl.highlight])
+		x = x + unicode.wlen(formatted)
+	end
+end
+
+local function drawText()
+	local y = sy
+	for _, line in pairs(lines) do
+		cy = y
+		drawLine(y, line)
+		y = y + 1
+		if y > rh - sy then
+			break
+		end
+	end
+	cy = 1
+end
+
+local function width(line)
+	return unicode.wlen(line:gsub("\t", "    "))
+end
+
+local function charPosition(line, cx)
+	local pos = 0
+	local i = 1
+	while i <= cx do
+		pos = pos + 1
+		if unicode.sub(line, pos, pos) == "\t" then
+			i = i + 4
+		else
+			i = i + 1
+		end
+	end
+	return pos
 end
 
 ---------------------------------------------
@@ -268,7 +272,7 @@ while true do
 			if cx > 1 then
 				local line = lines[cy]
 				local idx = charPosition(lines[cy], cx-1)
-				if line:sub(idx,idx) == "\t" then
+				if unicode.sub(line, idx, idx) == "\t" then
 					cx = math.max(1, cx - 4)
 				else
 					cx = cx - 1
@@ -279,7 +283,7 @@ while true do
 			if cx <= width(lines[cy]) then
 				local line = lines[cy]
 				local idx = charPosition(lines[cy], cx)
-				if line:sub(idx,idx) == "\t" then
+				if unicode.sub(line, idx, idx) == "\t" then
 					cx = cx + 4
 				else
 					cx = cx + 1
@@ -336,8 +340,8 @@ while true do
 				gpu.drawText(1, cy-sy+1, (" "):rep(rw-#lines[cy]))
 				drawLine(1, cy-sy+1, lines[cy])
 			elseif keyChar == 13 then 
-				local p1 = lines[cy]:sub(1, cx-1)
-				local p2 = lines[cy]:sub(cx)
+				local p1 = unicode.sub(lines[cy], 1, cx-1)
+				local p2 = unicode.sub(lines[cy], cx)
 				lines[cy] = p1
 				syntax = syntaxParse(fileLanguage, lines, cy)
 				gpu.setColor(colorScheme.background)

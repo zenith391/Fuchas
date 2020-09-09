@@ -84,6 +84,7 @@ local function findBestDriver(type, addr)
 	if sel ~= nil then
 		local drv = sel.new(addr)
 		drv.spec = sel
+		drv.address = addr
 		return drv
 	end
 end

@@ -41,7 +41,7 @@ end
 
 -- splash
 if not os.getenv("INTERFACE") then -- if this is launched at boot
-	print("Fushell in " .. _OSVERSION)
+	print("Fushell on " .. _OSVERSION)
 	os.setenv("PWD", "A:/")
 	if OSDATA.CONFIG["SAFE_MODE"] then
 		print("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")

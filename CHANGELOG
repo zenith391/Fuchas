@@ -26,6 +26,7 @@
 		+ "move" command
 		+ Improved "pl" command
 		+ Added "-s" flag to sudo, to launch a shell with sudo.
+		+ Working editor with (basic) syntax highlighting!
 	Lua API:
 		+ print(...) now calls tostring
 		+ "string.trim(s)" to remove trailing spaces
@@ -46,7 +47,7 @@
 	+ Fixed massive security fault: unprotected A:/Users/Shared could override A:/Fuchas/Binaries in the load order.
 	+ Improved "lua" prompt
 	+ Support for ANSI colors (try "type Fuchas/ansi_test.txt")
-	+ "Fushell" now supports command piping (e.g.: "dir |more")
+	+ Fushell now supports command piping (e.g.: "dir | more")
 	+ Optimized scheduler: Fuchas now consumes less CPU time
 	+ Command history
 0.6.0:

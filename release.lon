@@ -3,7 +3,7 @@
 	changelog = [[
 		0.7.0:
 		Core OS:
-			+ Huge security improvements
+			+ Security improvements
 			+ Fixed Concert
 			+ Fushell boot screen is now lighter
 			+ New in-OS documentation using OHML
@@ -24,8 +24,11 @@
 		Tools:
 			+ Added "cpio" tool to package and extract CPIOs
 			+ Added "find" command for use with "cpio" tool (and others)
-			+ "dmesg" tool
-			+ "apm info" subcommand
+			+ "dmesg" command
+			+ "apm info" sub-command
+			+ "move" command
+			+ Improved "pl" command
+			+ Added "-s" flag to sudo, to launch a shell with sudo.
 		Lua API:
 			+ print(...) now calls tostring
 			+ "string.trim(s)" to remove trailing spaces
@@ -33,7 +36,10 @@
 			+ Added alwaysResolve argument to shell.resolve, if true it will returns the original path when no resolve was found.
 		Drivers:
 			+ The GPU driver can automatically move buffers from and to RAM when VRAM is missing.
+			+ The GPU driver now supports OC buffers
 			+ New driver using for CC printers
 			+ Fixed "ctape" driver
+		Installers:
+			+ Fix the OpenOS installer
 	]]
 }

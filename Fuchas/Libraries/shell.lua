@@ -10,6 +10,7 @@ local aliases = {
 	["cls"] = "clear",
 	["edit"] = "quack",
 	["fsh"] = "A:/Fuchas/Interfaces/Fushell/main.lua",
+	["sh"] = "A:/Fuchas/Interfaces/Fushell/main.lua",
 	["concert"] = "A:/Fuchas/Interfaces/Concert/main.lua"
 }
 
