@@ -93,8 +93,6 @@ local function install()
 	if not filesystem.exists("A:/Temporary") then
 		filesystem.makeDirectory("A:/Temporary")
 	end
-	local sup = string.isUnicodeEnabled()
-	string.setUnicodeEnabled(false)
 	print("Downloading release..")
 	local cpio = download(repoURL .. "release.cpio")
 	local tmpCpio = io.open("A:/Temporary/fuchas.cpio", "w")
@@ -106,7 +104,6 @@ local function install()
 	ext(tmpCpio)
 	tmpCpio:close()
 	filesystem.remove("A:/Temporary/fuchas.cpio")
-	string.setUnicodeEnabled(sup)
 end
 
 print("Upgrading Fuchas (no new version check, always forced)")
