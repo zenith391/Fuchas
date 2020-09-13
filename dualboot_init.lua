@@ -24,7 +24,8 @@ if component.list("gpu")() == nil or component.list("screen")() == nil then
 	error("gpu and screen required")
 end
 
-if not cp.invoke(computer.getBootAddress(), "exists", "/lib/core/") then -- OpenOS
+if not cp.invoke(computer.getBootAddress(), "exists", "/lib/core/") then -- OpenOS doesn't exists, so always boot Fuchas
+	_G.loadfile = loadfile
 	loadfile("Fuchas/Kernel/boot.lua")()
 	return
 end
@@ -33,9 +34,9 @@ local gpua = cp.list("gpu")()
 local screena = cp.list("screen")()
 local gpu = cp.proxy(gpua)
 gpu.bind(screena)
-gpu.setResolution(40, 16)
+gpu.setResolution(22, 2)
 gpu.setBackground(0x000000)
-gpu.fill(1, 1, 40, 16, ' ')
+gpu.fill(1, 1, 22, 2, ' ')
 gpu.set(1, 1, "Press ENTER for Fuchas")
 gpu.set(1, 2, "Press O     for OpenOS")
 
