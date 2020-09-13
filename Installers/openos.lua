@@ -147,14 +147,14 @@ local function drawEntries()
 			gpu.setBackground(0xFFFFFF)
 			gpu.setForeground(0x000000)
 		end
-		gpu.set(7, 11, "Stable branch")
+		gpu.set(7, 11, "Stable release")
 		gpu.setBackground(0x000000)
 		gpu.setForeground(0xFFFFFF)
 		if selected == 2 then
 			gpu.setBackground(0xFFFFFF)
 			gpu.setForeground(0x000000)
 		end
-		gpu.set(7, 12, "Dev branch (unstable, only if you know what you're doing)")
+		gpu.set(7, 12, "Dev release (currently paused, don't use that!)")
 		gpu.setBackground(0x000000)
 		gpu.setForeground(0xFFFFFF)
 	end
@@ -187,9 +187,9 @@ local function drawStage()
 		drawEntries()
 	end
 	if stage == 2 then
-		gpu.set(5, 5, "Fuchas is separated in two branches: stable and dev")
-		gpu.set(5, 6, "The stable branch is the recommended one, it doesn't")
-		gpu.set(5, 7, "have latest features but is very stable. The dev branch")
+		gpu.set(5, 5, "Fuchas is separated in two releases: stable and dev")
+		gpu.set(5, 6, "The stable release is the recommended one, it doesn't")
+		gpu.set(5, 7, "have latest features but is very stable. The dev release")
 		gpu.set(5, 8, "have the latest features but is very buggy and not supported.")
 		drawBorder(6, 10, width - 12, 3)
 		drawEntries()
@@ -264,6 +264,7 @@ local function drawStage()
 	end
 end
 
+local doErase = false
 local function install()
 	local tmpCpio = io.open(cpioBaseDir .. "fuchas.cpio", "w")
 	if not tmpCpio then
@@ -277,18 +278,18 @@ local function install()
 	tmpCpio = io.open(cpioBaseDir .. "fuchas.cpio", "rb")
 	ext(tmpCpio)
 	tmpCpio:close()
-	filesystem.remove("/fuchas.cpio")
+	filesystem.remove(cpioBaseDir .. "/fuchas.cpio")
 	local buf, err = io.open(baseDir .. "init.lua", "w")
 	if buf == nil then
 		error(err)
 	end
-	buf:write(download(repoURL .. "dualboot_init.lua"))
+	local name = (doErase and "init.lua") or "dualboot_init.lua"
+	buf:write(download(repoURL .. name))
 	buf:close()
 	stage = 6
 	drawStage()
 end
 
-local doErase = false
 local function process()
 	if stage == 2 then
 		if selected == 2 then

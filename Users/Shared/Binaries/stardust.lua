@@ -45,7 +45,8 @@ local libs = {
 	serialization = require("stardust/serialization"),
 	text = require("stardust/text"),
 	event = require("event"), -- TODO: re-implement
-	buffer = require("buffer") -- TODO: re-implement
+	buffer = require("buffer"), -- TODO: re-implement
+	bit32 = _G.bit32
 }
 
 local env = {
