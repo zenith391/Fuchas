@@ -93,22 +93,22 @@ function lib.createStdOut(gpu)
 	end
 	local colorTable = {
 		0x0,
-		0xAA0000,
-		0x00AA00,
-		0xAA5500,
-		0x0000AA,
-		0xAA00AA,
-		0x00AAAA,
-		0xAAAAAA
+		0x800000,
+		0x008000,
+		0x808000,
+		0x000080,
+		0x800080,
+		0x008080,
+		0xC0C0C0
 	}
 	local brightColorTable = {
 		0x555555,
-		0xFF5555,
-		0x55FF55,
-		0xFFFF55,
-		0x5555FF,
-		0xFF55FF,
-		0x55FFFF,
+		0xFF0000,
+		0x00FF00,
+		0xFFFF00,
+		0x0000FF,
+		0xFF00FF,
+		0x00FFFF,
 		0xFFFFFF
 	}
 	local ESC = string.char(0x1B)
@@ -198,13 +198,10 @@ function lib.createStdOut(gpu)
 			end
 			return self:write(val:sub(ptrE+1))
 		end
-		if sh.getX()+unicode.len(val) > w+1 then
-			self:write(unicode.sub(val, 1, w-sh.getX()+1))
-			return self:write(unicode.sub(val, w+1))
-		end
 		if val:find("\n") then
 			local s, e = val:find("\n")
-			gpu.drawText(sh.getX(), sh.getY(), unicode.sub(val, 1, s-1))
+			--gpu.drawText(sh.getX(), sh.getY(), unicode.sub(val, 1, s-1))
+			self:write(unicode.sub(val, 1, s-1))
 			sh.setX(1)
 			sh.setY(sh.getY() + 1)
 			if sh.getY() >= h then
@@ -214,6 +211,10 @@ function lib.createStdOut(gpu)
 			end
 			return self:write(unicode.sub(val, e+1))
 		else
+			if sh.getX()+unicode.len(val) > w+1 then
+				self:write(unicode.sub(val, 1, w-sh.getX()+1))
+				return self:write(unicode.sub(val, w+1))
+			end
 			if sh.getY() >= h then
 				gpu.copy(1, 2, w, h - 1, 0, -1)
 				gpu.fill(1, h, w, 1)
@@ -224,6 +225,7 @@ function lib.createStdOut(gpu)
 		end
 		return true
 	end
+	stream:write("\x1B[39;49m") -- reset to default color
 	stream.read = function(self, len)
 		return nil -- cannot read stdOUT
 	end

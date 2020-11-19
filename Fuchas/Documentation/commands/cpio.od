@@ -1,0 +1,21 @@
+# Usage
+	cpio {-o|--create} [-a] <file>
+
+	cpio {-i|--extract} <file>
+
+	Example: find . | cpio -o myCpio.cpio
+
+# Description
+	Fuchas cpio copies files between archives and OS directories. It only supports the "old binary cpio" format.
+
+	The cpio command can be used with one of its two operation modes:
+
+	-i, --extract
+		Read the archive from <file> and extract its content to the current working directory.
+
+	-o, --create
+		Read a list of file names from the standard input and create in the <file> an archive containing those files.
+
+# Options
+	--include-attributes
+		Include '.dir' files (Fuchas attributes file on managed disks), it can be useful for moving data between Fuchas computers.

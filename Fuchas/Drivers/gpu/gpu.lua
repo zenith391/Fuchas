@@ -125,7 +125,7 @@ function spec.new(address)
 				if key >= 1 and key <= drv.getPalettedColors() then
 					comp.setPaletteColor(key-1, value)
 				else
-					error("editable palette indexes are 0 < k <= 16")
+					error("editable palette indexes are 0 < k <= " .. drv.getPalettedColors())
 				end
 			end
 		end

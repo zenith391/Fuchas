@@ -154,8 +154,7 @@ local function execCmd(l)
 					end
 					if not async then
 						proc:join()
-						driver.gpu.setForeground(0xFFFFFF)
-						driver.gpu.setColor(0)
+						io.write("\x1B[39;49m")
 					end
 				else
 					local oldChainStream = chainStream

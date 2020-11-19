@@ -1,0 +1,36 @@
+# Usage
+	apm {list|help|upgrade}
+
+	apm [-g|--global] {install|remove} <packages..>
+
+	apm update <packages..>
+
+# Description
+	Fuchas apm, of it's full name Application Package Manager, installs applications from various application sources. The same program works both on OpenOS and on Fuchas.
+
+	The cpio command can be used with one of its operation modes:
+
+	list
+		Print every packages currently installed by apm on a new line, including their version and revision number.
+
+	install <packages..>
+		Installs packages <packages..> from the first application source containing <packages..>.
+
+	remove <packages..>:
+		Removes packages <packages..> if they are installed.
+
+	update <packages..>:
+		Update packages <packages..>, if installed, to their latest version.
+
+	upgrade:
+		Update all outdated packages.
+
+	info <package>
+		Print the name, description and authors of package <package>.
+
+	help
+		Show this documentation page.
+
+# Options
+	-g, --global
+		Change the default installation path, which is the user path, to the global user path which is always A:/Fuchas/Users/Shared

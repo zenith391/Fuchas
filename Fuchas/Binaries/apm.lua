@@ -396,19 +396,13 @@ if args[1] == "install" then
 end
 
 if args[1] == "help" then
-	print("Usage:")
-	print("  apm [-g] <help|install|remove|update|upgrade|list>")
-	print("Commands:")
-	print("  help                 : show this help message")
-	print("  install [packages...]: install the following packages.")
-	print("  remove  [packages...]: remove the following packages.")
-	print("  update  [packages...]: update the following packages.")
-	print("  info    [package]    : display info about the following package")
-	print("  upgrade              : update all outdated packages")
-	print("  list                 : list installed packages")
-	print("Flags:")
-	print("  -g      : shortcut for --global")
-	print("  --global: this flag change install user path (" .. userPath .. ") to global user path (" .. shared .. ")")
+	local doc = io.open("A:/Fuchas/Documentation/commands/apm.od", "r")
+	if doc then
+		print(doc:read("*a"))
+		doc:close()
+	else
+		print("Usage: apm [-g] <help|install|remove|update|upgrade|list>")
+	end
 	return
 end
 

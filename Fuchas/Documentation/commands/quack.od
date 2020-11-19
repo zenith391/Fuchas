@@ -1,0 +1,14 @@
+# Usage
+	quack <file>
+
+# Description
+	Fuchas quack is a tool to edit files with basic optional syntax highlighting.
+
+	The quack command has only one operation mode which opens <file> and open a visual editor.
+
+# Options
+	--file-language=<lang>
+		Set the syntax highlighting language to <lang>.
+
+	-n, --no-syntax-highlighting
+		Disable syntax highlighting and use the default color for all of the text.

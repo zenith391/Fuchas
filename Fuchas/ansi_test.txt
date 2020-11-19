@@ -1,7 +1,7 @@
 [30m[107mBlack on white!
 [40m[31mRed foreground
 [32mGreen foreground
-[33mYellow foreground, wait no, this uses VGA color scheme!
+[33mYellow-ish foreground
 [34mBlue!
 [35mMagenta?
 [36mCyan

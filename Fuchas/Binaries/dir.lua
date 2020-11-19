@@ -31,7 +31,11 @@ for k, v in list do
 	if isdir then
 		io.write(CSI .. "38;2;68;68;255m")
 	else
-		io.write(CSI .. "38;2;51;255;51m")
+		if k:sub(-4) == ".lua" then
+			io.write(CSI .. "38;2;51;255;51m")
+		else
+			io.write(CSI .. "39m")
+		end
 	end
 	io.write(k .. " ")
 	x = x + k:len() + 1

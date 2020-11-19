@@ -29,7 +29,7 @@ for _, v in pairs(colorScheme) do
 end
 
 local oldPalette
-if gpu.getColors() < 2 then -- monochrome
+if gpu.getColors() == 2 then -- monochrome
 	colorScheme.background = 0x000000
 else
 	oldPalette = {}
@@ -50,7 +50,13 @@ local args, options = shell.parse(...)
 local file = args[1]
 
 if file == nil then
-	io.stderr:write("Usage: quack <filename>\n")
+	local doc = io.open("A:/Fuchas/Documentation/commands/quack.od", "r")
+	if doc then
+		print(doc:read("*a"))
+		doc:close()
+	else
+		print("Usage: quack <filename>")
+	end
 	return
 end
 
@@ -67,7 +73,7 @@ if filesystem.isDirectory(file) then
 end
 
 local fileLanguage = options["file-language"] or "lua"
-if options["no-syntax-highlightning"] then
+if options.n or options["no-syntax-highlighting"] then
 	fileLanguage = "text"
 end
 local lines = nil

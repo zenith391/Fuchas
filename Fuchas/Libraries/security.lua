@@ -71,12 +71,14 @@ function lib.requestPermission(perm)
 	local proc = currentProcess().parent
 	if proc.permissionGrant then
 		if not permtable[proc.pid] then permtable[proc.pid] = {} end
-		if proc.permissionGrant(perm, currentProcess().pid) and lib.hasPermission(perm, proc.pid) then
+		if lib.hasPermission(perm, proc.pid) and proc.permissionGrant(perm, currentProcess().pid) then
 			permtable[currentProcess().pid][perm] = true
 			return true
 		else
 			return false, "permission not granted"
 		end
+	else
+		return false, "parent process do not grants permission"
 	end
 end
 
