@@ -5,24 +5,24 @@ It is a replacement for shin32 and has been introduced in 0.5.0
 	
 # Methods
 
-newProcess(name: string, main: function): nil
+newProcess(name: string, main: function): <process>
 	Create a process named `name`. `main` is the function the process will execute.
-getCurrentProcess(): process
+getCurrentProcess(): <process>
 	Returns the current process object. `nil` if no process (only the case during boot)
-getProcess(pid): process
+getProcess(pid): <process>
 	Get the process object corresponding to the PID.
 	Permission required: process.edit or scheduler.list
 getProcessMetrics(pid): process_metrics
 	Returns process metrics corresponding to the process pointed by the PID.
-kill(proc): bool
+kill(proc): <bool>
 	Safely kills the process, this means that if a safe kill handler (see below) is set,
 	the handler will be executed and if it returns true, the process will be killed.
-unsafeKill(proc): void
+unsafeKill(proc): <void>
 	Unsafely kills the process.
-getProcesses(): process[]
+getProcesses(): <process[]>
 	Returns a table with all active (alive) processes.
 	Permission required: scheduler.list
-getPIDs(): number[]
+getPIDs(): <number[]>
 	Returns a table with the PIDs of all active (alive) processes. Contrary to `getProcesses()` it requires no permission
 
 # Types

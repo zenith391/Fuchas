@@ -6,8 +6,11 @@ local args, ops = shell.parse(...)
 if ops.o or ops.create and args[1] then
 	local output = shell.resolve(args[1], true)
 	local archive = {}
-	while not io.stdin.closed or io.stdin:remaining() do
+	while true do
 		local line = io.stdin:read("l")
+		if not line or #line == 0 then
+			break
+		end
 		if line then
 			local path = shell.resolve(line)
 			print(line)

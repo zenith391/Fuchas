@@ -11,8 +11,8 @@ function lib.openupt1()
 	end
 	gpu = cp.proxy(gpu)
 	gpu.bind(screen)
-	gpu.fill(1, 1, gpu.getResolution())
 	gpu.setResolution(gpu.maxResolution())
+	gpu.fill(1, 1, gpu.getResolution())
 	gpu.set(1, 1, "Non-System disk or drive inserted.")
 	gpu.set(1, 2, "Press any key to reboot.")
 	while true do

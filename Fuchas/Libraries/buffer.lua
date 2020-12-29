@@ -15,7 +15,6 @@ function buffer.pipedStreams(unbuffered)
 		close = function(self)
 			closed = true
 			self.closed = true
-			inputStream.closed = true
 		end,
 		seekable = function()
 			return false
@@ -32,9 +31,13 @@ function buffer.pipedStreams(unbuffered)
 				str = str .. d
 			end
 			if str:len() == 0 then
-				coroutine.yield() -- the program shouldn't have to take in account cooperative multitasking's quirks
-				-- the yield is necessary for the process to be able to put in data
-				return nil
+				while #data == 0 and not closed do
+					coroutine.yield() -- the program shouldn't have to take in account cooperative multitasking's quirks
+					-- the yield is necessary for the process to be able to put in data
+				end
+				if #data == 0 and closed then
+					return nil
+				end
 			end
 			return str
 		end,
@@ -45,7 +48,6 @@ function buffer.pipedStreams(unbuffered)
 		close = function(self)
 			closed = true
 			self.closed = true
-			outputStream.closed = true
 		end,
 		seekable = function()
 			return false
@@ -71,7 +73,7 @@ function buffer.from(handle)
 	function stream:close()
 		self:flush()
 		self.stream:close()
-		stream.closed = true
+		self.closed = true
 	end
 	
 	function stream:write(val)
@@ -165,7 +167,7 @@ function buffer.from(handle)
 						break
 					end
 				end
-				if r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix, mac and windows EOL
+				if r:find("\n") ~= nil or r:find("\r") ~= nil then -- support for unix and windows EOL
 					if r:find("\r") then
 						self:read(1) -- skip \n
 					end
