@@ -24,9 +24,12 @@ if component.list("gpu")() == nil or component.list("screen")() == nil then
 	error("gpu and screen required")
 end
 
-if not cp.invoke(computer.getBootAddress(), "exists", "/lib/core/") then -- OpenOS doesn't exists, so always boot Fuchas
+if not cp.invoke(computer.getBootAddress(), "exists", "/lib/core/boot.lua") then -- OpenOS doesn't exists, so always boot Fuchas
 	_G.loadfile = loadfile
 	loadfile("Fuchas/Kernel/boot.lua")()
+	return
+elseif not cp.invoke(computer.getBootAddress(), "exists", "/Fuchas/Kernel/boot.lua") then -- Fuchas doesn't exists, so always boot OpenOS
+	loadfile("/lib/core/boot.lua")(loadfile)
 	return
 end
 
@@ -57,8 +60,7 @@ while true do
 				if not result then
 					io.stderr:write((reason ~= nil and tostring(reason) or "unknown error") .. "\n")
 					io.write("Press any key to continue.\n")
-					os.sleep(0.5)
-					require("event").pull("key")
+					require("event").pull("key_down")
 				end
 			end
 		end

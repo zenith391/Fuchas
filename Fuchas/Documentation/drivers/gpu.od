@@ -1,0 +1,18 @@
+# Description
+
+The graphics processing driver, named "gpu" is used to show graphical output on a screen.
+
+# Buffers
+
+The GPU driver uses advanced buffers mechanics. Hardware GPU Buffers are available in (OC 1.7.6 ?) and beyond. A program can know if they are suppported using the hardwareBuffers capability (accessed via `gpu.getCapabilities()`).
+
+A buffer is allocated (always to VRAM) using the `gpu.newBuffer(width, height[, purpose])` method
+
+The purpose is what the buffer is supposed to be used for, it can one of any:
+- `gpu.BUFFER_WO_NR_D` : the program will write once, not read and only draw the buffer
+- `gpu.BUFFER_WM_R_D`  : the program will write many to, read from and draw the buffer
+- `gpu.BUFFER_I_WM_R_D`: it must be used only for ultra performance sensitive cases, this prevents the driver from freeing that buffer
+
+This is used as for all purposes (except I_WM_R_D) to be dellocated from VRAM and reallocated on RAM and vice-versa.
+
+Note that BUFFER_I_WM_R_D should be avoided as much as possible! As genuine buffers (WO_NR_D or WM_R_D) might not have enough VRAM available when relocated for write operations.
