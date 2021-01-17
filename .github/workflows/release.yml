@@ -32,6 +32,6 @@ jobs:
       - name: Upload build
         uses: wei/curl@v1.1.1
         with:
-          args: -X POST -F 'secret=$BUILD_SECRET' -F 'release=@release.cpio' https://bwsecondary.ddns.net/fuchas/upload_build.php
+          args: -X POST -F secret=$BUILD_SECRET -F 'release=@release.cpio' https://bwsecondary.ddns.net/fuchas/upload_build.php
         env:
           BUILD_SECRET: ${{ secrets.BUILD_PUSH_KEY }}
