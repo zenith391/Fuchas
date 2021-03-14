@@ -193,7 +193,7 @@ function spec.new(address)
 				v.data = {}
 				for x=1, v.width do
 					for y=1, v.height do
-						v.data[y*v.width+x] = {comp.get(x,y)}
+						v.data[y*v.width+x] = table.pack(comp.get(x,y))
 					end
 				end
 				v:unbind()
@@ -289,8 +289,8 @@ function spec.new(address)
 			for x=1, self.width do
 				for y=1, self.height do
 					local t = self.data[y*self.width+x]
-					comp.setForeground(t[2])
-					comp.setBackground(t[3])
+					drv.setForeground(t[2])
+					drv.setColor(t[3])
 					comp.set(x, y, t[1])
 				end
 			end

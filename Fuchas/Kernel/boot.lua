@@ -203,7 +203,7 @@ for k, v in component.list() do -- TODO: check if letter is over Z
 				print("    Cannot continue mounting! Too much drives")
 				break
 			end
-			print("      Mouting " .. string.char(nextLetter) .. ": drive..")
+			print("      Mounting " .. string.char(nextLetter) .. ": drive..")
 			require("filesystem").mountDrive(component.proxy(k), string.char(nextLetter))
 			nextLetter = nextLetter + 1
 		end

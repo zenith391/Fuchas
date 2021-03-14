@@ -32,16 +32,6 @@ function lib.drawContext(ctxn)
 			concat = concat .. tostring(k) .. ","
 		end
 		gpu.drawText(1, 1, "Active Draw Contexts: " .. concat .. (" "):rep(10), 0)
-		--gpu.drawText(1, 2, "Active Processes: " .. #require("tasks").getPIDs(), 0)
-		local usedMem = math.floor((computer.totalMemory() - computer.freeMemory()) / 1024)
-		local totalMem = math.floor(computer.totalMemory() / 1024)
-		--gpu.drawText(1, 3, "RAM: " .. usedMem .. "/" .. totalMem .. " KiB")
-		local stats = gpu.getStatistics()
-		if caps.hardwareBuffers then
-			local usedVMem = math.floor(stats.usedMemory / 1000)
-			local totalVMem = math.floor(stats.totalMemory / 1000)
-			--gpu.drawText(1, 4, "VRAM: " .. usedVMem .. "/" .. totalVMem .. " KB")
-		end
 	end
 	if ctx.buffer then
 		ctx.buffer:bind()

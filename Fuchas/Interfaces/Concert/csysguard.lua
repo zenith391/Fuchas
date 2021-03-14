@@ -52,5 +52,5 @@ window.container = tabBar
 window:show()
 while window.visible do
 	window:update()
-	os.sleep(0.2)
+	os.sleep(1)
 end

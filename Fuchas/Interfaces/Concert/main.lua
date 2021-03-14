@@ -15,8 +15,8 @@ local tasks = require("tasks")
 
 windowManager.clearDesktop()
 
-local ctx = draw.newContext(1, 1, 160, 50)
-local canvas = draw.canvas(ctx)
+--local ctx = draw.newContext(1, 1, 160, 50)
+--local canvas = draw.canvas(ctx)
 
 local taskBar = windowManager.newWindow()
 local startMenu = windowManager.newWindow()
@@ -49,11 +49,11 @@ do
 		comp.render = function(self)
 			self.canvas.fillRect(1, 1, self.width, 1, 0)
 			self.canvas.fillRect(1, 2, self.width, self.height-1, 0x222222)
-			self.canvas.drawText(10, 1, "Fuchas", 0xFFFFFF)
+			self.canvas.drawText(10, 1, "Fuchas", 0xFFFFFF, 0)
 			for k, v in pairs(startMenuEntries) do
 				local name = v[1]
 				local y = 2 + k
-				self.canvas.drawText(2, y, name, 0xFFFFFF)
+				self.canvas.drawText(2, y, name, 0xFFFFFF, 0x222222)
 			end
 		end
 		comp.listeners["defocus"] = function(self, name, self, new)
@@ -89,8 +89,8 @@ do
 		comp.render = function(self)
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
-			self.canvas.drawText(2, 1, "Fuchas", 0)
-			self.canvas.drawText(self.width-12, 1, "No Connection", 0)
+			self.canvas.drawText(2, 1, "Fuchas", 0, 0xBFFBFF)
+			self.canvas.drawText(self.width-12, 1, "No Connection", 0, 0xBFFBFF)
 		end
 
 		comp.listeners["touch"] = function(self, name, addr, x, y, button)
