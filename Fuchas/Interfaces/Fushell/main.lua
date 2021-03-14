@@ -121,6 +121,10 @@ local function execCmd(l)
 		if not path then
 			exists = false
 		end
+		if path and fs.isDirectory(path) then
+			print("Path is a directory.")
+			goto continue
+		end
 		
 		if exists and args[1] ~= "" then
 			local f, err = xpcall(function()

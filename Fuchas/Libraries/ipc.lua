@@ -11,7 +11,7 @@ local event = require("event")
 -- target: process PID
 -- id: the identifier (string) of the socket
 function lib.socket(target, id)
-	if not tasks.getProcess(target) then
+	if not tasks.getProcessMetrics(target) then
 		error("invalid process: " .. target)
 	end
 

@@ -115,6 +115,7 @@ if _VERSION ~= "Lua 5.2" and not OSDATA.CONFIG["NO_52_COMPAT"] then
 	function bit32.btest(...)
 		return bit32.band(...) ~= 0
 	end
-	--math.atan2 = math.atan
+
+	math.atan2 = math.atan
           ]])()
 end

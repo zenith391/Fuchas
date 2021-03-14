@@ -27,7 +27,11 @@ function mod.newProcess(name, func, onlyIPC)
 		cpuLoadPercentage = 0,
 		exitHandlers = {},
 		events = {},
-		operation = nil, -- the current async operation
+		watchedEvents = {
+			file = {
+				open = {}
+			}
+		},
 		io = { -- a copy of current parent process's io streams
 			stdout = io.stdout,
 			stderr = io.stderr,
@@ -222,7 +226,7 @@ function mod.scheduler()
 		end
 		local e = measure()
 		p.lastCpuTime = p.lastCpuTime + math.floor(e*1000 - start*1000) -- cpu time used in 1 second
-		writeBurst(e*1000 - start*1000)
+		--logger.debug(p.name .. ": " .. (e*1000 - start*1000))
 		p.cpuTime = p.cpuTime + math.floor(e*1000 - start*1000)
 	end
 
@@ -250,7 +254,7 @@ function mod.getCurrentProcess()
 end
 
 function mod.sleep(secs)
-	coroutine.yield("sleep", secs)
+	coroutine.yield("sleep", secs or 0)
 end
 
 os.sleep = mod.sleep
@@ -302,6 +306,7 @@ end
 
 function mod.getProcessMetrics(pid)
 	local proc = processes[pid]
+	if not proc then return nil, "no such process" end
 	local parentPid = -1
 	if proc.parent then parentPid = proc.parent.pid end
 	return {

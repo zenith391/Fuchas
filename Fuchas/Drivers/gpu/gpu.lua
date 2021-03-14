@@ -155,6 +155,8 @@ function spec.new(address)
 
 		function buffer:bind()
 			comp.setActiveBuffer(0)
+			fg = -1
+			bg = -1
 		end
 
 		function buffer:unbind() end
@@ -261,6 +263,8 @@ function spec.new(address)
 		function buffer:bind()
 			self:validate()
 			comp.setActiveBuffer(self.id)
+			fg = -1
+			bg = -1
 		end
 
 		function buffer:unbind()
@@ -327,14 +331,14 @@ function spec.new(address)
 		if comp.allocateBuffer then
 			hasBufs = true
 		end
-	    return {
-	        paletteSize = drv.getColors(),
-	        hasPalette = true,
-	        hasEditablePalette = true,
-	        editableColors = drv.getPalettedColors(),
-	        hardwareText = true,
-	        hardwareBuffers = hasBufs
-	    }
+		return {
+			paletteSize = drv.getColors(),
+			hasPalette = true,
+			hasEditablePalette = true,
+			editableColors = drv.getPalettedColors(),
+			hardwareText = true,
+			hardwareBuffers = hasBufs
+		}
 	end
 	return drv
 end

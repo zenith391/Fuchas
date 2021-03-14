@@ -5,7 +5,7 @@
 local tasks = require("tasks")
 local draw = require("OCX/OCDraw")
 local ui = require("OCX/OCUI")
-local win = require("Concert/wins").newWindow(30, 17, "Minesweeper")
+local win = require("window").newWindow(30, 17, "Minesweeper")
 
 local flag = {
 	0, 1, 1, 0,

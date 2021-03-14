@@ -1,4 +1,5 @@
 local gpu = require("driver").gpu
+local logger = require("log")("OCDraw")
 local caps = gpu.getCapabilities()
 local rw, rh = gpu.getResolution()
 local lib = {}
@@ -6,19 +7,19 @@ local contexts = {} -- Draw Contexts
 
 local doDebug = OSDATA.DEBUG -- warning costs a lot of GPU call budget
 
-function lib.closeContext(ctx)
-	if not contexts[ctx] then
-		return
-	end
-	if contexts[ctx].buffer then
-		contexts[ctx].buffer:free()
-	end
-	contexts[ctx] = nil
-end
-
 -- Will remove double buffer of any context
 function lib.requestMemory()
 	
+end
+
+function lib.redrawContext(ctxn)
+	local ctx = contexts[ctxn]
+	if ctx.buffer then
+		gpu.blit(ctx.buffer, gpu.screenBuffer(), ctx.x, ctx.y)
+	else
+		ctx.drawBuffer = ctx.oldDrawBuffer
+		lib.drawContext(ctxn)
+	end
 end
 
 function lib.drawContext(ctxn)
@@ -26,19 +27,20 @@ function lib.drawContext(ctxn)
 	local g = gpu
 	if doDebug then
 		gpu.setColor(0xFFFFFF)
-		gpu.drawText(1, 1, "OCDraw Debug:", 0)
-		gpu.drawText(1, 2, "Active Draw Contexts: " .. #contexts, 0)
-		gpu.drawText(1, 3, "Active Processes: " .. #require("tasks").getPIDs(), 0)
+		local concat = ""
+		for k, v in pairs(contexts) do
+			concat = concat .. tostring(k) .. ","
+		end
+		gpu.drawText(1, 1, "Active Draw Contexts: " .. concat .. (" "):rep(10), 0)
+		--gpu.drawText(1, 2, "Active Processes: " .. #require("tasks").getPIDs(), 0)
 		local usedMem = math.floor((computer.totalMemory() - computer.freeMemory()) / 1024)
 		local totalMem = math.floor(computer.totalMemory() / 1024)
-		gpu.drawText(1, 4, "RAM: " .. usedMem .. "/" .. totalMem .. " KiB")
+		--gpu.drawText(1, 3, "RAM: " .. usedMem .. "/" .. totalMem .. " KiB")
 		local stats = gpu.getStatistics()
 		if caps.hardwareBuffers then
 			local usedVMem = math.floor(stats.usedMemory / 1000)
 			local totalVMem = math.floor(stats.totalMemory / 1000)
-			gpu.drawText(1, 5, "VRAM: " .. usedVMem .. "/" .. totalVMem .. " KB")
-		else
-			gpu.drawText(1, 5, "VRAM: not supported")
+			--gpu.drawText(1, 4, "VRAM: " .. usedVMem .. "/" .. totalVMem .. " KB")
 		end
 	end
 	if ctx.buffer then
@@ -72,19 +74,15 @@ function lib.drawContext(ctxn)
 			g.copy(x, y, width, height, x2 - x, y2 - y)
 		elseif t == "drawOval" then
 			g.setColor(color)
-			if g.drawOval then
-				g.drawOval(x, y, width, height)
-			else
-				x=math.ceil(x+width/2)
-				local cos, sin = math.cos, math.sin
-				local lx, ly = 0,0
-				for i=0,180 do
-					local sx, sy = cos(i) * width, sin(i) * height / 2
-					sx=math.floor(sx); sy=math.floor(sy);
-					if lx ~= sx or ly ~= sy then
-						lx = sx; ly = sy
-						g.fill(x+sx, y+sy, 1, 1)
-					end
+			x=math.ceil(x+width/2)
+			local cos, sin = math.cos, math.sin
+			local lx, ly = 0,0
+			for i=0,180 do
+				local sx, sy = cos(i) * width, sin(i) * height / 2
+				sx=math.floor(sx); sy=math.floor(sy);
+				if lx ~= sx or ly ~= sy then
+					lx = sx; ly = sy
+					g.fill(x+sx, y+sy, 1, 1)
 				end
 			end
 		else
@@ -95,6 +93,7 @@ function lib.drawContext(ctxn)
 		gpu.blit(ctx.buffer, gpu.screenBuffer(), ctx.x, ctx.y)
 		ctx.buffer:unbind()
 	end
+	ctx.oldDrawBuffer = ctx.drawBuffer
 	ctx.drawBuffer = {}
 end
 
@@ -125,12 +124,17 @@ function lib.gpuWrapper(ctxn)
 end
 
 function lib.newContext(x, y, width, height, braille)
+	checkArg(1, x, "number")
+	checkArg(2, y, "number")
+	checkArg(3, y, "number")
+	checkArg(4, y, "number")
+
 	local ctx = {}
-	ctx.x = (x or 1)
-	ctx.y = (y or 1)
-	ctx.width = width or 160
-	ctx.height = height or 50
-	ctx.braille = braille
+	ctx.x = x
+	ctx.y = y
+	ctx.width = width
+	ctx.height = height
+	ctx.braille = braille or 0
 	-- braille=0 - No braille, same default lame size as OC, full color: fastest
 	-- braille=1 - Vertical braille, allows a max resolution (T3) of 160x100, full color: faster
 	-- braille=2 - Horizontal braille, allows a max resolution (T3) of 320x50, full color: faster
@@ -140,16 +144,44 @@ function lib.newContext(x, y, width, height, braille)
 	if caps.hardwareBuffers then
 		ctx.buffer = gpu.newBuffer(width, height, gpu.BUFFER_WM_R_D)
 	end
-	contexts[#contexts+1] = ctx
-	return #contexts
+	local idx = 0
+	for k, _ in pairs(contexts) do
+		idx = math.max(idx, k)
+	end
+	idx = idx + 1
+	contexts[idx] = ctx
+	logger.debug("Open context #" .. tostring(idx) .. " at " .. x .. "x" .. y .. " of size " .. width .. "x" .. height)
+	logger.debug(debug.traceback(1))
+	return idx
+end
+
+function lib.isContextOpened(ctx)
+	return contexts[ctx] ~= nil
+end
+
+function lib.closeContext(ctx)
+	logger.debug("Close context #" .. tostring(ctx))
+	logger.debug(debug.traceback(1))
+	if not contexts[ctx] then
+		return
+	end
+	if contexts[ctx].buffer then
+		contexts[ctx].buffer:free()
+	end
+	contexts[ctx] = nil
 end
 
 function lib.getContextBounds(ctx)
 	local c = contexts[ctx]
+	if not c then
+		error("no such context: " .. tostring(ctx))
+	end
 	return c.x, c.y, c.width, c.height
 end
 
 function lib.moveContext(ctx, x, y)
+	logger.debug("Move context #" .. tostring(ctx) .. " to " .. tostring(x) .. "x" .. tostring(y))
+	logger.debug(debug.traceback(1))
 	local c = contexts[ctx]
 	c.x = x
 	c.y = y
