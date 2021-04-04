@@ -36,8 +36,8 @@ function lib.newWindow(width, height, title)
 		titleBar = titleBar(),
 		container = ui.container()
 	}
-	window.titleBar.parent = window
-	window.container.parent = window
+	window.titleBar.window = window
+	window.container.window = window
 
 	function window:focus()
 		local idx = 0

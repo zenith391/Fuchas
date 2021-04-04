@@ -33,16 +33,32 @@ function lib.drawContext(ctxn)
 		end
 		gpu.drawText(1, 1, "Active Draw Contexts: " .. concat .. (" "):rep(10), 0)
 	end
+	if ctx.parent then
+		ctx.buffer = contexts[ctx.parent].buffer
+	end
 	if ctx.buffer then
 		ctx.buffer:bind()
 	end
 	for k, v in pairs(ctx.drawBuffer) do
 		local t = v.type
-		local x = v.x
-		local y = v.y
-		if not ctx.buffer and x and y then
-			x = ctx.x + x - 1
-			y = ctx.y + y - 1
+		local dx, dy = 0, 0
+		if ctx.parent then
+			dx = ctx.x - contexts[ctx.parent].x
+			dy = ctx.y - contexts[ctx.parent].y
+		end
+		local x = v.x + dx
+		local y = v.y + dy
+		if x and y then
+			if x > ctx.width then
+				goto continue
+			end
+			if y > ctx.height then
+				goto continue
+			end
+			if not ctx.buffer then
+				x = ctx.x + x - 1
+				y = ctx.y + y - 1
+			end
 		end
 		local width = v.width
 		local height = v.height
@@ -76,20 +92,41 @@ function lib.drawContext(ctxn)
 				end
 			end
 		else
-			g[t](table.unpack(v.args))
+			if v.args then
+				g[t](table.unpack(v.args))
+			end
 		end
+		::continue::
 	end
 	if ctx.buffer then
-		gpu.blit(ctx.buffer, gpu.screenBuffer(), ctx.x, ctx.y)
+		local parent = (ctx.parent and contexts[ctx.parent]) or nil
+		local px = (parent and parent.x) or nil
+		local py = (parent and parent.y) or nil
+		gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
 		ctx.buffer:unbind()
 	end
 	ctx.oldDrawBuffer = ctx.drawBuffer
 	ctx.drawBuffer = {}
 end
 
+local function pushToBufEx(ctx, func, ...)
+	if ctx.buffer then
+		ctx.buffer:bind()
+		gpu[func](...)
+		ctx.buffer:unbind()
+	else
+		table.insert(ctx.drawBuffer, {type=func,args={...}})
+	end
+end
+
 local function pushToBuf(ctx, func, x, y, ...)
 	if ctx.buffer then
 		ctx.buffer:bind()
+		local parent = (ctx.parent and contexts[ctx.parent]) or nil
+		if parent then
+			x = ctx.x - parent.x + x
+			y = ctx.y - parent.y + y
+		end
 		gpu[func](x, y, ...)
 		ctx.buffer:unbind()
 	else
@@ -106,18 +143,30 @@ function lib.gpuWrapper(ctxn)
 		__index = function(t, key)
 			if gpu[key] then
 				return function(...)
-					pushToBuf(contexts[ctxn], key, ...)
+					local fn = pushToBuf
+					if key == "setColor" then
+						fn = pushToBufEx
+					end
+					fn(contexts[ctxn], key, ...)
 				end
 			end
 		end
 	})
 end
 
-function lib.newContext(x, y, width, height, braille)
+function lib.newContext(x, y, width, height, braille, parent)
 	checkArg(1, x, "number")
 	checkArg(2, y, "number")
-	checkArg(3, y, "number")
-	checkArg(4, y, "number")
+	checkArg(3, width, "number")
+	checkArg(4, height, "number")
+	if parent then
+		checkArg(6, parent, "number")
+		if not contexts[parent] then
+			logger.warn("Missing parent context #" .. tostring(parent))
+			logger.warn(debug.traceback(1))
+			error("parent context #" .. parent .. " does not exists")
+		end
+	end
 
 	local ctx = {}
 	ctx.x = x
@@ -125,6 +174,7 @@ function lib.newContext(x, y, width, height, braille)
 	ctx.width = width
 	ctx.height = height
 	ctx.braille = braille or 0
+	ctx.parent = parent
 	-- braille=0 - No braille, same default lame size as OC, full color: fastest
 	-- braille=1 - Vertical braille, allows a max resolution (T3) of 160x100, full color: faster
 	-- braille=2 - Horizontal braille, allows a max resolution (T3) of 320x50, full color: faster
@@ -132,7 +182,11 @@ function lib.newContext(x, y, width, height, braille)
 	-- braille=4 - Full braille, allows a max resolution (T3) of 320x200, averaged colors: slowest
 	ctx.drawBuffer = {}
 	if caps.hardwareBuffers then
-		ctx.buffer = gpu.newBuffer(width, height, gpu.BUFFER_WM_R_D)
+		if parent then
+			ctx.buffer = contexts[parent].buffer
+		else
+			ctx.buffer = gpu.newBuffer(width, height, gpu.BUFFER_WM_R_D)
+		end
 	end
 	local idx = 0
 	for k, _ in pairs(contexts) do
@@ -140,7 +194,12 @@ function lib.newContext(x, y, width, height, braille)
 	end
 	idx = idx + 1
 	contexts[idx] = ctx
-	logger.debug("Open context #" .. tostring(idx) .. " at " .. x .. "x" .. y .. " of size " .. width .. "x" .. height)
+
+	local dbg = "Open context #" .. tostring(idx) .. " at " .. x .. "x" .. y .. " of size " .. width .. "x" .. height
+	if parent then
+		dbg = dbg .. " with parent " .. tostring(parent)
+	end
+	logger.debug(dbg)
 	logger.debug(debug.traceback(1))
 	return idx
 end
@@ -155,8 +214,12 @@ function lib.closeContext(ctx)
 	if not contexts[ctx] then
 		return
 	end
-	if contexts[ctx].buffer then
-		contexts[ctx].buffer:free()
+	if contexts[ctx].buffer and not contexts[ctx].parent then
+		local ok, err = pcall(contexts[ctx].buffer.free, contexts[ctx].buffer)
+		if not ok then
+			logger.warn("Buffer for context #" .. tostring(ctx) .. " already freed ?! " .. err)
+			logger.warn(debug.traceback(1))
+		end
 	end
 	contexts[ctx] = nil
 end
@@ -197,7 +260,7 @@ function lib.canvas(ctxn)
 			x = ctx.width
 		end
 		if y > ctx.height then
-		y = ctx.height
+			y = ctx.height
 		end
 		x = x + ctx.x
 		y = y + ctx.y
@@ -217,12 +280,6 @@ function lib.canvas(ctxn)
 			return
 		end
 		local ctx = contexts[ctxn]
-		if x > ctx.width then
-			x = ctx.width
-		end
-		if y > ctx.height then
-			y = ctx.height
-		end
 		local draw = {}
 		draw.x = x
 		draw.y = y

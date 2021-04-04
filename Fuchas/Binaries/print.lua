@@ -34,7 +34,7 @@ end
 
 local txt = file:read("a")
 local out = printer.out()
-local ok, err = pcall(out:write(txt))
+local ok, err = pcall(out.write, out, txt)
 if not ok then
 	io.stderr:write("Printer error: " .. err .. "\n")
 else

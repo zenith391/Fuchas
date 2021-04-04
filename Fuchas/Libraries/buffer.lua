@@ -69,6 +69,7 @@ function buffer.from(handle)
 	stream.size = require("config").buffer.readBufferSize
 	stream.wsize = require("config").buffer.defaultWriteBufferSize
 	stream.wmode = "full"
+	stream.off = 0
 
 	function stream:close()
 		self:flush()
@@ -84,6 +85,7 @@ function buffer.from(handle)
 			local remaining = self.wsize - self.wbuf:len()
 			local firstPart = val:sub(1, remaining)
 			self.wbuf = self.wbuf .. firstPart
+			self.off = self.off + firstPart:len()
 			if val:len() > remaining then
 				local secondPart = val:sub(remaining+1)
 				self:flush()
@@ -137,6 +139,7 @@ function buffer.from(handle)
 			self.buf = self.buf:sub(partLen+1, self.buf:len()) -- cut the read part
 			str = str .. part
 			len = len - partLen
+			self.off = self.off + part:len()
 		end
 		return str
 	end
@@ -149,6 +152,7 @@ function buffer.from(handle)
 			local s = ""
 			while true do
 				local r = self.stream:read(math.huge)
+				self.off = self.stream:seek("cur", 0)
 				coroutine.yield() -- to release the CPU atleast some time
 				if r == nil then
 					break
@@ -235,8 +239,21 @@ function buffer.from(handle)
 
 	function stream:seek(whence, offset)
 		self:flush()
-		self.buf = ""
-		return self.stream:seek(whence, offset)
+		if whence == "cur" then
+			local ok, err = self.stream:seek("set", self.off + offset)
+			if offset < 0 and false then
+				local prepend = self.stream:read(-offset)
+				self.buf = prepend .. self.buf
+				--ok, err = self.stream:seek("set", self.off + offset)
+			else
+				self.buf = "" -- TODO: optimize
+			end
+			self.off = self.off + offset
+			return ok, err
+		else
+			self.buf = ""
+			return self.stream:seek(whence, offset)
+		end
 	end
 	return stream
 end

@@ -270,6 +270,8 @@ function spec.new(address)
 		function buffer:unbind()
 			self:validate()
 			comp.setActiveBuffer(0)
+			fg = -1
+			bg = -1
 		end
 
 		function buffer:validate()

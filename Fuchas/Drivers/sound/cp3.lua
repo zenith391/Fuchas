@@ -19,9 +19,20 @@ function spec.new(address)
 	local drv = {}
 
 	function drv.appendFrequency(channel, time, freq)
-		sound.setFrequency(freq)
+		sound.setFrequency(channel, freq)
 		sound.delay(time)
 	    t = t + time
+		return true
+	end
+
+	function drv.setFrequency(channel, freq)
+		sound.setFrequency(channel, freq)
+		return true
+	end
+
+	function drv.delay(time)
+		sound.delay(time)
+		t = t + time
 		return true
 	end
 

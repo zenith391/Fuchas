@@ -11,6 +11,7 @@ local stage         = 1
 local selected      = 2
 local maxSelect     = 2
 local run           = true
+local cpioURL       = "https://bwsecondary.ddns.net/fuchas/releases/master.cpio"
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local devRelease    = false
 local downloading   = ""
@@ -270,7 +271,7 @@ local function install()
 	if not tmpCpio then
 		error("error reading cpio, are you installing from floppy?")
 	end
-	local ok, err = tmpCpio:write(download(repoURL .. ((devRelease and "release_dev.cpio") or "release.cpio")))
+	local ok, err = tmpCpio:write(download(cpioURL))
 	if not ok then
 		error("Could not download package: " .. err)
 	end

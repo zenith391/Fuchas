@@ -66,7 +66,11 @@ function lib.component()
 			end
 		end
 		if self.context == nil  then
-			self.context = draw.newContext(self.x, self.y, self.width, self.height)
+			local parentContext = (self.parent and self.parent.context) or nil
+			--[[if config.accelerationMethod == 1 then -- full usage of VRAM
+				parentContext = nil
+			end]]
+			self.context = draw.newContext(self.x, self.y, self.width, self.height, 0, parentContext)
 			self.canvas = draw.canvas(self.context)
 			return true
 		end
@@ -191,7 +195,7 @@ function lib.tabBar()
 	function comp:_render()
 		-- Draw tab bar
 		local oldHeight = self.height
-		self.height = 1
+		--self.height = 1
 
 		self:initRender()
 		self.canvas.fillRect(1, 1, self.width, 1, self.background)
@@ -207,7 +211,7 @@ function lib.tabBar()
 		end
 		draw.drawContext(self.context)
 
-		self.height = oldHeight
+		--self.height = oldHeight
 
 		if not self.childrens[self.currentTab] then
 			self.currentTab = 1

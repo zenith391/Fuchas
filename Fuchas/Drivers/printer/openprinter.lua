@@ -14,9 +14,10 @@ function spec.getRank()
 end
 
 function spec.new(address)
+	local drv = {}
 	local out = nil
 	local outbuf = ""
-	printer = cp.proxy(address)
+	local printer = cp.proxy(address)
 
 	function drv.getStatistics()
 		return {
@@ -62,6 +63,8 @@ function spec.new(address)
 		end
 		return out
 	end
+
+	return drv
 end
 
 return spec

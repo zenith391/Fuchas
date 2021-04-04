@@ -23,7 +23,9 @@ local startMenu = windowManager.newWindow()
 local startMenuEntries = {
 	{"Settings", "A:/Fuchas/Interfaces/Concert/csettings.lua"},
 	{"Task Manager", "A:/Fuchas/Interfaces/Concert/csysguard.lua"},
-	{"Minesweeper", "A:/Fuchas/Interfaces/Concert/minesweeper/minesweeper.lua"}
+	{"NeoQuack", "A:/Fuchas/Interfaces/Concert/editor.lua"},
+	{"Minesweeper", "A:/Fuchas/Interfaces/Concert/minesweeper/minesweeper.lua"},
+	{"OpenMedia Player", "A:/Fuchas/Interfaces/Concert/mediaplayer.lua"}
 }
 
 local focusedWin = nil
@@ -67,7 +69,12 @@ do
 					local name = v[1]
 					local cy = 2 + k
 					if x > 1 and x < 1+name:len() and y == cy then
-						require("tasks").newProcess("proc", loadfile(v[2]))
+						local f, err = loadfile(v[2])
+						if f then
+							require("tasks").newProcess("proc", f)
+						else
+							print(err)
+						end
 					end
 				end
 			end
@@ -123,6 +130,7 @@ local function screenEvent(name, addr, x, y, button, player)
 					selectedWin = v
 					wtx = x - selectedWin.x
 					if x == selectedWin.x+selectedWin.width-2 then
+						-- TODO: send event to owning process that window got closed
 						selectedWin:hide()
 						selectedWin = nil
 					end
@@ -149,7 +157,7 @@ while true do
 		screenEvent(name, evt[2], evt[3], evt[4], evt[5], evt[6])
 	end
 	if focusedWin ~= nil then
-		if name == "touch" or name == "drag" or name == "drop" then -- translate screen position to component position
+		if name == "touch" or name == "drag" or name == "drop" or name == "scroll" then -- translate screen position to component position
 			evt[3] = evt[3] - focusedWin.container.x + 1
 			evt[4] = evt[4] - focusedWin.container.y + 1
 			if evt[3] < 1 or evt[4] < 1 then -- event cancelled: out of component
