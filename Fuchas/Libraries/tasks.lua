@@ -27,11 +27,7 @@ function mod.newProcess(name, func, onlyIPC)
 		cpuLoadPercentage = 0,
 		exitHandlers = {},
 		events = {},
-		watchedEvents = {
-			file = {
-				open = {}
-			}
-		},
+		operation = nil, -- the current async operation
 		io = { -- a copy of current parent process's io streams
 			stdout = io.stdout,
 			stderr = io.stderr,
@@ -60,6 +56,51 @@ function mod.newProcess(name, func, onlyIPC)
 		require("security").requestPermission("*", pid)
 	end
 	processes[pid] = proc
+	return proc
+end
+
+--[[
+	Creates a process that can only communicate with other processes using IPC.
+	Those processes cannot use I/O and cannot have a parent.
+
+	name: Process name
+	code: Process code
+]]
+function mod.newDaemon(name, code)
+	local pid
+	pid = incr
+	incr = incr + 1
+
+	logger.debug("Creating daemon process " .. name)
+	if worker then
+		local currProc = mod.getCurrentProcess()
+		worker.sendNewProcess(pid, code, currProc.env)
+		processes[pid] = {
+			name = name,
+			pid = pid,
+			peer = "worker"
+		}
+	else
+		local proc = {
+			name = name,
+			func = code,
+			pid = pid, -- reliable pointer to process that help know if a process is dead
+			kill = function(self)
+				mod.safeKill(self)
+			end,
+			join = function(self)
+				mod.waitFor(self)
+			end
+		}
+		local currProc = mod.getCurrentProcess()
+		if currProc ~= nil then
+			proc.env = currProc.env
+		else
+			proc.env = {}
+			require("security").requestPermission("*", pid)
+		end
+		processes[pid] = proc
+	end
 	return proc
 end
 
@@ -123,6 +164,7 @@ local canSleep = true
 
 local schedulerMode = "SJF" -- SJF or FCFS
 local sjfAlpha = 0.3 -- alpha value for SJF scheduler
+
 function mod.scheduler()
 	if not logHandle and false then
 		startLogging()
@@ -158,6 +200,7 @@ function mod.scheduler()
 	end
 	for k, p in pairs(orderedProcesses) do
 		--logger.info(p.name .. ": " .. p.status)
+		if lastEvent and lastEvent[1] then table.insert(p.events, lastEvent) end
 		local start = measure()
 		if p.status == "created" then
 			p.thread = coroutine.create(p.func)
@@ -169,14 +212,12 @@ function mod.scheduler()
 			mod.unsafeKill(p) -- no need to safe kill, it's already dead
 		end
 		if p.status == "wait_signal" then
-			if lastEvent ~= nil then
-				if lastEvent[1] ~= nil then
-					p.result = lastEvent
-					p.status = "ready"
-				elseif computer.uptime() >= p.timeout then
-					p.status = "ready"
-					p.timeout = nil
-				end
+			if #p.events == 0 and computer.uptime() >= p.timeout then
+				p.status = "ready"
+				p.timeout = nil
+			elseif #p.events > 0 then
+				p.result = table.remove(p.events, 1)
+				p.status = "ready"
 			end
 			minSleepTime = math.min(minSleepTime, math.max(0, (p.timeout or 0) - computer.uptime()))
 		end
@@ -211,10 +252,10 @@ function mod.scheduler()
 			end
 			if ret == "sleep" then
 				p.status = "sleeping"
-				p.timeout = computer.uptime() + a1
+				p.timeout = computer.uptime() + (a1 or 0)
 			elseif ret == "pull_event" then
 				if a1 then
-					p.timeout = computer.uptime() + a1
+					p.timeout = computer.uptime() + (a1 or 0)
 				else
 					p.timeout = math.huge
 				end
@@ -226,7 +267,7 @@ function mod.scheduler()
 		end
 		local e = measure()
 		p.lastCpuTime = p.lastCpuTime + math.floor(e*1000 - start*1000) -- cpu time used in 1 second
-		--logger.debug(p.name .. ": " .. (e*1000 - start*1000))
+		writeBurst(e*1000 - start*1000)
 		p.cpuTime = p.cpuTime + math.floor(e*1000 - start*1000)
 	end
 
@@ -254,7 +295,7 @@ function mod.getCurrentProcess()
 end
 
 function mod.sleep(secs)
-	coroutine.yield("sleep", secs or 0)
+	coroutine.yield("sleep", secs)
 end
 
 os.sleep = mod.sleep
@@ -306,7 +347,6 @@ end
 
 function mod.getProcessMetrics(pid)
 	local proc = processes[pid]
-	if not proc then return nil, "no such process" end
 	local parentPid = -1
 	if proc.parent then parentPid = proc.parent.pid end
 	return {

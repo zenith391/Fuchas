@@ -4,13 +4,17 @@ local event = require("event")
 local keyboard = require("keyboard")
 local gpu = require("driver").gpu
 
+local defaultForeground = 0xF8F8F2
+local defaultBackground = 0x272822
+
 local colorScheme = {
-	foreground = 0xF8F8F2,
-	background = 0x272822,
-	comment = 0x75715E,
-	number = 0xAE81FF,
-	string = 0xE6DB74,
-	keyword = 0xF92672,
+	foreground = { fg = defaultForeground },
+	background = { bg = defaultBackground },
+	comment = { fg = 0x75715E },
+	number = { fg = 0xAE81FF },
+	string = { fg = 0xE6DB74 },
+	keyword = { fg = 0xF92672 },
+	code = { bg = 0x3B3C36 }
 }
 
 local keywords = {
@@ -25,12 +29,14 @@ local syntax = {}
 local colorSchemeArray = {}
 
 for _, v in pairs(colorScheme) do
-	table.insert(colorSchemeArray, v)
+	if v.fg then table.insert(colorSchemeArray, v.fg) end
+	if v.bg then table.insert(colorSchemeArray, v.bg) end
 end
 
 local oldPalette
 if gpu.getColors() == 2 then -- monochrome
-	colorScheme.background = 0x000000
+	colorScheme.background.bg = 0x000000
+	colorScheme.code.bg       = 0x000000
 else
 	oldPalette = {}
 	for i=1, #colorSchemeArray do
@@ -44,7 +50,7 @@ local cx, cy = 1, 1
 local sx, sy = 1, 1
 local cur = true
 local curC = ""
-local curFG = 0
+local curFG, curBG = 0, 0
 
 local args, options = shell.parse(...)
 local file = args[1]
@@ -60,19 +66,25 @@ if file == nil then
 	return
 end
 
-file = shell.resolve(file)
-
-if not file then
-	io.stderr:write(args[1] .. " doesn't exists!\n")
-	return
-end
+file = shell.resolveToPwd(file)
 
 if filesystem.isDirectory(file) then
 	io.stderr:write("path is directory\n")
 	return
 end
 
-local fileLanguage = options["file-language"] or "lua"
+local fileLanguage = options["file-language"]
+
+if not fileLanguage then
+	if string.endsWith(file, ".lua") or string.endsWith(file, ".lon") then
+		fileLanguage = "lua"
+	elseif string.endsWith(file, ".md") then
+		fileLanguage = "markdown"
+	else
+		fileLanguage = "text"
+	end
+end
+
 if options.n or options["no-syntax-highlighting"] then
 	fileLanguage = "text"
 end
@@ -173,6 +185,31 @@ local function syntaxParse(language, lines, lineNo)
 				highlightStart = 1
 			end
 		end
+	elseif language == "markdown" then
+		for k, line in pairs(lines) do
+			if string.startsWith(line, "#") then
+				local len = 1
+				while line:sub(len, len) == "#" do
+					len = len + 1
+				end
+				highlight = "keyword"
+				pushHighlight(k, len)
+				highlight = "foreground"
+			end
+			for pos, c in pairs(string.toCharArray(line)) do
+				if c == "`" then
+					if highlight == "code" then
+						pushHighlight(k, pos+1)
+						highlight = "foreground"
+					elseif highlight == "foreground" then
+						pushHighlight(k, pos)
+						highlight = "code"
+					end
+				end
+			end
+			pushHighlight(k, #line+1)
+			highlightStart = 1
+		end
 	else
 		for k, line in pairs(lines) do
 			pushHighlight(k, #line+1)
@@ -191,11 +228,11 @@ local function drawLine(y, line, ly)
 	end
 
 	local x = 1
-	gpu.setColor(colorScheme.background)
 	for k, hl in pairs(lineSyntax) do
 		local part = unicode.sub(line, hl.highlightStart, hl.highlightEnd)
 		local formatted = part:gsub("\t", "    ")
-		gpu.drawText(x, y, formatted, colorScheme[hl.highlight])
+		gpu.setColor(colorScheme[hl.highlight].bg or defaultBackground)
+		gpu.drawText(x, y, formatted, colorScheme[hl.highlight].fg or defaultForeground)
 		x = x + unicode.wlen(formatted)
 	end
 end
@@ -234,19 +271,23 @@ end
 ---------------------------------------------
 
 do
-	local b = io.open(file)
-	lines = b:lines()
-	b:close()
+	if filesystem.exists(file) then
+		local b = io.open(file)
+		lines = b:lines()
+		b:close()
+	else
+		lines = { "" }
+	end
 end
 
-gpu.fill(1, 1, 160, 50, colorScheme.background)
+gpu.fill(1, 1, 160, 50, colorScheme.background.bg)
 shell.setCursor(1, 1)
 syntax = syntaxParse(fileLanguage, lines)
 drawText()
 drawBottomBar()
 
 local function eraseCursor()
-	gpu.setColor(colorScheme.background)
+	gpu.setColor(curBG)
 	gpu.setForeground(curFG)
 	gpu.drawText(cx, cy-sy+1, curC)
 end
@@ -267,7 +308,7 @@ while true do
 				cx = math.min(width(lines[cy])+1, cx)
 				if cy < sy then
 					gpu.copy(1, 1, rw, rh-1, 0, 1)
-					gpu.setColor(colorScheme.background)
+					gpu.setColor(colorScheme.background.bg)
 					gpu.drawText(1, 1, (" "):rep(rw))
 					drawLine(1, lines[cy])
 					sy = sy - 1
@@ -302,7 +343,7 @@ while true do
 				cx = math.min(width(lines[cy])+1, cx)
 				if cy-sy+1 > rh-1 then
 					gpu.copy(1, 1, rw, rh-1, 0, -1)
-					gpu.setColor(colorScheme.background)
+					gpu.setColor(colorScheme.background.bg)
 					gpu.drawText(1, rh-1, (" "):rep(rw))
 					drawLine(rh-1, lines[cy])
 					sy = sy + 1
@@ -317,7 +358,7 @@ while true do
 			cx = 1
 			drawBottomBar()
 		elseif keyCode == 207 then -- End
-			cx = width(lines[cy])+1
+			cx = math.floor(width(lines[cy])+1)
 			drawBottomBar()
 		else
 			if keyChar == 8 then
@@ -325,7 +366,7 @@ while true do
 					local pos = charPosition(lines[cy], cx)
 					lines[cy] = unicode.sub(lines[cy], 1, pos-2) .. unicode.sub(lines[cy], pos)
 					syntax = syntaxParse(fileLanguage, lines, cy)
-					gpu.setColor(colorScheme.background)
+					gpu.setColor(colorScheme.background.bg)
 					gpu.drawText(1, cy-sy+1, (" "):rep(rw))
 					drawLine(cy-sy+1, lines[cy])
 					cx = cx - 1
@@ -342,7 +383,7 @@ while true do
 			elseif keyChar == 127 then
 				lines[cy] = unicode.sub(lines[cy], 1, cx-1) .. unicode.sub(lines[cy], cx+1)
 				syntax = syntaxParse(fileLanguage, lines, cy)
-				gpu.setColor(colorScheme.background)
+				gpu.setColor(colorScheme.background.bg)
 				gpu.drawText(1, cy-sy+1, (" "):rep(rw-#lines[cy]))
 				drawLine(1, cy-sy+1, lines[cy])
 			elseif keyChar == 13 then 
@@ -350,7 +391,7 @@ while true do
 				local p2 = unicode.sub(lines[cy], cx)
 				lines[cy] = p1
 				syntax = syntaxParse(fileLanguage, lines, cy)
-				gpu.setColor(colorScheme.background)
+				gpu.setColor(colorScheme.background.bg)
 				gpu.drawText(1, cy-sy+1, (" "):rep(rw))
 				drawLine(cy-sy+1, lines[cy])
 				cy = cy + 1
@@ -370,7 +411,7 @@ while true do
 			elseif keyChar >= 0x20 then
 				local pos = charPosition(lines[cy], cx)
 				lines[cy] = unicode.sub(lines[cy], 1, pos-1) .. unicode.char(evt[3]) .. unicode.sub(lines[cy], pos)
-				gpu.setColor(colorScheme.background)
+				gpu.setColor(colorScheme.background.bg)
 				syntax = syntaxParse(fileLanguage, lines, cy)
 				drawLine(cy-sy+1, lines[cy])
 				cx = cx + 1
@@ -382,7 +423,7 @@ while true do
 		if cur then
 			gpu.setColor(0xFFFFFF)
 			gpu.setForeground(0)
-			curC, curFG = gpu.get(cx, cy-sy+1)
+			curC, curFG, curBG = gpu.get(cx, cy-sy+1)
 			gpu.drawText(cx, cy-sy+1, " ")
 			gpu.setColor(0)
 		else

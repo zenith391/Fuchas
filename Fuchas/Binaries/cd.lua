@@ -1,3 +1,4 @@
+-- TODO: put 'cd' command inside the shell
 local args = ...
 
 local filesystem = require("filesystem")
@@ -22,7 +23,9 @@ end
 local newPath = canon .. args[1]
 local effectivePath = drive .. filesystem.canonical(newPath)
 if filesystem.exists(effectivePath) and filesystem.isDirectory(effectivePath) then
-	os.setenv("PWD", effectivePath)
+	-- os.setenv("PWD", effectivePath)
+	local currentProcess = require("tasks").getCurrentProcess()
+	currentProcess.parent.env["PWD"] = effectivePath
 else
 	if not filesystem.exists(effectivePath) then
 		print(newPath .. " doesn't exists.")

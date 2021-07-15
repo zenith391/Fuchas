@@ -39,10 +39,11 @@ tasks.getCurrentProcess().childErrorHandler = function(proc, err)
 	io.stderr:write("Error from " .. procType .. " \"" .. proc.name .. "\": " .. tostring(err) .. "\n")
 end
 
+local taskBarSize = 1
 local w, h = require("driver").gpu.getResolution()
 do
 	startMenu.undecorated = true
-	startMenu.y = h - 15
+	startMenu.y = h - 14 - taskBarSize
 	startMenu.x = 1
 	startMenu.width = 25
 	startMenu.height = 15
@@ -86,18 +87,19 @@ end
 
 do
 	taskBar.undecorated = true
-	taskBar.y = h
+	taskBar.y = h + 1 - taskBarSize
 	taskBar.x = 1
 	taskBar.width = 160
-	taskBar.height = 1
+	taskBar.height = taskBarSize
 	taskBar:show()
 	do
 		local comp = ui.component()
 		comp.render = function(self)
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
-			self.canvas.drawText(2, 1, "Fuchas", 0, 0xBFFBFF)
-			self.canvas.drawText(self.width-12, 1, "No Connection", 0, 0xBFFBFF)
+			self.canvas.drawText(2, 1, "Fuchas", 0x000000, 0xBFFBFF)
+			local clock = os.date("%T")
+			self.canvas.drawText(self.width-#clock, 1, clock, 0xFFFFFF, 0x000000)
 		end
 
 		comp.listeners["touch"] = function(self, name, addr, x, y, button)
@@ -150,30 +152,34 @@ windowManager.drawBackground(1, 1, 160, 50)
 windowManager.drawDesktop()
 
 while true do
-	local evt = table.pack(event.pull())
-	local name = evt[1]
-	local oldfocused = focusedWin
-	if name == "touch" or name == "drag" then
-		screenEvent(name, evt[2], evt[3], evt[4], evt[5], evt[6])
-	end
-	if focusedWin ~= nil then
-		if name == "touch" or name == "drag" or name == "drop" or name == "scroll" then -- translate screen position to component position
-			evt[3] = evt[3] - focusedWin.container.x + 1
-			evt[4] = evt[4] - focusedWin.container.y + 1
-			if evt[3] < 1 or evt[4] < 1 then -- event cancelled: out of component
-				goto cancel
+	local evt = table.pack(event.pull(1))
+	taskBar:update()
+
+	if evt then
+		local name = evt[1]
+		local oldfocused = focusedWin
+		if name == "touch" or name == "drag" then
+			screenEvent(name, evt[2], evt[3], evt[4], evt[5], evt[6])
+		end
+		if focusedWin ~= nil then
+			if name == "touch" or name == "drag" or name == "drop" or name == "scroll" then -- translate screen position to component position
+				evt[3] = evt[3] - focusedWin.container.x + 1
+				evt[4] = evt[4] - focusedWin.container.y + 1
+				if evt[3] < 1 or evt[4] < 1 then -- event cancelled: out of component
+					goto cancel
+				end
 			end
+			if focusedWin.container.listeners[name] then
+				focusedWin.container.listeners[name](focusedWin.container, table.unpack(evt))
+			elseif focusedWin.container.listeners["*"] then
+				focusedWin.container.listeners["*"](focusedWin.container, table.unpack(evt))
+			end
+			::cancel::
 		end
-		if focusedWin.container.listeners[name] then
-			focusedWin.container.listeners[name](focusedWin.container, table.unpack(evt))
-		elseif focusedWin.container.listeners["*"] then
-			focusedWin.container.listeners["*"](focusedWin.container, table.unpack(evt))
-		end
-		::cancel::
-	end
-	if oldfocused ~= nil and oldfocused ~= focusedWin then
-		if oldfocused.container.listeners["defocus"] then
-			oldfocused.container.listeners["defocus"](oldfocused.container, "defocus", oldfocused, focusedWin)
+		if oldfocused ~= nil and oldfocused ~= focusedWin then
+			if oldfocused.container.listeners["defocus"] then
+				oldfocused.container.listeners["defocus"](oldfocused.container, "defocus", oldfocused, focusedWin)
+			end
 		end
 	end
 end

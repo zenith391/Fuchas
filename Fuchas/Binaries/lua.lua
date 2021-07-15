@@ -4,9 +4,10 @@ print(_VERSION .. " Copyright (C) 1994-2016 Lua.org, PUC-Rio")
 print("Add '=' at the start of your code to print the result")
 print("Type 'os.exit()' or '\\q' to exit the interpreter.")
 
+local history = {}
 while true do
 	io.write("> ")
-	local txt = shell.read()
+	local txt = shell.read({ history = history })
 	io.write("\n ")
 	if string.startsWith(txt, "\\q") then
 		break

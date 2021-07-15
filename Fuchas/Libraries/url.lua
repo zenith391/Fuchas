@@ -1,3 +1,0 @@
-local url = {}
-
-return url

@@ -3,7 +3,7 @@ local filesystem = require("filesystem")
 local args, options = shell.parse(...)
 
 if #args < 1 then
-	print("Usage: delete [-r] [-v] src")
+	print("Usage: delete [-r] [-v] <paths..>")
 	print("-v: Verbose")
 	print("-r: Recursive")
 	return
@@ -13,7 +13,13 @@ local function del(src)
 	if options.v then
 		print("Deleting " .. src)
 	end
-	filesystem.remove(src)
+	if not filesystem.exists(src) then
+		io.stderr:write(src .. " does not exists!\n")
+	elseif filesystem.isDirectory(src) then
+		io.stderr:write(src .. " is a directory!\n")
+	else
+		filesystem.remove(src)
+	end
 end
 
 local function delDir(src)
@@ -36,17 +42,17 @@ local function delDir(src)
 	end
 end
 
-local src = shell.resolve(args[1]) or args[1]
 
-if options.r then
-	if not filesystem.exists(src) then
-		print("No source directory")
-		return
+for _, path in pairs(args) do
+	local src = shell.resolve(path, true)
+	if options.r then
+		if not filesystem.exists(src) then
+			print("No source directory")
+			return
+		end
+		delDir(src)
+		filesystem.remove(src)
+	else
+		del(src)
 	end
-	delDir(src)
-	filesystem.remove(src)
-else
-	del(src)
 end
-
-print("Deleted.")

@@ -90,12 +90,17 @@ local function findBestDriver(type, addr)
 end
 
 local function getDefaultDriver(type)
+	local best = nil
 	for addr, _ in pairs(cp.list()) do
 		local d = findBestDriver(type, addr)
+		if not best and d ~= nil then best = d end
 		if d ~= nil then
-			return d
+			if d.spec.getRank() > best.spec.getRank() then
+				best = d
+			end
 		end
 	end
+	return best
 end
 
 function driver.getDriver(type, addr)

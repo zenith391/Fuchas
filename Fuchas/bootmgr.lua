@@ -3,12 +3,10 @@ local fs = require("filesystem")
 local tasks = require("tasks")
 
 -- Unmanaged drives: TO-REDO
-for k, v in pairs(fs.unmanagedFilesystems()) do
-	for addr, _ in component.list("drive") do
-		if fs.isValid(addr) then
-			fs.mountDrive(fs.asFilesystem(addr), fs.freeDriveLetter())
-		end
-	end
+for addr, _ in component.list("drive") do
+	--if fs.isValid(addr) then
+	--	fs.mountDrive(fs.asFilesystem(addr), fs.freeDriveLetter())
+	--end
 end
 
 -- User
@@ -47,7 +45,9 @@ tasks.newProcess("System Interface", function()
 			local sound = require("driver").sound
 			if sound then -- boot tone
 				sound.openChannel(1)
-				sound.appendFrequency(1, 0.2, 200)
+				sound.appendFrequency(1, 0.2, 250)
+				sound.appendFrequency(1, 0.2, 330)
+				sound.appendFrequency(1, 0.2, 440)
 				sound.flush()
 				if sound.isSynchronous() then
 					sound.closeChannel(1)
@@ -112,7 +112,7 @@ tasks.newProcess("System Interface", function()
 		end
 		return l()
 	end, function(err)
-		io.stderr:write("\nThe interface crashed \\:\n")
+		io.stderr:write("\nInterface crash:\n")
 		io.stderr:write(err .. "\n")
 		io.stderr:write(debug.traceback(nil, 2) .. "\n")
 		io.stderr:write("Restarting ..\n")

@@ -113,10 +113,10 @@ local function save()
 	s:close()
 end
 
-local function loadLonSec(txt)
+local function loadLonSec(pre, txt)
 	local ok, out = pcall(unserialize, txt)
 	if not ok then
-		io.stderr:write("    " .. out)
+		io.stderr:write(pre .. out .. "\n")
 	end
 	return ok, out
 end
@@ -132,7 +132,7 @@ local function searchSource(source)
 		end
 		txt = readFully(githubGet .. source .. "/master/programs.lon")
 		local stream = io.open(tmpPath .. "/apm/" .. source .. ".lon", "w")
-		local _, lon = loadLonSec(txt)
+		local _, lon = loadLonSec("    ", txt)
 		lon["expiresOn"] = os.time() + 60
 		stream:write(serialize(lon))
 		stream:close()
@@ -141,14 +141,16 @@ local function searchSource(source)
 		txt = stream:read("a")
 		stream:close()
 	end
-	local ok, out = loadLonSec(txt)
+	local ok, out = loadLonSec("    ", txt)
 	if out and out["expiresOn"] then
 		if os.time() >= out["expiresOn"] then
 			fs.remove(tmpPath .. "/apm/" .. source .. ".lon")
 			return searchSource(source)
 		end
+		return out
+	else
+		return nil
 	end
-	return out
 end
 
 local function transformPath(path)
@@ -309,6 +311,7 @@ if args[1] == "info" then
 		print("Searching package..")
 		local packageList = {}
 		for k, v in pairs(repoList) do
+			print("  Source: " .. v)
 			packageList[v] = searchSource(v)
 		end
 		local isFound = false

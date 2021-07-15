@@ -16,8 +16,12 @@ local function titleBar()
 		local win = self.parent
 		self.canvas.fillRect(1, 1, win.width, 1, 0xCCCCCC)
 		self.canvas.drawText(2, 1, win.title, 0xFFFFFF)
-		self.canvas.drawText(win.width - 5, 1, unicode.char(0x25CB) .. " " .. unicode.char(0x25C9), 0xFFFFFF)
-		self.canvas.drawText(win.width - 1, 1, unicode.char(0x25A3), 0xFF0000)
+
+		local minimizeChar = '-' -- unicode.char(0x25CB)
+		local maximizeChar = '+' -- unicode.char(0x25C9)
+		local closeChar    = 'x' -- unicode.char(0x25A3)
+		self.canvas.drawText(win.width - 5, 1, minimizeChar .. " " .. maximizeChar, 0xFFFFFF)
+		self.canvas.drawText(win.width - 1, 1, closeChar, 0xFF0000)
 	end
 	return comp
 end

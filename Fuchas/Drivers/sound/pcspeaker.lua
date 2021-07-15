@@ -1,5 +1,6 @@
 local buffer = {}
 local spec = {}
+local cp = ...
 
 function spec.getRank() -- used by "driver" library to choose best default driver
 	return 1
@@ -10,7 +11,7 @@ function spec.getName()
 end
 
 function spec.isCompatible(address)
-	return true
+	return cp.type(address) == "computer"
 end
 
 function spec.new(address)

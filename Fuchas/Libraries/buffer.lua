@@ -31,7 +31,8 @@ function buffer.pipedStreams(unbuffered)
 				str = str .. d
 			end
 			if str:len() == 0 then
-				while #data == 0 and not closed do
+				--while #data == 0 and not closed do
+				if #data == 0 and not closed then
 					coroutine.yield() -- the program shouldn't have to take in account cooperative multitasking's quirks
 					-- the yield is necessary for the process to be able to put in data
 				end
@@ -59,6 +60,37 @@ function buffer.pipedStreams(unbuffered)
 		outputStream = buffer.from(outputStream)
 	end
 	return inputStream, outputStream
+end
+
+-- Returns an unbuffered stream that is backed by a string (in variable stream.data)
+function buffer.fromString(str)
+	local stream = {}
+	stream.data = str
+	stream.off = 1
+
+	function stream:write(val)
+		self.data = self.data:sub(1, self.off - 1) .. val .. self.data:sub(self.off)
+		self.off = self.off + val:len()
+	end
+
+	function stream:read(len)
+		local part = self.data:sub(self.off, self.off + len - 1)
+		self.off = self.off + len
+		return part
+	end
+
+	function stream:seek(whence, offset)
+		if whence == "cur" then
+			self.off = self.off + offset
+			return self.off
+		else
+			return nil, "unsupported whence: " .. tostring(whence)
+		end
+	end
+
+	function stream:close() end
+
+	return stream
 end
 
 function buffer.from(handle)
@@ -119,9 +151,8 @@ function buffer.from(handle)
 	end
 
 	function stream:readBuffer(len)
-		local steps = math.ceil(len/self.size)
 		local str = ""
-		for i=1, steps do
+		while str:len() < len do
 			self:fillBuffer()
 			if self.buf == nil then
 				self.buf = ""
@@ -131,14 +162,14 @@ function buffer.from(handle)
 					return nil
 				end
 			end
-			local partLen = len%self.size
+			
+			local partLen = math.min(len - str:len(), self.buf:len())
 			if len == math.huge then
 				partLen = self.size-1
 			end
 			local part = self.buf:sub(1, partLen)
 			self.buf = self.buf:sub(partLen+1, self.buf:len()) -- cut the read part
 			str = str .. part
-			len = len - partLen
 			self.off = self.off + part:len()
 		end
 		return str
@@ -239,6 +270,8 @@ function buffer.from(handle)
 
 	function stream:seek(whence, offset)
 		self:flush()
+		if not whence then whence = "cur" end
+		if not offset then offset = 0     end
 		if whence == "cur" then
 			local ok, err = self.stream:seek("set", self.off + offset)
 			if offset < 0 and false then
@@ -249,7 +282,7 @@ function buffer.from(handle)
 				self.buf = "" -- TODO: optimize
 			end
 			self.off = self.off + offset
-			return ok, err
+			return self.off, err
 		else
 			self.buf = ""
 			return self.stream:seek(whence, offset)

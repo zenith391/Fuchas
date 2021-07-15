@@ -48,6 +48,7 @@ if res == nil then
 end
 
 security.requestPermission("*")
+require("tasks").getCurrentProcess().name = cmd
 local f, err = loadfile(res)
 if f then
 	f(args)

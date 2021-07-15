@@ -62,6 +62,21 @@ function lib.userForKey(key, pid)
 	return false -- the key isn't valid
 end
 
+function lib.createKeyForChild(pid)
+	local user = lib.getUser()
+
+	local userKey
+	while not userKey or userKeys[userKey] do
+		userKey = string.format("%x", math.floor(math.random() * 0xFFFFFFFF))
+	end
+	userKeys[userKey] = {
+		user = user,
+		pid = pid
+	}
+
+	return userKey
+end
+
 function lib.getUser()
 	local curProc = tasks.getCurrentProcess()
 	if curProc.userKey then

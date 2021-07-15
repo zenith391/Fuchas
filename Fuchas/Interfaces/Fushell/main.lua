@@ -4,12 +4,6 @@ local tasks = require("tasks")
 local driver = require("driver")
 local users = require("users")
 
--- Avoid killing (safely) system process with a custom quit handler
-tasks.getCurrentProcess().safeKillHandler = function()
-	io.stderr:write("cannot kill system process!\n")
-	return false
-end
-
 tasks.getCurrentProcess().childErrorHandler = function(proc, err)
 	local procType = "process"
 	if proc.isService then
@@ -148,6 +142,7 @@ local function execCmd(l)
 							io.stderr:write(debug.traceback(nil, 2) .. "\n")
 						end, programArgs)
 					end
+					io.stdout:close()
 				end
 				local proc = nil
 
@@ -175,19 +170,30 @@ local function execCmd(l)
 			goto continue
 		end
 	end
+	require("event").flush() -- flush all events that has been received by the process we just invoked
 	::continue::
 	return true
 end
 
-local drive = "A"
+local function replaceEnvVars(str)
+	return string.gsub(str, "%$(%g+)", function(name)
+		local len = unicode.len(name)
+		while os.getenv(unicode.sub(name, 1, len)) == nil do
+			len = len - 1
+			if len == 0 then
+				break
+			end
+		end
+		local sub = unicode.sub(name, 1, len)
+		return (os.getenv(sub) or "$" .. sub)
+			 .. replaceEnvVars(unicode.sub(name, len + 1))
+	end)
+end
+
 local run = true
 while run do
 	::continue::
-	local user = users.getUser()
-	if user ~= nil then
-		io.write(user.name .. "# ")
-	end
-	io.write(os.getenv("PWD") .. ">")
+	io.write(replaceEnvVars(os.getenv("PS1") or ""))
 	local ok, l = pcall(sh.read, {
 		["autocomplete"] = sh.fileAutocomplete
 	})
@@ -196,6 +202,8 @@ while run do
 		print("Ctrl+Alt+C: Restarting")
 		computer.shutdown(true)
 		return
+	elseif not ok then
+		print(l)
 	end
 	run = execCmd(l)
 end

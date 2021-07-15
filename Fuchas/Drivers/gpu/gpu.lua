@@ -39,7 +39,7 @@ function spec.new(address)
 
 	function drv.getPalettedColors()
 		if comp.getDepth() < 4 then
-			return 2
+			return 0
 		else
 			return 16
 		end
@@ -113,10 +113,17 @@ function spec.new(address)
 	drv.palette = setmetatable({}, {
 		__index = function(table, key)
 			if type(key) == "number" then
+				if comp.getDepth() == 1 then
+					if key == 1 then
+						return 0
+					elseif key == 2 then
+						return 0xFFFFFF
+					end
+				end
 				if key >= 1 and key <= drv.getPalettedColors() then
 					return comp.getPaletteColor(key-1)
 				elseif key > drv.getPalettedColors() and key <= drv.getColors() then
-					return fullPalette[key] -- this can only be the default palette.
+					return fullPalette[key-drv.getPalettedColors()] -- this can only be the default palette.
 				end
 			end
 		end,
@@ -321,8 +328,8 @@ function spec.new(address)
 
 	function drv.getStatistics()
 		local stats = {
-			freeMemory = (comp.freeMemory and comp.freeMemory()) or -1,
-			totalMemory = (comp.totalMemory and comp.totalMemory()) or -1
+			freeMemory = (comp.freeMemory and comp.freeMemory()) or 0,
+			totalMemory = (comp.totalMemory and comp.totalMemory()) or 0
 		}
 		stats.usedMemory = stats.totalMemory - stats.freeMemory
 		return stats

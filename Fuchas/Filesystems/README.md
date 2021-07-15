@@ -1,14 +1,18 @@
 # Filesystems
+
 Here are all unmanaged drive filesystems supported by Fuchas.
 Note: Manually using filesystems api is non-recommended as they use filesystem-relative paths instdead of absolute ones
 (like A:/test.txt, here it would be test.txt)
 
 ## Words
+
 - Medium: drive, partition, or any other with random-access reads and writes compatible with filesystem's drive API (a tape, or tape partition)
 
 ## Driver Structure
+
 Filesystems must return in the following order: their name, is the drive formatted with this filesystem, filesystem library
 The driver must contains the following methods:
+
 - format() - Formats the drive
 - asFilesystem() - return this filesystem as a "filesystem" component (like if the drive was in Managed mode)
 - isDirectory(path)
@@ -21,19 +25,23 @@ The driver must contains the following methods:
 - createdAt(path) - return the time the object has been created in Unix timestamp, returns -1 if feature not available.
 - isFormatted(addr) - returns `true` if the drive at addr is formatted with the current filesystem (in most cases is equivalent to check the signature)
 - open(path, mode) - return a *file object* with the mode or nil + error message if error, if mode is "w" and file doesn't exists, then create it
-**WARNING**: if a file is already opened and not yet closed, open(mode) will return nil and "file already opened",
-this is made to avoid having files written while being read, which could cause several bugs
+  **WARNING**: if a file is already opened and not yet closed, open(mode) will return nil and "file already opened",
+  this is made to avoid having files written while being read, which could cause several bugs
 
 ### Modes
+
 It can either be "r" for read-only or "w" for write-only (from start, not append)
 
 ### File Objects
+
 They implement the following methods:
+
 - close(self)
 - read(self, length) (Only if in "r" mode)
 - write(self, str) (Only if in "w" mode) - Appends str to the file
 
 Examples:
+
 ```lua
 local fs = ...
 

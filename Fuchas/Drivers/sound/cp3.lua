@@ -4,12 +4,16 @@
 local cp = ...
 local spec = {}
 
+function spec.getRank()
+	return 4
+end
+
 function spec.getName()
 	return "Yanaki Sound Systems Drivers for MinoSound 244-X"
 end
 
 function spec.isCompatible(address)
-	return cp.proxy(address).type == "sound_card"
+	return cp.proxy(address).type == "sound"
 end
 
 function spec.new(address)
@@ -37,17 +41,25 @@ function spec.new(address)
 	end
 
 	function drv.setADSR(ch, attack, decay, sustain, release)
-		sound.setADSR(ch, attack, decay, sustain, release)
+		if not attack then
+			sound.resetEnvelope(ch)
+		else
+			sound.setADSR(ch, attack, decay, sustain, release)
+		end
 		return true
 	end
 
+	-- TODO: LFSR
+
 	function drv.setWave(ch, type)
-		sound.setWave(ch, type)
+		sound.setWave(ch, sound.modes[type])
 		return true
 	end
 
 	function drv.flush()
-		sound.process()
+		if not sound.process() then
+			return false
+		end
 	    if syn then
 	        os.sleep(t)
 	    end
@@ -80,7 +92,7 @@ function spec.new(address)
 	end
 
 	function drv.getMaxChannels()
-		return 8
+		return sound.channel_count
 	end
 
 	function drv.setVolume(channel, volume)
@@ -100,12 +112,19 @@ function spec.new(address)
 	end
 
 	function drv.getCapabilities()
+		local waveTypes = {}
+		for k, v in pairs(sound.modes) do
+			if type(k) == "string" then
+				table.insert(waveTypes, k)
+			end
+		end
+
 	    return {
 	        adsr = true,
 	        asynchronous = true,
 	        volume = true,
-	        waveTypes = {"sine", "square", "triangle", "sawtooth"},
-	        channels = 8
+	        waveTypes = waveTypes,
+	        channels = sound.channel_count
 	    }
 	end
 

@@ -1,6 +1,7 @@
 _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.7.0",
+	BUILD_DATE = "Tue Apr 20 19:00:00 UTC 2021",
 	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
@@ -9,6 +10,10 @@ _G.OSDATA = {
     	AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
 	}
 }
+
+if not computer.supportsOEFI then
+	computer.supportsOEFI = function() return false end
+end
 
 if os_arguments then -- arguments passed by a boot loader
 	-- Max security arguments: --no-debug --no-lua52-compat

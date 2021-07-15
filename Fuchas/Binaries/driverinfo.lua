@@ -14,11 +14,8 @@ if driver == nil then
 	return
 end
 
-print("Driver Name: " .. driver.spec.getName())
-print("Component Address: " .. driver.address)
-if driver.getCapabilities then
-	print("Capabilitites:")
-	for k, v in pairs(driver.getCapabilities()) do
+local function prettyPrint(t)
+	for k, v in pairs(t) do
 		local b = v
 		if type(v) == "boolean" then
 			b = (v and "yes") or "no"
@@ -28,4 +25,16 @@ if driver.getCapabilities then
 		end
 		print("\t" .. k .. ": " .. tostring(b))
 	end
+end
+
+print("Driver Name: " .. driver.spec.getName())
+print("Component Address: " .. driver.address)
+if driver.getCapabilities then
+	print("Capabilitites:")
+	prettyPrint(driver.getCapabilities())
+end
+
+if driver.getStatistics then
+	print("Statistics:")
+	prettyPrint(driver.getStatistics())
 end

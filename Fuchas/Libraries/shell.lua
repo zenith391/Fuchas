@@ -200,8 +200,8 @@ function lib.createStdOut(gpu)
 		end
 		if val:find("\n") then
 			local s, e = val:find("\n")
-			--gpu.drawText(sh.getX(), sh.getY(), unicode.sub(val, 1, s-1))
-			self:write(unicode.sub(val, 1, s-1))
+			 -- no risk at using string.sub as we only cut \n, and since string.find isn't utf-8 aware, it avoids problems
+			self:write(string.sub(val, 1, s-1))
 			sh.setX(1)
 			sh.setY(sh.getY() + 1)
 			if sh.getY() >= h then
@@ -209,7 +209,7 @@ function lib.createStdOut(gpu)
 				gpu.fill(1, h, w, 1)
 				sh.setY(sh.getY() - 1)
 			end
-			return self:write(unicode.sub(val, e+1))
+			return self:write(string.sub(val, e+1)) -- same as above
 		else
 			if sh.getX()+unicode.len(val) > w+1 then
 				self:write(unicode.sub(val, 1, w-sh.getX()+1))
@@ -284,7 +284,7 @@ function lib.resolve(path, alwaysResolve)
 		if path:sub(2, 3) == ":/" then
 			return path
 		else
-			return pwd .. "/" .. path
+			return fs.concat(pwd, path)
 		end
 	end
 	return nil
@@ -299,7 +299,7 @@ function lib.resolveToPwd(path)
 	if path:sub(2, 3) == ":/" then
 		return path
 	else
-		return pwd .. "/" .. path
+		return fs.concat(pwd, path)
 	end
 end
 
@@ -487,9 +487,12 @@ function lib.read(options)
 								-- TODO
 							else
 								local plus = options.autocomplete(inp, sp)
+								local complete = true
 								if options.autocompleteHandler then
-									options.autocompleteHandler(plus, inp:len(), inp)
-								else
+									complete = options.autocompleteHandler(plus, inp:len(), inp)
+								end
+
+								if complete then
 									if plus[1] then
 										hideCursor()
 										inp = inp .. plus[1]
