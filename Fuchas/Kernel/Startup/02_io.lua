@@ -126,7 +126,9 @@ end
 local termStdOut = require("shell").createStdOut(require("driver").gpu)
 local termStdErr = io.createStdErr(termStdOut)
 local termStdIn = io.createStdIn()
+io.stdout = termStdOut
 
+termStdOut:write("\x1B[39;49m") -- reset to default color
 require("shell").setCursor(1, gy())
 _G.gy = nil
 
@@ -236,6 +238,9 @@ function print(...)
 	io.write(str)
 end
 
+write = nil
+
+io.stdout = nil
 setmetatable(io, {
 	__index = function(self, k)
 		local proc = require("tasks").getCurrentProcess()
@@ -261,5 +266,3 @@ setmetatable(io, {
 		error("cannot set io")
 	end
 })
-
-write = nil

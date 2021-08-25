@@ -1,14 +1,30 @@
+--- Library to handle the system clipboard
+-- @module clipboard
+-- @alias lib
+
 local lib = {}
 local clipboard = {}
 local cutted = false
 local inserted = false
 local event = require("event")
 
+--- This event is emitted to all processes when the external clipboard is
+-- pasted using middle mouse button or when Ctrl+V is pressed and the OS clipboard is not empty.
+-- @event paste_trigger
+-- @number uptime the uptime corresponding to when the event was emitted
+
+--- Cut the given object.
+-- This means that when the object is pasted, it will also be removed from the clipboard.
+-- @param obj Object to be put in clipboard
+-- @string t MIME type of the object
 function lib.cut(obj, t)
 	cutted = true
 	lib.copy(obj, t)
 end
 
+--- Copy the given object.
+-- @param obj Object to be put in clipboard
+-- @string t MIME type of the object
 function lib.copy(obj, t)
 	if not t then
 		t = "text/string"
@@ -27,6 +43,9 @@ function lib.copy(obj, t)
 	}
 end
 
+--- Returns whether if the user wants to paste the clipboard.
+-- This function is the polling equivalent of the `paste_trigger` event.
+-- @treturn bool Whether the clipboard should be paster
 function lib.pasteTriggered()
 	if inserted then
 		return true
@@ -34,7 +53,9 @@ function lib.pasteTriggered()
 	return clipboard ~= nil and require("keyboard").isCtrlPressed() and require("keyboard").isPressed(67)
 end
 
--- Lookup the current clipboard object, if it was cutted, then also removes it.
+--- Get the current content of the clipboard.
+-- If the clipboard object was cutted, then this function also removes it from the clipboard.
+-- @return clipboard content
 function lib.paste()
 	local clip = clipboard
 	if cutted then
@@ -45,7 +66,8 @@ function lib.paste()
 	return clip
 end
 
--- Lookup the current clipboard object
+--- Lookup the current clipboard object
+-- @return clipboard content
 function lib.retrieve()
 	return clipboard
 end

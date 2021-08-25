@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><strong>security</strong></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>security</code></h1>
+<p>Library for managing process permissions</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#revoke">revoke (pid)</a></td>
+	<td class="summary">Revoke all permissions from the given process</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#requestPermission">requestPermission (perm)</a></td>
+	<td class="summary">Request a permission to the parent process</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#hasPermission">hasPermission (perm[, pid=current])</a></td>
+	<td class="summary">Returns whether the given or current process has the given permission.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#requirePermission">requirePermission (perm)</a></td>
+	<td class="summary">Function to throw an error if the current process doesn't have the given permission.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getPermissions">getPermissions ([pid=current])</a></td>
+	<td class="summary">Returns the list of all the permissions the given or current process has.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "revoke"></a>
+    <strong>revoke (pid)</strong>
+    </dt>
+    <dd>
+    Revoke all permissions from the given process
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pid</span>
+            <span class="types"><span class="type">int</span></span>
+         The PID of the process from which permissions will be removed
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "requestPermission"></a>
+    <strong>requestPermission (perm)</strong>
+    </dt>
+    <dd>
+    Request a permission to the parent process
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">perm</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         requested permission
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">bool</span></span>
+        true if the was the permission given</li>
+        <li>
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        details on why the permission was not given</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "hasPermission"></a>
+    <strong>hasPermission (perm[, pid=current])</strong>
+    </dt>
+    <dd>
+    Returns whether the given or current process has the given permission.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">perm</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         permission to be checked
+        </li>
+        <li><span class="parameter">pid</span>
+            <span class="types"><span class="type">int</span></span>
+         The PID of the process to check if it has or not the given permission
+         (<em>default</em> current)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">bool</span></span>
+        Whether the process has the given permission
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "requirePermission"></a>
+    <strong>requirePermission (perm)</strong>
+    </dt>
+    <dd>
+    Function to throw an error if the current process doesn't have the given permission.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">perm</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         permission to be checked
+        </li>
+    </ul>
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">security.requestPermission(<span class="string">"permission.cool"</span>)
+security.requirePermission(<span class="string">"permission.cool"</span>)
+<span class="comment">-- guarenteed to have the 'permission.cool' permission</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "getPermissions"></a>
+    <strong>getPermissions ([pid=current])</strong>
+    </dt>
+    <dd>
+    Returns the list of all the permissions the given or current process has.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pid</span>
+            <span class="types"><span class="type">int</span></span>
+         The PID of the process
+         (<em>default</em> current)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,3 +1,6 @@
+--- Shell library
+-- @module shell
+-- @alias lib
 local lib = {}
 local aliases = {
 	["cp"] = "copy",
@@ -17,53 +20,101 @@ local aliases = {
 local fs = require("filesystem")
 local driver = require("driver")
 local clipboard = require("clipboard")
-local stdout = io.stdout
 local globalHistory = {}
 
-local cursor = {
-	x = 1,
-	y = 1
-}
 
+local ESC = string.char(0x1B)
+local CSI = ESC .. "%["
+
+--- Return the standard output
+-- @treturn stream standard output
+-- @see io.stdout
 function lib.stdout()
 	return io.stdout
 end
 
+--- Return the cursor X position
+-- @treturn int cursor X position
 function lib.getX()
-	return cursor.x
+	return io.stdout.x or 1
 end
 
+--- Return the cursor Y position
+-- @treturn int cursor Y position
 function lib.getY()
-	return cursor.y
+	return io.stdout.y or 1
 end
 
-function lib.setY(y)
-	cursor.y = y
-end
-
+--- Set the cursor X position
+-- @tparam int x cnew ursor X position
 function lib.setX(x)
-	cursor.x = x
+	if io.stdout.x then io.stdout.x = x end
 end
 
+--- Set the cursor Y position
+-- @tparam int y new cursor Y position
+function lib.setY(y)
+	if io.stdout.y then io.stdout.y = y end
+end
+
+--- Return the cursor position
+-- @treturn int x cursor X position
+-- @treturn int y cursor Y position
 function lib.getCursor()
-	return cursor.x, cursor.y
+	return io.stdout.x or 1, io.stdout.y or 1
 end
 
-function lib.setCursor(col, row)
-	cursor.x = col
-	cursor.y = row
+--- Returns true if the standard output is a TTY and supports VT100 escape sequences
+-- @treturn bool whether stdout is a tty
+function lib.isTTY()
+	if io.stdout.tty then
+		return io.stdout.tty
+	else
+		return false
+	end
 end
 
+--- Returns the width of the underlying terminal
+-- @treturn int terminal width
+function lib.getWidth()
+	return io.stdout.w
+end
+
+--- Returns the height of the underlying terminal
+-- @treturn int terminal height
+function lib.getHeight()
+	return io.stdout.h
+end
+
+--- Set the cursor position
+-- @tparam int x new cursor X position
+-- @tparam int y new cursor Y position
+function lib.setCursor(x, y)
+	if io.stdout.x and io.stdout.y then
+		io.stdout.x = x
+		io.stdout.y = y
+	end
+end
+
+--- Clear the terminal and set cursor position to 1, 1
+-- @raise not a terminal
 function lib.clear()
-	local w, h = driver.gpu.getResolution()
-	driver.gpu.fill(1, 1, w, h, 0)
-	lib.setCursor(1, 1)
+	if lib.isTTY() then
+		io.stdout:write(ESC .. "c")
+	elseif lib.getHeight() then
+		io.stdout:write(('\n'):rep(lib.getHeight()))
+	else
+		error("not a terminal")
+	end
 end
 
+--- Clear the current line
 function lib.clearLine()
-	driver.gpu.fill(1, cursor.y, 160, 1, 0)
+	driver.gpu.fill(1, lib.getY(), 160, 1, 0)
 end
 
+--- Return the keyboard address the terminal is listening from
+-- @treturn[opt] string keyboard address
 function lib.getKeyboard()
 	local screen = lib.getScreen()
 	if screen then
@@ -74,6 +125,8 @@ function lib.getKeyboard()
 	end
 end
 
+--- Return the screen address the terminal is printing to
+-- @treturn[opt] string screen address
 function lib.getScreen()
 	local gpu = io.stdout.gpu
 	if not gpu then
@@ -83,11 +136,16 @@ function lib.getScreen()
 	end
 end
 
--- gpu: GPU DRIVER
+--- Internal function used to create a standard output from a GPU object
+-- @tparam driver gpu GPU driver
+-- @treturn stream standard output
 function lib.createStdOut(gpu)
 	local stream = {}
 	local sh = require("shell")
 	stream.gpu = gpu
+	stream.x = 1
+	stream.y = 1
+	stream.tty = true
 	stream.close = function(self)
 		return false -- unclosable stream
 	end
@@ -111,11 +169,13 @@ function lib.createStdOut(gpu)
 		0x00FFFF,
 		0xFFFFFF
 	}
-	local ESC = string.char(0x1B)
-	local CSI = ESC .. "%["
 	local w, h = gpu.getResolution()
+	stream.w = w
+	stream.h = h
 	require("event").listen("screen_resized", function(_, nw, nh)
 		w, h = gpu.getResolution() -- getResolution() returns viewport on purpose and that's what we want
+		stream.w = w
+		stream.h = h
 	end)
 	stream.write = function(self, val)
 		if val:find("\t") then
@@ -143,7 +203,8 @@ function lib.createStdOut(gpu)
 		ptr, ptrE = val:find(ESC .. "c") -- clear
 		if ptr then
 			self:write(unicode.sub(val, 1, ptr-1))
-			lib.clear()
+			self.gpu.fill(1, 1, w, h)
+			lib.setCursor(1, 1)
 			return self:write(unicode.sub(val, ptrE+1))
 		end
 		ptr, ptrE = val:find(CSI .. "%?25h")
@@ -225,13 +286,16 @@ function lib.createStdOut(gpu)
 		end
 		return true
 	end
-	stream:write("\x1B[39;49m") -- reset to default color
 	stream.read = function(self, len)
 		return nil -- cannot read stdOUT
 	end
 	return stream
 end
 
+--- Function used for parsing command line arguments
+-- @tab tab arguments list
+-- @return arguments
+-- @return options
 function lib.parse(tab)
 	local ntab = {}
 	local options = {}
@@ -258,6 +322,8 @@ function lib.parse(tab)
 	return ntab, options
 end
 
+--- Resolve a local or absolute file using PATH, PWD and PATHEXT
+-- @string path Path to a file to resolve
 function lib.resolve(path, alwaysResolve)
 	checkArg(1, path, "string")
 	local paths = string.split(os.getenv("PATH"), ";")
@@ -290,6 +356,7 @@ function lib.resolve(path, alwaysResolve)
 	return nil
 end
 
+--- Resolve to PWD
 function lib.resolveToPwd(path)
 	if fs.exists(path) then
 		return path
@@ -303,10 +370,15 @@ function lib.resolveToPwd(path)
 	end
 end
 
+--- Write an object to terminal
+-- @param obj Object to write
+-- @see io.write
 function lib.write(obj)
 	io.write(tostring(obj))
 end
 
+--- If given, return the aliases corresponding to the given command, otherwise return all aliases.
+-- @string[opt] cmd
 function lib.getAliases(cmd)
 	if cmd then
 		local cmdAliases = {}
@@ -321,14 +393,17 @@ function lib.getAliases(cmd)
 	end
 end
 
+--- Get command corresponding to an alias
 function lib.getCommand(alias)
 	return aliases[alias]
 end
 
+--- Add an alias to the given command
 function lib.addAlias(alias, cmd)
 	aliases[alias] = cmd
 end
 
+--- Internal function used for implementing shells.
 function lib.parseCL(cl)
 	local strs = string.split(cl, "|")
 	local commands = {}
@@ -376,13 +451,14 @@ local function readEventFilter(name)
 end
 
 local function displayCursor()
-	driver.gpu.drawText(cursor.x, cursor.y, "_")
+	driver.gpu.drawText(lib.getX(), lib.getY(), "_")
 end
 
 local function hideCursor()
-	driver.gpu.fill(cursor.x, cursor.y, 1, 1, 0x000000)
+	driver.gpu.fill(lib.getX(), lib.getY(), 1, 1, 0x000000)
 end
 
+--- Autocompleter using filesystem
 function lib.fileAutocomplete(s, sp)
 	local path = os.getenv("PWD")
 	local choices = {}
@@ -409,6 +485,9 @@ function lib.appendRead(s)
 	inp = inp .. s
 end
 
+--- Compute the available autocomplete options from current input and autocompleter.
+-- @string input
+-- @func autocompleter
 function lib.autocompleteFor(input, autocompleter)
 	if input:len() == 0 then
 		return {}
@@ -418,6 +497,13 @@ function lib.autocompleteFor(input, autocompleter)
 	return plus
 end
 
+--- Read from standard input
+-- @tab[opt] options options
+-- @tab[opt=global history] options.history The shell history to use
+-- @param[opt] options.ontype
+-- @func[opt] options.autocomplete
+-- @func[opt] options.autocompleteHandler
+-- @param[opt] options.pwchar
 function lib.read(options)
 	if not options then
 		options = {}
@@ -438,9 +524,9 @@ function lib.read(options)
 				if historyIndex > 1 then
 					historyIndex = historyIndex - 1
 					hideCursor()
-					cursor.x = cursor.x - unicode.len(inp)
+					lib.setX(lib.getX() - unicode.len(inp))
 					io.write((" "):rep(unicode.len(inp)))
-					cursor.x = cursor.x - unicode.len(inp)
+					lib.setX(lib.getX() - unicode.len(inp))
 					io.write(history[historyIndex])
 					inp = history[historyIndex]
 					displayCursor()
@@ -449,7 +535,7 @@ function lib.read(options)
 				if historyIndex < #history then
 					historyIndex = historyIndex + 1
 					hideCursor()
-					cursor.x = cursor.x - unicode.len(inp)
+					lib.setX(lib.getX() - unicode.len(inp))
 					io.write(history[historyIndex])
 					inp = history[historyIndex]
 					displayCursor()
@@ -461,9 +547,9 @@ function lib.read(options)
 						if unicode.len(inp) > 0 then
 							hideCursor()
 							inp = unicode.sub(inp, 1, unicode.len(inp) - 1)
-							cursor.x = cursor.x - 1
+							lib.setX(lib.getX() - 1)
 							io.write(" ")
-							cursor.x = cursor.x - 1
+							lib.setX(lib.getX() - 1)
 							displayCursor()
 							if options.onType then
 								options.onType(inp, unicode.len(inp))

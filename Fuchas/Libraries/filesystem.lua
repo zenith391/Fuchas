@@ -1,3 +1,7 @@
+--- Filesystem library
+-- @module filesystem
+-- @alias filesystem
+
 local filesystem = {}
 local drives = {}
 local noBit32 = OSDATA.CONFIG["NO_52_COMPAT"] -- cannot be changed by program as filesystem is initialized before any outside program.

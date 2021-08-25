@@ -1,3 +1,7 @@
+--- Window library
+-- @module window
+-- @alias lib
+
 local lib = {}
 local ui = require("OCX/OCUI")
 local logger = require("log")("Window Manager")
@@ -5,6 +9,8 @@ local draw = require("OCX/OCDraw")
 local gpu = require("driver").gpu
 local tasks = require("tasks")
 local desktop = {}
+-- The buffer containing the desktop wallpaper
+local wallpaperBuffer
 local config = {
 	COPY_WINDOW_OPTI = false,
 	DIRTY_WINDOW_OPTI = false
@@ -12,20 +18,22 @@ local config = {
 
 local function titleBar()
 	local comp = ui.component()
-	comp.render = function(self)
+	comp._render = function(self)
 		local win = self.parent
+		local middle = math.floor(win.width / 2 - win.title:len() / 2)
 		self.canvas.fillRect(1, 1, win.width, 1, 0xCCCCCC)
-		self.canvas.drawText(2, 1, win.title, 0xFFFFFF)
+		self.canvas.drawText(middle, 1, win.title, 0xFFFFFF)
 
 		local minimizeChar = '-' -- unicode.char(0x25CB)
-		local maximizeChar = '+' -- unicode.char(0x25C9)
-		local closeChar    = 'x' -- unicode.char(0x25A3)
+		local maximizeChar = unicode.char(0x25A1)
+		local closeChar    = unicode.char(0xD7)
 		self.canvas.drawText(win.width - 5, 1, minimizeChar .. " " .. maximizeChar, 0xFFFFFF)
-		self.canvas.drawText(win.width - 1, 1, closeChar, 0xFF0000)
+		self.canvas.drawText(win.width - 1, 1, closeChar, 0xFFFFFF)
 	end
 	return comp
 end
 
+--- Create a new window
 function lib.newWindow(width, height, title)
 	local window = {
 		title = title or "",
@@ -40,6 +48,8 @@ function lib.newWindow(width, height, title)
 		titleBar = titleBar(),
 		container = ui.container()
 	}
+	window.container.width = window.width
+	window.container.height = window.height
 	window.titleBar.window = window
 	window.container.window = window
 
@@ -68,8 +78,7 @@ function lib.newWindow(width, height, title)
 		self.visible = false
 		self.titleBar:dispose(true)
 		self.container:dispose(true)
-		gpu.setColor(0xAAAAAA)
-		gpu.fill(self.x, self.y, self.width, self.height)
+		lib.drawBackground(self.x, self.y, self.width, self.height)
 
 		local idx = 0
 		for k, v in pairs(desktop) do
@@ -85,7 +94,9 @@ function lib.newWindow(width, height, title)
 	end
 
 	function window:update()
-		self.container:_render()
+		if self.visible then
+			self.container:render()
+		end
 	end
 
 	function window:dispose()
@@ -109,10 +120,12 @@ function lib.newWindow(width, height, title)
 	return window
 end
 
+--- Returns the desktop
 function lib.desktop()
 	return desktop
 end
 
+--- Clear the desktop
 function lib.clearDesktop()
 	for k, v in pairs(desktop) do
 		v.visible = false
@@ -124,12 +137,21 @@ function lib.clearDesktop()
 	desktop = {}
 end
 
+--- Draw a section of the desktop background.
+-- @int x The X position of the background section
+-- @int y The Y position of the background section
+-- @int width The width of the background section
+-- @int height The height of the background section
 function lib.drawBackground(x, y, width, height)
-	-- TODO: use the background OCDraw context (allows for huge performance boost with GPU buffers)
-	gpu.setColor(0xAAAAAA)
-	gpu.fill(x, y, width, height)
+	if wallpaperBuffer then
+		gpu.blit(wallpaperBuffer, gpu.screenBuffer(), x, y, width, height, x, y)
+	else
+		gpu.setColor(0xAAAAAA)
+		gpu.fill(x, y, width, height)
+	end
 end
 
+--- Move the given window
 function lib.moveWindow(win, targetX, targetY)
 	local rw, rh = gpu.getResolution()
 	
@@ -163,6 +185,7 @@ function lib.moveWindow(win, targetX, targetY)
 	win.container.y = (win.undecorated and win.y) or (win.y + 1)
 end
 
+--- Draw the given window
 function lib.drawWindow(win)
 	if not win.undecorated then
 		win.titleBar.x = win.x
@@ -194,6 +217,11 @@ function lib.drawWindow(win)
 	end
 end
 
+function lib.setWallpaper(buffer)
+	wallpaperBuffer = buffer
+end
+
+--- Draw all the windows in the desktop
 function lib.drawDesktop()
 	for _, win in pairs(desktop) do
 		if win.visible and win.dirty then

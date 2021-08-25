@@ -1,0 +1,391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><strong>OCX.OCDraw</strong></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>OCX.OCDraw</code></h1>
+<p>Library for managing unbuffered draw contexts</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#requestMemory">requestMemory ()</a></td>
+	<td class="summary">Will remove double buffer of any context</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#redrawContext">redrawContext (ctxn)</a></td>
+	<td class="summary">Redraw the given draw context.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#drawContext">drawContext (ctxn)</a></td>
+	<td class="summary">Draw the given draw context.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpuWrapper">gpuWrapper (ctxn)</a></td>
+	<td class="summary">Wrap the given draw context into a GPU driver.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#newContext">newContext (x, y, width, height[, braille=0[, parent]])</a></td>
+	<td class="summary">Create a draw context</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#isContextOpened">isContextOpened (ctxn)</a></td>
+	<td class="summary">Returns whether the draw context is still opened or not</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#closeContext">closeContext (ctx)</a></td>
+	<td class="summary">Close the given draw context</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getContextBounds">getContextBounds (ctx)</a></td>
+	<td class="summary">Returns the bounds of the given draw context</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#moveContext">moveContext (ctx, x, y)</a></td>
+	<td class="summary">Move the context to the given position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#canvas">canvas (ctxn)</a></td>
+	<td class="summary">Returns a canvas object made associated to the given draw context</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "requestMemory"></a>
+    <strong>requestMemory ()</strong>
+    </dt>
+    <dd>
+    Will remove double buffer of any context
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "redrawContext"></a>
+    <strong>redrawContext (ctxn)</strong>
+    </dt>
+    <dd>
+    Redraw the given draw context.  Using this instead of <a href="../modules/OCX.OCDraw.html#drawContext">drawContext</a> allows for many optimisation.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctxn</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/OCX.OCDraw.html#drawContext">drawContext</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "drawContext"></a>
+    <strong>drawContext (ctxn)</strong>
+    </dt>
+    <dd>
+    Draw the given draw context.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctxn</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpuWrapper"></a>
+    <strong>gpuWrapper (ctxn)</strong>
+    </dt>
+    <dd>
+    Wrap the given draw context into a GPU driver.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctxn</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "newContext"></a>
+    <strong>newContext (x, y, width, height[, braille=0[, parent]])</strong>
+    </dt>
+    <dd>
+    Create a draw context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">int</span></span>
+         The X position of the new draw context
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">int</span></span>
+         The Y position of the new draw context
+        </li>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+         The width of the new draw context
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         The height of the new draw context
+        </li>
+        <li><span class="parameter">braille</span>
+            <span class="types"><span class="type">int</span></span>
+         The braille pattern of the new draw context (deprecated)
+         (<em>default</em> 0)
+        </li>
+        <li><span class="parameter">parent</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the parent of the new draw context
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">DrawContext</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "isContextOpened"></a>
+    <strong>isContextOpened (ctxn)</strong>
+    </dt>
+    <dd>
+    Returns whether the draw context is still opened or not
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctxn</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "closeContext"></a>
+    <strong>closeContext (ctx)</strong>
+    </dt>
+    <dd>
+    Close the given draw context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getContextBounds"></a>
+    <strong>getContextBounds (ctx)</strong>
+    </dt>
+    <dd>
+    Returns the bounds of the given draw context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">int</span></span>
+        x</li>
+        <li>
+           <span class="types"><span class="type">int</span></span>
+        y</li>
+        <li>
+           <span class="types"><span class="type">int</span></span>
+        width</li>
+        <li>
+           <span class="types"><span class="type">int</span></span>
+        height</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "moveContext"></a>
+    <strong>moveContext (ctx, x, y)</strong>
+    </dt>
+    <dd>
+    Move the context to the given position
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">int</span></span>
+         The new X position
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">int</span></span>
+         The new Y position
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "canvas"></a>
+    <strong>canvas (ctxn)</strong>
+    </dt>
+    <dd>
+    Returns a canvas object made associated to the given draw context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctxn</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

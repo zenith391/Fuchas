@@ -1,8 +1,12 @@
 local shell = require("shell")
-local driver = require("driver")
 local dy = 1
 local buf = ""
-local rw, rh = driver.gpu.getResolution()
+
+if not shell.getHeight() then
+	io.stderr:write("output is not a terminal\n")
+	return
+end
+local rh = shell.getHeight()
 
 while not io.stdin.closed do
 	local b = io.stdin:read("*L")

@@ -1,15 +1,18 @@
--- IPC library using the useful per-process event
--- Implements OETF #18 (Open Inter-Process Communication), doesn't respect it low-level receive with computer.pullSignal
+--- IPC library implemented using the per-process event system.
+-- It implements OETF #18 (Open Inter-Process Communication), the main difference being that
+-- `computer.pushProcessSignal` should be used instead of `computer.pushSignal`.
+-- @module ipc
+-- @alias lib
 
 local lib = {}
 local tasks = require("tasks")
 local event = require("event")
 
--- Sockets are used for both listening and writing and are not necessary to be opened on both sides.
+--- Sockets are used for both listening and writing and are not necessary to be opened on both sides.
 -- This is a best-effort asynchronous in write and synchronous in read message passing.
 -- Due to the way they work, they cannot be closed unlike streams.
--- target: process PID
--- id: the identifier (string) of the socket
+-- @int target process PID
+-- @string id the unique identifier of the socket that should be shared between both processes
 function lib.socket(target, id)
 	if not tasks.getProcessMetrics(target) then
 		error("invalid process: " .. target)

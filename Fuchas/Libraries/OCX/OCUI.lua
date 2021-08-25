@@ -79,22 +79,33 @@ function lib.component()
 
 	-- Call this method if you want to draw a component to screen but don't need it to be up-to-date.
 	function comp:redraw()
+		if self.context ~= nil then
+			local x,y,w,h = draw.getContextBounds(self.context)
+			if x ~= self.x or y ~= self.y then
+				draw.moveContext(self.context, self.x, self.y)
+			end
+			if w ~= self.width or h ~= self.height then
+				draw.closeContext(self.context)
+				self.context = nil
+			end
+		end
 		if self.context == nil or self.dirty == true then -- context has been (re-)created, previous data is lost
-			self:_render()
+			self.dirty = false
+			self:render()
 		else
 			draw.redrawContext(self.context) -- can benefit of optimization if GPU buffers are present
 		end
 	end
 
-	function comp:_render()
+	function comp:render()
 		self:initRender()
-		self:render()
+		self:_render()
 		draw.drawContext(self.context)
 	end
 
 	-- This function should not be called directly
-	function comp:render()
-		error("component should implement the render() function")
+	function comp:_render()
+		error("component should implement the _render() function")
 	end
 
 	function comp:dispose(recursive)
@@ -124,14 +135,14 @@ function lib.container()
 		return table.insert(self.childrens, component)
 	end
 	
-	comp._render = function(self)
+	comp.render = function(self)
 		self:initRender()
 		self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 		draw.drawContext(self.context) -- finally draw
 		for _, c in pairs(self.childrens) do
 			c.x = c.x + self.x - 1
 			c.y = c.y + self.y - 1
-			c:_render()
+			c:redraw()
 			c.x = c.x - self.x + 1
 			c.y = c.y - self.y + 1
 		end
@@ -156,8 +167,15 @@ end
 function lib.label(text)
 	local comp = lib.component()
 	comp.text = text or "Label"
-	comp.render = function(self)
+	comp.width = comp.text:len()
+	comp._render = function(self)
 		self.canvas.drawText(1, 1, self.text, self.foreground, self.background) -- draw text
+	end
+
+	comp.setText = function(self, text)
+		self.text = text
+		self.width = text:len()
+		self.dirty = true
 	end
 	return comp
 end
@@ -166,7 +184,7 @@ function lib.progressBar(maxProgress)
 	local pb = lib.component()
 	pb.progress = 0
 	pb.foreground = 0x00FF00
-	pb.render = function(self)
+	pb._render = function(self)
 
 	end
 	return pb
@@ -189,10 +207,10 @@ function lib.tabBar()
 	function comp:switchTo(index)
 		self.currentTab = index
 		self.dirty = true
-		self:_render() -- TODO: request redraw instead
+		self:redraw()
 	end
 
-	function comp:_render()
+	function comp:render()
 		-- Draw tab bar
 		local oldHeight = self.height
 		--self.height = 1
@@ -223,7 +241,7 @@ function lib.tabBar()
 			tab.y = self.y + 1
 			tab.width = self.width
 			tab.height = self.height - 1
-			tab:_render()
+			tab:render()
 			tab.x = 1
 			tab.y = 1
 		end
@@ -234,8 +252,8 @@ function lib.tabBar()
 			local tx = 1
 			for k, v in ipairs(self.tabNames) do
 				if x >= tx and x < tx + v:len() then
-					self.currentTab = k
-					self:_render() -- TODO: request redraw instead
+					self:switchTo(k)
+					self:redraw()
 					break
 				end
 				tx = tx + v:len() + 1
@@ -249,7 +267,7 @@ end
 function lib.menuBar()
 	local comp = lib.container()
 	local super = comp.render
-	comp.render = function(self)
+	comp._render = function(self)
 		if self.parent then
 			self.width = self.parent.width
 		end

@@ -28,15 +28,19 @@ for k, v in list do
 		io.write("\n")
 		x = 0
 	end
-	if isdir then
-		io.write(CSI .. "38;2;68;68;255m")
-	else
-		if k:sub(-4) == ".lua" then
-			io.write(CSI .. "38;2;51;255;51m")
+
+	if shell.isTTY() then
+		if isdir then
+			io.write(CSI .. "38;2;68;68;255m")
 		else
-			io.write(CSI .. "39m")
+			if k:sub(-4) == ".lua" then
+				io.write(CSI .. "38;2;51;255;51m")
+			else
+				io.write(CSI .. "39m")
+			end
 		end
 	end
+
 	io.write(k .. " ")
 	x = x + k:len() + 1
 	if not ops.i then x = math.huge end

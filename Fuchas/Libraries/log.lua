@@ -1,3 +1,7 @@
+--- System logging library
+-- @module log
+-- @alias lib
+
 local filesystem = require("filesystem")
 
 local lib = {}

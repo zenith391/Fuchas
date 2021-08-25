@@ -1,11 +1,11 @@
-local file = io.open("A:/Users/Shared/Binaries/mario/music/song-piggies.aaf", "r")
+local file = io.open("A:/Users/Shared/Binaries/song.aaf", "r")
 local sound = require("driver").sound
-local ui = require("OCX/OCUI")
 
 file:read(5) -- skip signature
 file:read(2) -- skip capability flags
 
 local channelsNum = file:read(1):byte()
+print("Using " .. channelsNum .. " channels")
 local channelNotes = {}
 local channelIdx = {}
 
@@ -30,30 +30,13 @@ while not fileEnded do
 			local note = channelNotes[i][#channelNotes[i]]
 			start = note.start + note.duration
 		end
-		table.insert(channelNotes[i], { frequency = freq, duration = math.floor(dur/1.0), start = start })
+		table.insert(channelNotes[i], { frequency = freq, duration = math.floor(dur/1.3), start = start })
 	end
 end
-file:close()
 
 local time = 0
 local lastProcess = 0
-
-
-local window = require("window").newWindow(50, 16, "OpenMedia Player")
-window.container.background = 0xFFFFFF
-
-local title = ui.label("Audio has " .. channelsNum .. " channel(s) / Playing on " .. sound.getMaxChannels() .. " channel(s)")
-title.background = 0xFFFFFF; title.foreground = 0;
-window.container:add(title)
-
-local timeLabel = ui.label("Time: 0s")
-timeLabel.y = 2
-timeLabel.background = 0xFFFFFF; timeLabel.foreground = 0;
-window.container:add(timeLabel)
-
-window:show()
-
-while window.visible do
+while true do
 	local minDur = math.huge
 	for i=1, channelsNum do
 		local note = channelNotes[i][channelIdx[i]]
@@ -70,6 +53,7 @@ while window.visible do
 					sound.setADSR(i, 0, 250, 0.3, 100)
 					sound.setVolume(i, 1)
 					sound.setFrequency(i, note.frequency)
+					print(time .. " ms: press " .. note.frequency .. " Hz for " .. note.duration .. " ms, channel " .. i)
 				end
 				note.played = true
 			end
@@ -79,14 +63,12 @@ while window.visible do
 	end
 	time = time + minDur
 	sound.delay(minDur)
-	if time - lastProcess > 1000 then
-		local refreshed = false
+	if time - lastProcess > 3000 then
 		while not sound.flush() do
 			os.sleep(0)
 		end
-		timeLabel:setText("Time: " .. math.floor(time/1000) .. "s")
-		window:update()
-		refreshed = true
 		lastProcess = time
 	end
 end
+
+file:close()

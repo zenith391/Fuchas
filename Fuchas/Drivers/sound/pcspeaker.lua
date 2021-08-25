@@ -17,9 +17,25 @@ end
 function spec.new(address)
 	local drv = {}
 	drv.getName = spec.getName
+	drv.freq = 20
 	function drv.appendFrequency(channel, time, freq)
-		table.insert(buffer, {time, freq})
+		table.insert(buffer, {time / 1000, freq})
 		return true
+	end
+
+	function drv.setFrequency(channel, freq)
+		if channel > 1 then
+			return false, "channel must be in range [1, 1]"
+		end
+		drv.freq = freq
+	end
+
+	function drv.delay(time)
+		table.insert(buffer, {time / 1000, drv.freq})
+	end
+
+	function drv.setVolume(channel, volume)
+		return false, "unsupported"
 	end
 
 	function drv.setADSR(ch, attack, decay, sustain, release)
@@ -32,9 +48,14 @@ function spec.new(address)
 
 	function drv.flush()
 		for k, v in pairs(buffer) do
-			computer.beep(v[2], v[1])
+			if v[2] >= 20 and v[2] <= 2000 then
+				computer.beep(v[2], v[1])
+			else
+				os.sleep(v[1])
+			end
 		end
 		buffer = {}
+		return true
 	end
 
 	function drv.setSynchronous(sync)

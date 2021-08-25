@@ -1,0 +1,398 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Class_process">Class process </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><strong>tasks</strong></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>tasks</code></h1>
+<p>User library allowing to create and manage processes.</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#getCurrentProcess">getCurrentProcess ()</a></td>
+	<td class="summary">Returns the current process object or nil if no process is active (only the case during boot)</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#sleep">sleep (secs)</a></td>
+	<td class="summary">Pause the current process for the specified number of seconds</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getProcess">getProcess (pid)</a></td>
+	<td class="summary">Get the process object corresponding to the given PID.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#waitFor">waitFor (proc)</a></td>
+	<td class="summary">Pause the current process until the given process has ended</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#kill">kill (proc)</a></td>
+	<td class="summary">Kill the given process, calling the safe kill handler if present</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#unsafeKill">unsafeKill (proc)</a></td>
+	<td class="summary">Kill the given process without accounting for the safe kill handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getProcessMetrics">getProcessMetrics (pid)</a></td>
+	<td class="summary">Returns the process metrics from the given PID</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getPIDs">getPIDs ()</a></td>
+	<td class="summary">Returns the list of PIDs used by living processes</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getProcesses">getProcesses ()</a></td>
+	<td class="summary">Returns the list of all living process objects</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#newProcess">newProcess (name, func)</a></td>
+	<td class="summary">Spawns and starts a new process</td>
+	</tr>
+</table>
+<h2><a href="#Class_process">Class process </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#process:detach">process:detach ()</a></td>
+	<td class="summary">Detach</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#process:kill">process:kill ()</a></td>
+	<td class="summary">Detach</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "getCurrentProcess"></a>
+    <strong>getCurrentProcess ()</strong>
+    </dt>
+    <dd>
+    Returns the current process object or nil if no process is active (only the case during boot)
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        process object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "sleep"></a>
+    <strong>sleep (secs)</strong>
+    </dt>
+    <dd>
+    Pause the current process for the specified number of seconds
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">secs</span>
+         Seconds to wait
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "getProcess"></a>
+    <strong>getProcess (pid)</strong>
+    </dt>
+    <dd>
+    Get the process object corresponding to the given PID.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pid</span>
+         PID of the process
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        process object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "waitFor"></a>
+    <strong>waitFor (proc)</strong>
+    </dt>
+    <dd>
+    Pause the current process until the given process has ended
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">proc</span>
+         Process to wait for
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "kill"></a>
+    <strong>kill (proc)</strong>
+    </dt>
+    <dd>
+    Kill the given process, calling the safe kill handler if present
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">proc</span>
+         process object
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "unsafeKill"></a>
+    <strong>unsafeKill (proc)</strong>
+    </dt>
+    <dd>
+    Kill the given process without accounting for the safe kill handler.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">proc</span>
+         process object
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getProcessMetrics"></a>
+    <strong>getProcessMetrics (pid)</strong>
+    </dt>
+    <dd>
+    Returns the process metrics from the given PID
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">pid</span>
+         pid of process
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        process metrics
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getPIDs"></a>
+    <strong>getPIDs ()</strong>
+    </dt>
+    <dd>
+    Returns the list of PIDs used by living processes
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number[]</span></span>
+        all PIDs
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getProcesses"></a>
+    <strong>getProcesses ()</strong>
+    </dt>
+    <dd>
+    Returns the list of all living process objects
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../modules/tasks.html#process">process[]</a></span>
+        all process objects
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "newProcess"></a>
+    <strong>newProcess (name, func)</strong>
+    </dt>
+    <dd>
+    Spawns and starts a new process
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         The name of the process
+        </li>
+        <li><span class="parameter">func</span>
+         The function to be called as process
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../modules/tasks.html#process">process</a></span>
+        process object
+    </ol>
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_process"></a>Class process </h2>
+
+          <div class="section-description">
+          A process object.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "process:detach"></a>
+    <strong>process:detach ()</strong>
+    </dt>
+    <dd>
+    Detach
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "process:kill"></a>
+    <strong>process:kill ()</strong>
+    </dt>
+    <dd>
+    Detach
+
+
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

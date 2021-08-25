@@ -28,7 +28,10 @@ function os.tmpname()
 	return "T:/" .. string.format("%x", math.floor(math.random() * 0xFFFFFFFF))
 end
 
-function computer.shutdown(reboot)
+function computer.shutdown(reboot, opts)
+	if opts and opts.force then
+		_shutdown(reboot)
+	end
 	computer.pushSignal("shutdown", computer.uptime())
 	if tasks.getCurrentProcess() ~= nil then
 		coroutine.yield()

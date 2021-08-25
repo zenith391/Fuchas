@@ -1,0 +1,244 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><strong>text</strong></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>text</code></h1>
+<p>Library for manipulating text and formatting objects</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#padLeft">padLeft (text, len[, char=" "])</a></td>
+	<td class="summary">Pad text to the left so it has a minimum size of the given length.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#padRight">padRight (text, len[, char=" "])</a></td>
+	<td class="summary">Pad text to the right so it has a minimum size of the given length.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#padCenter">padCenter (text, len[, char=" "])</a></td>
+	<td class="summary">Pad text to the center so it has a minimum size of the given length.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#formatTable">formatTable (t, order)</a></td>
+	<td class="summary">Format the given table into a spreadsheet-like format</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "padLeft"></a>
+    <strong>padLeft (text, len[, char=" "])</strong>
+    </dt>
+    <dd>
+    Pad text to the left so it has a minimum size of the given length.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The text to pad
+        </li>
+        <li><span class="parameter">len</span>
+            <span class="types"><span class="type">int</span></span>
+         The target length of the text
+        </li>
+        <li><span class="parameter">char</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The character used to pad the text
+         (<em>default</em> " ")
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        The padded text
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "padRight"></a>
+    <strong>padRight (text, len[, char=" "])</strong>
+    </dt>
+    <dd>
+    Pad text to the right so it has a minimum size of the given length.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The text to pad
+        </li>
+        <li><span class="parameter">len</span>
+            <span class="types"><span class="type">int</span></span>
+         The target length of the text
+        </li>
+        <li><span class="parameter">char</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The character used to pad the text
+         (<em>default</em> " ")
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        The padded text
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "padCenter"></a>
+    <strong>padCenter (text, len[, char=" "])</strong>
+    </dt>
+    <dd>
+    Pad text to the center so it has a minimum size of the given length.
+ The centering is right-leaning. That is if dividing the target in half gives
+ a fractional result, the number of padding on the left is the ceil of that number.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The text to pad
+        </li>
+        <li><span class="parameter">len</span>
+            <span class="types"><span class="type">int</span></span>
+         The target length of the text
+        </li>
+        <li><span class="parameter">char</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The character used to pad the text
+         (<em>default</em> " ")
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        The padded text
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "formatTable"></a>
+    <strong>formatTable (t, order)</strong>
+    </dt>
+    <dd>
+    Format the given table into a spreadsheet-like format
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">t</span>
+            <span class="types"><span class="type">tab</span></span>
+         The table to be formatted
+        </li>
+        <li><span class="parameter">order</span>
+            <span class="types"><span class="type">tab</span></span>
+         The order in which the labels must be printed
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        The formatted table
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,98 +1,12 @@
--- Library used to buffer I/O streams and for some I/O stream utilities
+--- Library used to buffer I/O streams and for some I/O stream utilities
+-- @module buffer
+-- @alias buffer
+
 local buffer = {}
 
-function buffer.pipedStreams(unbuffered)
-	local data = {}
-	local closed = false
-	local inputStream = {}
-	local outputStream = {
-		write = function(self, v)
-			for _, char in ipairs(string.toCharArray(v)) do
-				table.insert(data, 1, char)
-			end
-		end,
-		seek = function() end,
-		close = function(self)
-			closed = true
-			self.closed = true
-		end,
-		seekable = function()
-			return false
-		end,
-		closed = false
-	}
-	inputStream = {
-		read = function(self, t)
-			if not t then t = 1 end
-			local str = ""
-			for i=1, t do
-				if #data == 0 then break end
-				local d = table.remove(data)
-				str = str .. d
-			end
-			if str:len() == 0 then
-				--while #data == 0 and not closed do
-				if #data == 0 and not closed then
-					coroutine.yield() -- the program shouldn't have to take in account cooperative multitasking's quirks
-					-- the yield is necessary for the process to be able to put in data
-				end
-				if #data == 0 and closed then
-					return nil
-				end
-			end
-			return str
-		end,
-		remaining = function()
-			return #data > 0
-		end,
-		seek = function() end,
-		close = function(self)
-			closed = true
-			self.closed = true
-		end,
-		seekable = function()
-			return false
-		end,
-		closed = false
-	}
-	if not unbuffered then
-		inputStream = buffer.from(inputStream)
-		outputStream = buffer.from(outputStream)
-	end
-	return inputStream, outputStream
-end
-
--- Returns an unbuffered stream that is backed by a string (in variable stream.data)
-function buffer.fromString(str)
-	local stream = {}
-	stream.data = str
-	stream.off = 1
-
-	function stream:write(val)
-		self.data = self.data:sub(1, self.off - 1) .. val .. self.data:sub(self.off)
-		self.off = self.off + val:len()
-	end
-
-	function stream:read(len)
-		local part = self.data:sub(self.off, self.off + len - 1)
-		self.off = self.off + len
-		return part
-	end
-
-	function stream:seek(whence, offset)
-		if whence == "cur" then
-			self.off = self.off + offset
-			return self.off
-		else
-			return nil, "unsupported whence: " .. tostring(whence)
-		end
-	end
-
-	function stream:close() end
-
-	return stream
-end
-
+--- Create a buffered stream from the given unbuffered stream
+-- @tparam stream handle unbuffered stream
+-- @treturn stream Buffered stream
 function buffer.from(handle)
 	local stream = {}
 	stream.stream = handle
@@ -289,6 +203,104 @@ function buffer.from(handle)
 		end
 	end
 	return stream
+end
+
+--- Returns an unbuffered stream that is backed by a string (in variable stream.data)
+-- @string str The string from which to read or write
+-- @treturn stream String stream
+function buffer.fromString(str)
+	local stream = {}
+	stream.data = str
+	stream.off = 1
+
+	function stream:write(val)
+		self.data = self.data:sub(1, self.off - 1) .. val .. self.data:sub(self.off)
+		self.off = self.off + val:len()
+	end
+
+	function stream:read(len)
+		local part = self.data:sub(self.off, self.off + len - 1)
+		self.off = self.off + len
+		return part
+	end
+
+	function stream:seek(whence, offset)
+		if whence == "cur" then
+			self.off = self.off + offset
+			return self.off
+		else
+			return nil, "unsupported whence: " .. tostring(whence)
+		end
+	end
+
+	function stream:close() end
+
+	return stream
+end
+
+--- Return a set of stream that are piped to each other.
+-- This is the equivalent of a `pipe` library on other operating systems.
+-- @bool[opt=false] unbuffered Whether the streams should be unbuffered or buffered
+-- @treturn {stream,stream} The piped input and output stream
+function buffer.pipedStreams(unbuffered)
+	local data = {}
+	local closed = false
+	local inputStream = {}
+	local outputStream = {
+		write = function(self, v)
+			for _, char in ipairs(string.toCharArray(v)) do
+				table.insert(data, 1, char)
+			end
+		end,
+		seek = function() end,
+		close = function(self)
+			closed = true
+			self.closed = true
+		end,
+		seekable = function()
+			return false
+		end,
+		closed = false
+	}
+	inputStream = {
+		read = function(self, t)
+			if not t then t = 1 end
+			local str = ""
+			for i=1, t do
+				if #data == 0 then break end
+				local d = table.remove(data)
+				str = str .. d
+			end
+			if str:len() == 0 then
+				--while #data == 0 and not closed do
+				if #data == 0 and not closed then
+					coroutine.yield() -- the program shouldn't have to take in account cooperative multitasking's quirks
+					-- the yield is necessary for the process to be able to put in data
+				end
+				if #data == 0 and closed then
+					return nil
+				end
+			end
+			return str
+		end,
+		remaining = function()
+			return #data > 0
+		end,
+		seek = function() end,
+		close = function(self)
+			closed = true
+			self.closed = true
+		end,
+		seekable = function()
+			return false
+		end,
+		closed = false
+	}
+	if not unbuffered then
+		inputStream = buffer.from(inputStream)
+		outputStream = buffer.from(outputStream)
+	end
+	return inputStream, outputStream
 end
 
 return buffer

@@ -1,3 +1,7 @@
+--- Users library
+-- @module users
+-- @alias lib
+
 local lib = {}
 local users = {}
 local userKeys = {} -- keys to recognize user login
@@ -41,10 +45,14 @@ local function userLogin(user)
 	curProc.userKey = userKey
 end
 
+--- Returns the shared user path
+-- @treturn string shared user path
 function lib.getSharedUserPath()
 	return "A:/Users/Shared"
 end
 
+--- Returns the current user path
+-- @treturn string current user path
 function lib.getUserPath()
 	if user == nil then
 		return lib.getSharedUserPath()
@@ -53,6 +61,10 @@ function lib.getUserPath()
 	end
 end
 
+--- Returns the user object for the given key and pid
+-- @string key
+-- @int pid
+-- @treturn User current user
 function lib.userForKey(key, pid)
 	if userKeys[key] then
 		if userKeys[key].pid == pid then
@@ -62,6 +74,8 @@ function lib.userForKey(key, pid)
 	return false -- the key isn't valid
 end
 
+--- Internal function to create a user key to give to the child of current process
+-- @number pid The PID of the child
 function lib.createKeyForChild(pid)
 	local user = lib.getUser()
 
@@ -77,6 +91,8 @@ function lib.createKeyForChild(pid)
 	return userKey
 end
 
+--- Returns the current user key
+-- @treturn User current user
 function lib.getUser()
 	local curProc = tasks.getCurrentProcess()
 	if curProc.userKey then
@@ -89,7 +105,7 @@ function lib.getUser()
 	return nil
 end
 
--- Logouts and set account to guest (Shared).
+--- Logouts and set account to guest (Shared).
 function lib.logout()
 	os.setenv("USER", "guest")
 	tasks.getCurrentProcess().userKey = nil
@@ -104,6 +120,9 @@ local function randomSalt(len)
 	return binsalt
 end
 
+--- Get user object from ID
+-- @int uid User ID
+-- @treturn User
 function lib.getById(uid)
 	for _, user in pairs(users) do
 		if user.userId == uid then
@@ -117,6 +136,11 @@ function lib.getById(uid)
 	return nil, "no such user"
 end
 
+--- Register a new user
+-- @string username
+-- @tab ops
+-- @string ops.password The new user's password
+-- @string[opt="sha3-512"] ops.algorithm The algorithm for hashing the password
 function lib.createUser(username, ops)
 	local passwd = ops.password
 	local perms = ops.permissions
@@ -144,6 +168,9 @@ function lib.createUser(username, ops)
 	stream:close()
 end
 
+--- Login to a new user using given credentials
+-- @string username The username to login with
+-- @string passwd The password used to authenticate
 function lib.login(username, passwd)
 	if user ~= nil then
 		local ok, reason = lib.logout()

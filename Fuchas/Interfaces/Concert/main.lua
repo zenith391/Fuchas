@@ -11,12 +11,18 @@ local windowManager = require("window")
 local event = require("event")
 local draw = require("OCX/OCDraw")
 local ui = require("OCX/OCUI")
+local imaging = require("OCX/OCImage")
 local tasks = require("tasks")
 
 windowManager.clearDesktop()
 
---local ctx = draw.newContext(1, 1, 160, 50)
---local canvas = draw.canvas(ctx)
+local wallpaper = draw.newContext(1, 1, 160, 50)
+-- TODO: convert image to an OC-specific image format which would make the
+-- code lighter, the file size lower and the loading time faster
+local image = imaging.load("A:/Fuchas/Interfaces/Concert/wallpaper.bmp")
+imaging.drawImage(image, wallpaper)
+draw.drawContext(wallpaper)
+windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
 
 local taskBar = windowManager.newWindow()
 local startMenu = windowManager.newWindow()
@@ -25,7 +31,10 @@ local startMenuEntries = {
 	{"Task Manager", "A:/Fuchas/Interfaces/Concert/csysguard.lua"},
 	{"NeoQuack", "A:/Fuchas/Interfaces/Concert/editor.lua"},
 	{"Minesweeper", "A:/Fuchas/Interfaces/Concert/minesweeper/minesweeper.lua"},
-	{"OpenMedia Player", "A:/Fuchas/Interfaces/Concert/mediaplayer.lua"}
+	{"OpenMedia Player", "A:/Fuchas/Interfaces/Concert/mediaplayer.lua"},
+	{"Mario", "A:/Users/Shared/Binaries/subpixeltest.lua"},
+	{"Terminal", "A:/Fuchas/Interfaces/Concert/terminal.lua"},
+	{"Reboot", ":reboot"}
 }
 
 local focusedWin = nil
@@ -49,7 +58,7 @@ do
 	startMenu.height = 15
 	do
 		local comp = ui.component()
-		comp.render = function(self)
+		comp._render = function(self)
 			self.canvas.fillRect(1, 1, self.width, 1, 0)
 			self.canvas.fillRect(1, 2, self.width, self.height-1, 0x222222)
 			self.canvas.drawText(10, 1, "Fuchas", 0xFFFFFF, 0)
@@ -70,6 +79,9 @@ do
 					local name = v[1]
 					local cy = 2 + k
 					if x > 1 and x < 1+name:len() and y == cy then
+						if v[2] == ":reboot" then
+							computer.shutdown(true)
+						end
 						local f, err = loadfile(v[2])
 						if f then
 							require("tasks").newProcess("proc", f)
@@ -94,7 +106,7 @@ do
 	taskBar:show()
 	do
 		local comp = ui.component()
-		comp.render = function(self)
+		comp._render = function(self)
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
 			self.canvas.drawText(2, 1, "Fuchas", 0x000000, 0xBFFBFF)

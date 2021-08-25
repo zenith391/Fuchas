@@ -1,0 +1,233 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><strong>velx</strong></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>velx</code></h1>
+<p>Implementation of the VELX executable format
+ (made from the documentation at
+ https://github.com/Adorable-Catgirl/Random-OC-Docs/blob/master/formats/velx/v1.md)</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#parse">parse (stream)</a></td>
+	<td class="summary">Parse a VELX file from the given stream</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write">write (velx, stream)</a></td>
+	<td class="summary">Write a parsed VELX file to a stream</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#check">check (velx)</a></td>
+	<td class="summary">Check the parsed VELX file for execution on Fuchas</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Velx">Velx</a></td>
+	<td class="summary">Velx file</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "parse"></a>
+    <strong>parse (stream)</strong>
+    </dt>
+    <dd>
+    Parse a VELX file from the given stream
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">stream</span>
+            <span class="types"><span class="type">stream</span></span>
+         The I/O stream to read from
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../modules/velx.html#Velx">Velx</a></span>
+        The parsed VELX file
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write"></a>
+    <strong>write (velx, stream)</strong>
+    </dt>
+    <dd>
+    Write a parsed VELX file to a stream
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">velx</span>
+
+        </li>
+        <li><span class="parameter">stream</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "check"></a>
+    <strong>check (velx)</strong>
+    </dt>
+    <dd>
+    Check the parsed VELX file for execution on Fuchas
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">velx</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Velx"></a>
+    <strong>Velx</strong>
+    </dt>
+    <dd>
+    Velx file
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">version</span>
+
+        </li>
+        <li><span class="parameter">compressionId</span>
+
+        </li>
+        <li><span class="parameter">luaVersion</span>
+
+        </li>
+        <li><span class="parameter">osId</span>
+
+        </li>
+        <li><span class="parameter">isLibrary</span>
+
+        </li>
+        <li><span class="parameter">archiveType</span>
+
+        </li>
+        <li><span class="parameter">programSection</span>
+
+        </li>
+        <li><span class="parameter">osSection</span>
+
+        </li>
+        <li><span class="parameter">signatureSection</span>
+
+        </li>
+        <li><span class="parameter">archiveSize</span>
+
+        </li>
+        <li><span class="parameter">archive</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,0 +1,771 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><strong>shell</strong></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>shell</code></h1>
+<p>Shell library</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#stdout">stdout ()</a></td>
+	<td class="summary">Return the standard output</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getX">getX ()</a></td>
+	<td class="summary">Return the cursor X position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getY">getY ()</a></td>
+	<td class="summary">Return the cursor Y position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#setX">setX (x)</a></td>
+	<td class="summary">Set the cursor X position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#setY">setY (y)</a></td>
+	<td class="summary">Set the cursor Y position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getCursor">getCursor ()</a></td>
+	<td class="summary">Return the cursor position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#isTTY">isTTY ()</a></td>
+	<td class="summary">Returns true if the standard output is a TTY and supports VT100 escape sequences</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getWidth">getWidth ()</a></td>
+	<td class="summary">Returns the width of the underlying terminal</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getHeight">getHeight ()</a></td>
+	<td class="summary">Returns the height of the underlying terminal</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#setCursor">setCursor (x, y)</a></td>
+	<td class="summary">Set the cursor position</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#clear">clear ()</a></td>
+	<td class="summary">Clear the terminal and set cursor position to 1, 1</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#clearLine">clearLine ()</a></td>
+	<td class="summary">Clear the current line</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getKeyboard">getKeyboard ()</a></td>
+	<td class="summary">Return the keyboard address the terminal is listening from</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getScreen">getScreen ()</a></td>
+	<td class="summary">Return the screen address the terminal is printing to</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#createStdOut">createStdOut (gpu)</a></td>
+	<td class="summary">Internal function used to create a standard output from a GPU object</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#parse">parse (tab)</a></td>
+	<td class="summary">Function used for parsing command line arguments</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#resolve">resolve (path)</a></td>
+	<td class="summary">Resolve a local or absolute file using PATH, PWD and PATHEXT</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#resolveToPwd">resolveToPwd (path)</a></td>
+	<td class="summary">Resolve to PWD</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write">write (obj)</a></td>
+	<td class="summary">Write an object to terminal</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getAliases">getAliases ([cmd])</a></td>
+	<td class="summary">If given, return the aliases corresponding to the given command, otherwise return all aliases.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getCommand">getCommand (alias)</a></td>
+	<td class="summary">Get command corresponding to an alias</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#addAlias">addAlias (alias, cmd)</a></td>
+	<td class="summary">Add an alias to the given command</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#parseCL">parseCL (cl)</a></td>
+	<td class="summary">Internal function used for implementing shells.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#fileAutocomplete">fileAutocomplete (s, sp)</a></td>
+	<td class="summary">Autocompleter using filesystem</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#autocompleteFor">autocompleteFor (input, autocompleter)</a></td>
+	<td class="summary">Compute the available autocomplete options from current input and autocompleter.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#read">read ([options])</a></td>
+	<td class="summary">Read from standard input</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "stdout"></a>
+    <strong>stdout ()</strong>
+    </dt>
+    <dd>
+    Return the standard output
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">stream</span></span>
+        standard output
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="https://www.lua.org/manual/5.3/manual.html#pdf-io.stdout">io.stdout</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "getX"></a>
+    <strong>getX ()</strong>
+    </dt>
+    <dd>
+    Return the cursor X position
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        cursor X position
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getY"></a>
+    <strong>getY ()</strong>
+    </dt>
+    <dd>
+    Return the cursor Y position
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        cursor Y position
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "setX"></a>
+    <strong>setX (x)</strong>
+    </dt>
+    <dd>
+    Set the cursor X position
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">int</span></span>
+         cnew ursor X position
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "setY"></a>
+    <strong>setY (y)</strong>
+    </dt>
+    <dd>
+    Set the cursor Y position
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">int</span></span>
+         new cursor Y position
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getCursor"></a>
+    <strong>getCursor ()</strong>
+    </dt>
+    <dd>
+    Return the cursor position
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">int</span></span>
+        x cursor X position</li>
+        <li>
+           <span class="types"><span class="type">int</span></span>
+        y cursor Y position</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "isTTY"></a>
+    <strong>isTTY ()</strong>
+    </dt>
+    <dd>
+    Returns true if the standard output is a TTY and supports VT100 escape sequences
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">bool</span></span>
+        whether stdout is a tty
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getWidth"></a>
+    <strong>getWidth ()</strong>
+    </dt>
+    <dd>
+    Returns the width of the underlying terminal
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        terminal width
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getHeight"></a>
+    <strong>getHeight ()</strong>
+    </dt>
+    <dd>
+    Returns the height of the underlying terminal
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        terminal height
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "setCursor"></a>
+    <strong>setCursor (x, y)</strong>
+    </dt>
+    <dd>
+    Set the cursor position
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">int</span></span>
+         new cursor X position
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">int</span></span>
+         new cursor Y position
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "clear"></a>
+    <strong>clear ()</strong>
+    </dt>
+    <dd>
+    Clear the terminal and set cursor position to 1, 1
+
+
+
+
+    <h3>Raises:</h3>
+    not a terminal
+
+
+
+</dd>
+    <dt>
+    <a name = "clearLine"></a>
+    <strong>clearLine ()</strong>
+    </dt>
+    <dd>
+    Clear the current line
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getKeyboard"></a>
+    <strong>getKeyboard ()</strong>
+    </dt>
+    <dd>
+    Return the keyboard address the terminal is listening from
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        keyboard address
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getScreen"></a>
+    <strong>getScreen ()</strong>
+    </dt>
+    <dd>
+    Return the screen address the terminal is printing to
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        screen address
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "createStdOut"></a>
+    <strong>createStdOut (gpu)</strong>
+    </dt>
+    <dd>
+    Internal function used to create a standard output from a GPU object
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">gpu</span>
+            <span class="types"><span class="type">driver</span></span>
+         GPU driver
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">stream</span></span>
+        standard output
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "parse"></a>
+    <strong>parse (tab)</strong>
+    </dt>
+    <dd>
+    Function used for parsing command line arguments
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tab</span>
+            <span class="types"><span class="type">tab</span></span>
+         arguments list
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        arguments</li>
+        <li>
+        options</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "resolve"></a>
+    <strong>resolve (path)</strong>
+    </dt>
+    <dd>
+    Resolve a local or absolute file using PATH, PWD and PATHEXT
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         Path to a file to resolve
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "resolveToPwd"></a>
+    <strong>resolveToPwd (path)</strong>
+    </dt>
+    <dd>
+    Resolve to PWD
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write"></a>
+    <strong>write (obj)</strong>
+    </dt>
+    <dd>
+    Write an object to terminal
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">obj</span>
+         Object to write
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="https://www.lua.org/manual/5.3/manual.html#pdf-io.write">io.write</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "getAliases"></a>
+    <strong>getAliases ([cmd])</strong>
+    </dt>
+    <dd>
+    If given, return the aliases corresponding to the given command, otherwise return all aliases.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cmd</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getCommand"></a>
+    <strong>getCommand (alias)</strong>
+    </dt>
+    <dd>
+    Get command corresponding to an alias
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">alias</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "addAlias"></a>
+    <strong>addAlias (alias, cmd)</strong>
+    </dt>
+    <dd>
+    Add an alias to the given command
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">alias</span>
+
+        </li>
+        <li><span class="parameter">cmd</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "parseCL"></a>
+    <strong>parseCL (cl)</strong>
+    </dt>
+    <dd>
+    Internal function used for implementing shells.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cl</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "fileAutocomplete"></a>
+    <strong>fileAutocomplete (s, sp)</strong>
+    </dt>
+    <dd>
+    Autocompleter using filesystem
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">s</span>
+
+        </li>
+        <li><span class="parameter">sp</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "autocompleteFor"></a>
+    <strong>autocompleteFor (input, autocompleter)</strong>
+    </dt>
+    <dd>
+    Compute the available autocomplete options from current input and autocompleter.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">input</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+
+        </li>
+        <li><span class="parameter">autocompleter</span>
+            <span class="types"><span class="type">func</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "read"></a>
+    <strong>read ([options])</strong>
+    </dt>
+    <dd>
+    Read from standard input
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">options</span> options
+        <ul>
+        <li><span class="parameter">history</span>
+            <span class="types"><span class="type">tab</span></span>
+         The shell history to use
+         (<em>default</em> global history)
+        </li>
+        <li><span class="parameter">ontype</span>
+
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">autocomplete</span>
+            <span class="types"><span class="type">func</span></span>
+
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">autocompleteHandler</span>
+            <span class="types"><span class="type">func</span></span>
+
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">pwchar</span>
+
+         (<em>optional</em>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

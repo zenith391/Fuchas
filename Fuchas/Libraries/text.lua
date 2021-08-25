@@ -1,6 +1,14 @@
+--- Library for manipulating text and formatting objects
+-- @module text
+-- @alias text
+
 local text = {}
 
--- Pad text to the left so it has a minimum size of "len"
+--- Pad text to the left so it has a minimum size of the given length.
+-- @string text The text to pad
+-- @int len The target length of the text
+-- @string[opt=" "] char The character used to pad the text
+-- @treturn string The padded text
 function text.padLeft(text, len, char)
 	char = char or " "
 	if unicode.len(text) < len then
@@ -9,7 +17,11 @@ function text.padLeft(text, len, char)
 	return text
 end
 
--- Pad text to the right so it has a minimum size of "len"
+--- Pad text to the right so it has a minimum size of the given length.
+-- @string text The text to pad
+-- @int len The target length of the text
+-- @string[opt=" "] char The character used to pad the text
+-- @treturn string The padded text
 function text.padRight(text, len, char)
 	char = char or " "
 	if #text < len then
@@ -18,7 +30,13 @@ function text.padRight(text, len, char)
 	return text
 end
 
--- Pad text to the center so it has a minimum size of "len"
+--- Pad text to the center so it has a minimum size of the given length.
+-- The centering is right-leaning. That is if dividing the target in half gives
+-- a fractional result, the number of padding on the left is the ceil of that number.
+-- @string text The text to pad
+-- @int len The target length of the text
+-- @string[opt=" "] char The character used to pad the text
+-- @treturn string The padded text
 function text.padCenter(text, len, char)
 	char = char or " "
 	len = len - unicode.len(text)
@@ -36,6 +54,10 @@ function text.padCenter(text, len, char)
 	return leftRep .. text .. rightRep
 end
 
+--- Format the given table into a spreadsheet-like format
+-- @tab t The table to be formatted
+-- @tab order The order in which the labels must be printed
+-- @treturn string The formatted table
 function text.formatTable(t, order)
 	local str = ""
 	local columnsLength = {}

@@ -1,12 +1,29 @@
---[[
-     Implementation of the VELX executable format
-     (made from the documentation at
-     https://github.com/Adorable-Catgirl/Random-OC-Docs/blob/master/formats/velx/v1.md)
-]]
+--- Implementation of the VELX executable format
+-- (made from the documentation at
+-- https://github.com/Adorable-Catgirl/Random-OC-Docs/blob/master/formats/velx/v1.md)
+-- @module velx
+-- @alias velx
 
 local velx = {}
 local cpio = require("cpio")
 
+--- Velx file
+-- @table Velx
+-- @field version
+-- @field compressionId
+-- @field luaVersion
+-- @field osId
+-- @field isLibrary
+-- @field archiveType
+-- @field programSection
+-- @field osSection
+-- @field signatureSection
+-- @field archiveSize
+-- @field archive
+
+--- Parse a VELX file from the given stream
+-- @tparam stream stream The I/O stream to read from
+-- @treturn Velx The parsed VELX file
 function velx.parse(stream)
 	local magic = stream:read(5)
 	if magic ~= "\27VelX" then
@@ -61,7 +78,7 @@ function velx.parse(stream)
 	}
 end
 
--- Write a parsed VELX file to a stream
+--- Write a parsed VELX file to a stream
 function velx.write(velx, stream)
 	if velx.archiveType ~= "cpio" and (not velx.archiveType == "none") then
 		error("archive must be cpio or none")
@@ -105,7 +122,7 @@ function velx.write(velx, stream)
 	end
 end
 
--- Check the parsed VELX file for execution on Fuchas
+--- Check the parsed VELX file for execution on Fuchas
 function velx.check(velx)
 	if velx.osId ~= 69 then
 		error("not a fuchas executable!")

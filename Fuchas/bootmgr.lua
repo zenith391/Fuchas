@@ -14,7 +14,7 @@ if not fs.exists("A:/Users/Shared") then
 	fs.makeDirectory("A:/Users/Shared")
 end
 
-tasks.newProcess("System Interface", function()
+local interface = tasks.newProcess("System Interface", function()
 	dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 	local f, err = xpcall(function()
 		require("users").login("guest") -- no password required
@@ -115,17 +115,20 @@ tasks.newProcess("System Interface", function()
 		io.stderr:write("\nInterface crash:\n")
 		io.stderr:write(err .. "\n")
 		io.stderr:write(debug.traceback(nil, 2) .. "\n")
-		io.stderr:write("Restarting ..\n")
-		computer.shutdown(true)
 		return err
 	end)
 	if f == true then
 		computer.shutdown() -- main interface exit
 	else
-		error(err)
+		io.stderr:write("Restarting in 10 seconds..\n")
+		os.sleep(10)
+		computer.shutdown(true, { force = true })
 	end
 end)
 
 while true do
+	if interface.status == "dead" then
+		computer.shutdown(true, { force = true })
+	end
 	tasks.scheduler()
 end

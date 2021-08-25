@@ -1,3 +1,7 @@
+--- Library for managing process permissions
+-- @module security
+-- @alias lib
+
 local lib = {}
 local permtable = {}
 local userPerms = {}
@@ -22,6 +26,8 @@ local function loadUserPermissions()
 	fileStream:close()
 end
 
+--- Internal function
+-- @local
 function lib.lateInit()
 	if not userPermsLoaded then
 		loadUserPermissions()
@@ -31,6 +37,9 @@ function lib.lateInit()
 	end
 end
 
+--- Revoke all permissions from the given process
+-- @permission security.revoke
+-- @int pid The PID of the process from which permissions will be removed
 function lib.revoke(pid)
 	if tasks.getProcess(pid).status == "dead" then
 		permtable[pid] = nil
@@ -60,6 +69,10 @@ local function initPerms(pid)
 	end
 end
 
+--- Request a permission to the parent process
+-- @string perm requested permission
+-- @treturn bool true if the was the permission given
+-- @treturn[opt] string details on why the permission was not given
 function lib.requestPermission(perm)
 	if tasks.getCurrentProcess() == nil then
 		return
@@ -78,14 +91,20 @@ function lib.requestPermission(perm)
 			return false, "permission not granted"
 		end
 	else
-		return false, "parent process do not grants permission"
+		return false, "parent process does not grants permission"
 	end
 end
 
+--- Internal function
+-- @local
 function lib.isRegistered(pid)
 	return permtable[pid] ~= nil
 end
 
+--- Returns whether the given or current process has the given permission.
+-- @string perm permission to be checked
+-- @int[opt=current] pid The PID of the process to check if it has or not the given permission
+-- @treturn bool Whether the process has the given permission
 function lib.hasPermission(perm, pid)
 	if not pid and tasks.getCurrentProcess() == nil then
 		return true
@@ -99,12 +118,20 @@ function lib.hasPermission(perm, pid)
 	end
 end
 
+--- Function to throw an error if the current process doesn't have the given permission.
+-- @usage
+--  security.requestPermission("permission.cool")
+--  security.requirePermission("permission.cool")
+--  -- guarenteed to have the 'permission.cool' permission
+-- @string perm permission to be checked
 function lib.requirePermission(perm)
 	if not lib.hasPermission(perm) then
-		error("permission required : " .. perm, 2)
+		error("'" .. perm .. "' permission is required", 2)
 	end
 end
 
+--- Returns the list of all the permissions the given or current process has.
+-- @int[opt=current] pid The PID of the process
 function lib.getPermissions(pid)
 	local proc = pid or currentProcess().pid
 	local copy = {}

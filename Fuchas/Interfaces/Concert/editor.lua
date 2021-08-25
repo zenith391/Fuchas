@@ -20,7 +20,7 @@ local function createTextEditor()
 	textEditor.foreground = 0x000000
 	textEditor.text = ""
 
-	function textEditor:render()
+	function textEditor:_render()
 		self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 		local y = 1
 		local text = self.text

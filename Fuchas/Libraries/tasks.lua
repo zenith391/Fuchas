@@ -1,63 +1,13 @@
+--- User library allowing to create and manage processes.
+-- @module tasks
+-- @alias mod
+
 local event = require("event")
 local logger = require("log")("Tasks Scheduler")
 local mod = {}
 local incr = 1
 local currentProc = nil
 local processes = {}
-
---[[
-	name: process name
-	func: process function
-	onlyIPC: true if the process should only use IPC to communicate with parent process (using main memory in this mode is DISALLOWED!)
-	         this also allows the process to benefit from asymetric multi-processing if available.
-]]
-function mod.newProcess(name, func, onlyIPC)
-	local pid
-	pid = incr
-	incr = incr + 1
-	logger.debug("Creating process " .. name)
-	local proc = {
-		name = name,
-		func = func,
-		pid = pid, -- reliable pointer to process that help know if a process is dead
-		status = "created",
-		cpuTime = 0,
-		cpuTimeEstimate = 0, -- used for SJF scheduler
-		lastCpuTime = 0,
-		cpuLoadPercentage = 0,
-		exitHandlers = {},
-		events = {},
-		operation = nil, -- the current async operation
-		io = { -- a copy of current parent process's io streams
-			stdout = io.stdout,
-			stderr = io.stderr,
-			stdin = io.stdin
-		},
-		errorHandler = nil,
-		detach = function(self)
-			self.parent = nil
-		end,
-		kill = function(self)
-			mod.safeKill(self)
-		end,
-		join = function(self)
-			mod.waitFor(self)
-		end
-	}
-	local currProc = mod.getCurrentProcess()
-	if currProc ~= nil then
-		proc.env = currProc.env
-		proc.parent = currProc
-		if currProc.userKey then
-			proc.userKey = currProc.userKey
-		end
-	else
-		proc.env = {}
-		require("security").requestPermission("*", pid)
-	end
-	processes[pid] = proc
-	return proc
-end
 
 --[[
 	Creates a process that can only communicate with other processes using IPC.
@@ -124,7 +74,7 @@ local function systemEvent(pack)
 end
 
 local function handleProcessError(err, p)
-	local parent = p.parent
+	local parent = processes[p.parent]
 	if parent ~= nil then
 		if parent.childErrorHandler then
 			currentProc = p
@@ -165,6 +115,8 @@ local canSleep = true
 local schedulerMode = "SJF" -- SJF or FCFS
 local sjfAlpha = 0.3 -- alpha value for SJF scheduler
 
+--- Used internally.
+-- @local
 function mod.scheduler()
 	if not logHandle and false then
 		startLogging()
@@ -210,6 +162,9 @@ function mod.scheduler()
 		end
 		if coroutine.status(p.thread) == "dead" then -- if it died for some unhandled reason
 			mod.unsafeKill(p) -- no need to safe kill, it's already dead
+		end
+		if p.parent and not processes[p.parent] then -- if the parent died, die too
+			mod.unsafeKill(p)
 		end
 		if p.status == "wait_signal" then
 			if #p.events == 0 and computer.uptime() >= p.timeout then
@@ -290,16 +245,24 @@ function mod.scheduler()
 	end
 end
 
+--- Returns the current process object or nil if no process is active (only the case during boot)
+-- @return process object
 function mod.getCurrentProcess()
 	return currentProc
 end
 
+--- Pause the current process for the specified number of seconds
+-- @param secs Seconds to wait
+-- @see os.sleep
 function mod.sleep(secs)
 	coroutine.yield("sleep", secs)
 end
-
 os.sleep = mod.sleep
 
+--- Get the process object corresponding to the given PID.
+-- @param pid PID of the process
+-- @return process object
+-- @permission scheduler.list or process.edit
 function mod.getProcess(pid)
 	if require("security").hasPermission("scheduler.list") or require("security").hasPermission("process.edit") then
 		return processes[pid]
@@ -308,12 +271,17 @@ function mod.getProcess(pid)
 	end
 end
 
+--- Pause the current process until the given process has ended
+-- @param proc Process to wait for
+-- @see process:join
 function mod.waitFor(proc)
 	while proc.status ~= "dead" do
 		coroutine.yield()
 	end
 end
 
+--- Kill the given process, calling the safe kill handler if present
+-- @param proc process object
 function mod.kill(proc)
 	if proc.safeKillHandler then
 		local oldProc = currentProc
@@ -328,6 +296,9 @@ function mod.kill(proc)
 	end
 end
 mod.safeKill = mod.kill
+
+--- Kill the given process without accounting for the safe kill handler.
+-- @param proc process object
 function mod.unsafeKill(proc)
 	proc.status = "dead"
 	if require("security").isRegistered(proc.pid) then
@@ -345,10 +316,13 @@ function mod.unsafeKill(proc)
 	end
 end
 
+--- Returns the process metrics from the given PID
+-- @param pid pid of process
+-- @return process metrics
 function mod.getProcessMetrics(pid)
 	local proc = processes[pid]
 	local parentPid = -1
-	if proc.parent then parentPid = proc.parent.pid end
+	if proc.parent then parentPid = proc.parent end
 	return {
 		name = proc.name,
 		cpuTime = proc.cpuTime,
@@ -359,6 +333,8 @@ function mod.getProcessMetrics(pid)
 	}
 end
 
+--- Returns the list of PIDs used by living processes
+-- @treturn number[] all PIDs
 function mod.getPIDs()
 	local pids = {}
 	for k, v in pairs(processes) do
@@ -367,12 +343,82 @@ function mod.getPIDs()
 	return pids
 end
 
+--- Returns the list of all living process objects
+-- @permission scheduler.list
+-- @treturn process[] all process objects
 function mod.getProcesses()
 	if require("security").hasPermission("scheduler.list") then
 		return processes
 	else
 		error("missing permission: scheduler.list")
 	end
+end
+
+--- Spawns and starts a new process
+-- @param name The name of the process
+-- @param func The function to be called as process
+-- @treturn process process object
+-- @constructor
+function mod.newProcess(name, func, onlyIPC)
+	local pid
+	pid = incr
+	incr = incr + 1
+	logger.debug("Creating process " .. name)
+
+	--- A process object.
+	-- @type process
+	-- @string name The name
+	local proc = {
+		name = name,
+		func = func,
+		pid = pid, -- reliable pointer to process that help know if a process is dead
+		status = "created",
+		cpuTime = 0,
+		cpuTimeEstimate = 0, -- used for SJF scheduler
+		lastCpuTime = 0,
+		cpuLoadPercentage = 0,
+		exitHandlers = {},
+		events = {},
+		operation = nil, -- the current async operation
+		io = { -- a copy of current parent process's io streams
+			stdout = io.stdout,
+			stderr = io.stderr,
+			stdin = io.stdin
+		},
+		errorHandler = nil,
+
+		--- Detach
+		-- @function detach
+		detach = function(self)
+			self.parent = nil
+		end,
+
+		--- Detach
+		-- @function kill
+		kill = function(self)
+			mod.safeKill(self)
+		end,
+		join = function(self)
+			mod.waitFor(self)
+		end
+	}
+
+	local currProc = mod.getCurrentProcess()
+	if currProc ~= nil then
+		proc.env = {}
+		for k, v in pairs(currProc.env) do
+			proc.env[k] = v
+		end
+		proc.parent = currProc.pid
+		if currProc.userKey then
+			proc.userKey = currProc.userKey -- TODO: the child key isn't valid so use userKeyForChild
+		end
+	else
+		proc.env = {}
+		require("security").requestPermission("*", pid)
+	end
+	processes[pid] = proc
+	return processes[pid]
 end
 
 return mod

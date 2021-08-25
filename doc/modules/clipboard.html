@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Fields">Fields</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><strong>clipboard</strong></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>clipboard</code></h1>
+<p>Library to handle the system clipboard</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#cut">cut (obj, t)</a></td>
+	<td class="summary">Cut the given object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#copy">copy (obj, t)</a></td>
+	<td class="summary">Copy the given object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#pasteTriggered">pasteTriggered ()</a></td>
+	<td class="summary">Returns whether if the user wants to paste the clipboard.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#paste">paste ()</a></td>
+	<td class="summary">Get the current content of the clipboard.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#retrieve">retrieve ()</a></td>
+	<td class="summary">Lookup the current clipboard object</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#uptime">uptime</a></td>
+	<td class="summary">This event is emitted to all processes when the external clipboard is
+ pasted using middle mouse button or when Ctrl+V is pressed and the OS clipboard is not empty.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "cut"></a>
+    <strong>cut (obj, t)</strong>
+    </dt>
+    <dd>
+    Cut the given object.
+ This means that when the object is pasted, it will also be removed from the clipboard.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">obj</span>
+         Object to be put in clipboard
+        </li>
+        <li><span class="parameter">t</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         MIME type of the object
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "copy"></a>
+    <strong>copy (obj, t)</strong>
+    </dt>
+    <dd>
+    Copy the given object.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">obj</span>
+         Object to be put in clipboard
+        </li>
+        <li><span class="parameter">t</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         MIME type of the object
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "pasteTriggered"></a>
+    <strong>pasteTriggered ()</strong>
+    </dt>
+    <dd>
+    Returns whether if the user wants to paste the clipboard.
+ This function is the polling equivalent of the `paste_trigger` event.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">bool</span></span>
+        Whether the clipboard should be paster
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "paste"></a>
+    <strong>paste ()</strong>
+    </dt>
+    <dd>
+    Get the current content of the clipboard.
+ If the clipboard object was cutted, then this function also removes it from the clipboard.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        clipboard content
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "retrieve"></a>
+    <strong>retrieve ()</strong>
+    </dt>
+    <dd>
+    Lookup the current clipboard object
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        clipboard content
+    </ol>
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "uptime"></a>
+    <strong>uptime</strong>
+    </dt>
+    <dd>
+    This event is emitted to all processes when the external clipboard is
+ pasted using middle mouse button or when Ctrl+V is pressed and the OS clipboard is not empty.
+
+
+    <ul>
+        <li><span class="parameter">uptime</span>
+            <span class="types"><span class="type">number</span></span>
+         the uptime corresponding to when the event was emitted
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-08-25 18:50:54 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

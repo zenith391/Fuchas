@@ -8,7 +8,7 @@ local gpu = require("driver").gpu
 
 local processTab = ui.component()
 processTab.background = 0xFFFFFF
-processTab.render = function(self)
+processTab._render = function(self)
 	self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 
 	for k, pid in pairs(tasks.getPIDs()) do
@@ -26,12 +26,12 @@ end
 
 local metricsTab = ui.component()
 metricsTab.background = 0xFFFFFF
-metricsTab.render = function(self)
+metricsTab._render = function(self)
 	self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 
 	local usedMem = math.floor((computer.totalMemory() - computer.freeMemory()) / 1024)
 	local totalMem = math.floor(computer.totalMemory() / 1024)
-	self.canvas.drawText(1, 1, "RAM  : " .. usedMem .. " / " .. totalMem .. "KiB used", 0)
+	self.canvas.drawText(1, 1, "RAM  : " .. usedMem .. "KiB / " .. totalMem .. "KiB used", 0)
 
 	local gpuStats = gpu.getStatistics()
 	local gpuCaps  = gpu.getCapabilities()
