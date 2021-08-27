@@ -228,8 +228,11 @@ function buffer.fromString(str)
 		if whence == "cur" then
 			self.off = self.off + offset
 			return self.off
+		elseif whence == "beg" then
+			self.off = 1 + offset
+			return self.off
 		else
-			return nil, "unsupported whence: " .. tostring(whence)
+			error("unsupported whence: " .. tostring(whence))
 		end
 	end
 

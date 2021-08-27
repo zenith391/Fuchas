@@ -2,10 +2,10 @@ _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.7.0",
 	BUILD_DATE = "Tue Apr 20 19:00:00 UTC 2021",
-	DEBUG = true,
+	DEBUG = false,
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
-		DEFAULT_INTERFACE = "Fushell",
+		DEFAULT_INTERFACE = "Concert",
 		SAFE_MODE = false, -- restrict drivers
     	AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
 	}

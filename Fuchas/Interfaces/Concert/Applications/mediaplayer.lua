@@ -39,16 +39,13 @@ local time = 0
 local lastProcess = 0
 
 
-local window = require("window").newWindow(50, 16, "OpenMedia Player")
-window.container.background = 0xFFFFFF
+local window = require("window").newWindow(50, 16, "Horacles")
 
 local title = ui.label("Audio has " .. channelsNum .. " channel(s) / Playing on " .. sound.getMaxChannels() .. " channel(s)")
-title.background = 0xFFFFFF; title.foreground = 0;
 window.container:add(title)
 
 local timeLabel = ui.label("Time: 0s")
 timeLabel.y = 2
-timeLabel.background = 0xFFFFFF; timeLabel.foreground = 0;
 window.container:add(timeLabel)
 
 window:show()

@@ -64,6 +64,7 @@ function spec.new(address)
 	        os.sleep(t)
 	    end
 	    t = 0
+	    return true
 	end
 
 	function drv.setSynchronous(sync)

@@ -11,10 +11,6 @@ local tasks = require("tasks")
 local desktop = {}
 -- The buffer containing the desktop wallpaper
 local wallpaperBuffer
-local config = {
-	COPY_WINDOW_OPTI = false,
-	DIRTY_WINDOW_OPTI = false
-}
 
 local function titleBar()
 	local comp = ui.component()
@@ -31,6 +27,80 @@ local function titleBar()
 		self.canvas.drawText(win.width - 1, 1, closeChar, 0xFFFFFF)
 	end
 	return comp
+end
+
+--- Return a list of rectangles as if B, a part of A, was removed
+local function xorRectangle(a, b)
+	local rectangles = {}
+	if b.y < a.y + a.h and b.y + b.h > a.y then
+		if b.x <= a.x and b.x + b.w >= a.x then
+			-- -----------
+			-- | B |  A  |
+			-- -----------
+			table.insert(rectangles, { -- TODO: fix algorithm
+				x = b.x + b.w,
+				y = a.y,
+				w = a.w - (b.x + b.w - a.x),
+				h = a.h
+			})
+		end
+		if b.x < a.x + a.w and b.x > a.x then
+			-- -----------
+			-- |  A  | B |
+			-- -----------
+			table.insert(rectangles, {
+				x = a.x,
+				y = a.y,
+				w = b.x - a.x,
+				h = a.h
+			})
+		end
+	end
+
+	if b.x < a.x + a.w and b.x + b.w > a.x then
+		if b.y <= a.y and b.y + b.h >= a.y then
+			-- -----
+			-- | B |
+			-- |---|
+			-- |   |
+			-- | A |
+			-- |   |
+			-- -----
+			table.insert(rectangles, {
+				x = a.x,
+				y = b.y + b.h,
+				w = a.w,
+				h = a.h - (b.y + b.h - a.y)
+			})
+		end
+		if b.y < a.y + a.h and b.y > a.y then
+			-- -----
+			-- |   |
+			-- | A |
+			-- |   |
+			-- |---|
+			-- | B |
+			-- -----
+			table.insert(rectangles, {
+				x = a.x,
+				y = a.y,
+				w = a.w,
+				h = b.y - a.y - 1
+			})
+		end
+	end
+
+	if #rectangles > 0 then
+		-- TODO: remove duplicates from vertical and horizontal checking
+		local final = {}
+		for _, rect in pairs(rectangles) do
+			if rect.w > 0 and rect.h > 0 then
+				table.insert(final, rect)
+			end
+		end
+		return final
+	end
+	return {a}
 end
 
 --- Create a new window
@@ -50,7 +120,7 @@ function lib.newWindow(width, height, title)
 	}
 	window.container.width = window.width
 	window.container.height = window.height
-	window.titleBar.window = window
+	window.titleBar.parent = window
 	window.container.window = window
 
 	function window:focus()
@@ -64,7 +134,8 @@ function lib.newWindow(width, height, title)
 		table.remove(desktop, idx)
 		table.insert(desktop, 1, self)
 		self.dirty = true
-		lib.drawDesktop()
+		self:update()
+		self.titleBar:redraw()
 	end
 
 	function window:show()
@@ -95,7 +166,57 @@ function lib.newWindow(width, height, title)
 
 	function window:update()
 		if self.visible then
-			self.container:render()
+			local cy = self.y+1
+			local ch = self.height-1
+			if self.undecorated then
+				cy = self.y
+				ch = self.height
+			end
+			self.container.x = self.x
+			self.container.y = cy
+			self.container.width = self.width
+			self.container.height = ch
+
+			if not self.undecorated and self.titleBar.width ~= self.width then
+				self.titleBar.x = self.x
+				self.titleBar.y = self.y
+				self.titleBar.width = self.width
+				self.titleBar:redraw()
+			end
+
+			local i = 1
+			local aRect = {
+					x = self.container.x,
+					y = self.container.y,
+					w = self.container.width,
+					h = self.container.height
+				}
+			local rectangles = {
+				aRect
+			}
+			while i < #desktop do
+				if desktop[i] == self then break end
+				local winRect = {
+					x = desktop[i].container.x,
+					y = desktop[i].container.y,
+					w = desktop[i].container.width,
+					h = desktop[i].container.height
+				}
+				local newRects = {}
+				for _, rect in pairs(rectangles) do
+					local rectList = xorRectangle(rect, winRect)
+					for _, r in pairs(rectList) do
+						table.insert(newRects, r)
+					end
+				end
+				rectangles = newRects
+				i = i + 1
+			end
+			--if rectangles[1].x ~= aRect.x or rectangles[1].w ~= aRect.w then
+				--print("col " .. aRect.x .. " -> " .. rectangles[1].x .. "; " .. aRect.w .. " -> " .. rectangles[1].w)
+			--end
+			self.container.clip = rectangles
+			self.container:redraw()
 		end
 	end
 
@@ -149,6 +270,7 @@ function lib.drawBackground(x, y, width, height)
 		gpu.setColor(0xAAAAAA)
 		gpu.fill(x, y, width, height)
 	end
+	-- TODO: render non-covered part of beneath windows
 end
 
 --- Move the given window
@@ -181,8 +303,27 @@ function lib.moveWindow(win, targetX, targetY)
 	
 	win.x = targetX
 	win.y = targetY
+	win.titleBar.x = win.x
+	win.titleBar.y = win.y
 	win.container.x = win.x
 	win.container.y = (win.undecorated and win.y) or (win.y + 1)
+
+	local idx = 0
+	for k, v in pairs(desktop) do
+		if v == win then
+			idx = k
+			break
+		end
+	end
+
+	local i = idx
+	while i < #desktop do
+		-- TODO: check if collision before requesting redraw
+		if desktop[i] and desktop[i] ~= win then
+			desktop[i]:update()
+		end
+		i = i + 1
+	end
 end
 
 --- Draw the given window
@@ -208,7 +349,7 @@ function lib.drawWindow(win)
 	win.container.height = ch
 	win.container.parent = win
 	logger.debug("Draw window at " .. win.x .. "x" .. win.y .. " of size " .. win.width .. "x" .. win.height)
-	win.container:redraw()
+	win:update()
 
 	for _, w in pairs(desktop) do
 		if w.x<win.x+win.width and w.x+w.width>win.x or w.y<win.y+win.height or w.y+w.height>win.y then

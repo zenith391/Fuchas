@@ -16,24 +16,27 @@ local tasks = require("tasks")
 
 windowManager.clearDesktop()
 
-local wallpaper = draw.newContext(1, 1, 160, 50)
--- TODO: convert image to an OC-specific image format which would make the
--- code lighter, the file size lower and the loading time faster
-local image = imaging.load("A:/Fuchas/Interfaces/Concert/wallpaper.bmp")
-imaging.drawImage(image, wallpaper)
-draw.drawContext(wallpaper)
-windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
+pcall(function()
+	--error("no wallpaper")
+	local wallpaper = draw.newContext(1, 1, 160, 50)
+	-- TODO: convert image to an OC-specific image format which would make the
+	-- code lighter, the file size lower and the loading time faster
+	local image = imaging.load("A:/Fuchas/Interfaces/Concert/wallpaper3.bmp")
+	imaging.drawImage(image, wallpaper)
+	draw.drawContext(wallpaper)
+	windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
+end)
 
 local taskBar = windowManager.newWindow()
 local startMenu = windowManager.newWindow()
 local startMenuEntries = {
-	{"Settings", "A:/Fuchas/Interfaces/Concert/csettings.lua"},
-	{"Task Manager", "A:/Fuchas/Interfaces/Concert/csysguard.lua"},
-	{"NeoQuack", "A:/Fuchas/Interfaces/Concert/editor.lua"},
+	{"Settings", "A:/Fuchas/Interfaces/Concert/Applications/csettings.lua"},
+	{"Task Manager", "A:/Fuchas/Interfaces/Concert/Applications/csysguard.lua"},
+	{"NeoQuack", "A:/Fuchas/Interfaces/Concert/Applications/editor.lua"},
 	{"Minesweeper", "A:/Fuchas/Interfaces/Concert/minesweeper/minesweeper.lua"},
-	{"OpenMedia Player", "A:/Fuchas/Interfaces/Concert/mediaplayer.lua"},
+	{"OpenMedia Player", "A:/Fuchas/Interfaces/Concert/Applications/mediaplayer.lua"},
 	{"Mario", "A:/Users/Shared/Binaries/subpixeltest.lua"},
-	{"Terminal", "A:/Fuchas/Interfaces/Concert/terminal.lua"},
+	{"Terminal", "A:/Fuchas/Interfaces/Concert/Applications/terminal.lua"},
 	{"Reboot", ":reboot"}
 }
 
@@ -106,6 +109,7 @@ do
 	taskBar:show()
 	do
 		local comp = ui.component()
+		comp.background = 0x000000
 		comp._render = function(self)
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
@@ -139,17 +143,37 @@ local function screenEvent(name, addr, x, y, button, player)
 			v.focused = false
 			if x >= v.x and y >= v.y and x < v.x+v.width and y < v.y+v.height then
 				focusedWin = v
-				--focusedWin:focus()
+				focusedWin:focus()
 				if not v.undecorated and y == v.y then
 					selectedWin = v
 					wtx = x - selectedWin.x
+					if x == v.x+v.width-4 then
+						if not v.maximized then
+							-- TODO: send event to owning process that window got maximized
+							v.oldPos = {v.x, v.y, v.width, v.height}
+							v.x = 1
+							v.y = 1
+							v.width = 160
+							v.height = 49
+							v.maximized = true
+							v:update()
+						else
+							v.x = v.oldPos[1]
+							v.y = v.oldPos[2]
+							v.width = v.oldPos[3]
+							v.height = v.oldPos[4]
+							v.maximized = false
+							windowManager.drawBackground(1, 1, 160, 50)
+							windowManager.drawDesktop()
+						end
+					end
 					if x == selectedWin.x+selectedWin.width-2 then
 						-- TODO: send event to owning process that window got closed
 						selectedWin:hide()
 						selectedWin = nil
 					end
-					break
 				end
+				break
 			end
 		end
 	end
@@ -164,7 +188,7 @@ windowManager.drawBackground(1, 1, 160, 50)
 windowManager.drawDesktop()
 
 while true do
-	local evt = table.pack(event.pull(1))
+	local evt = table.pack(event.pull())
 	taskBar:update()
 
 	if evt then

@@ -23,7 +23,15 @@ function lib.redrawContext(ctxn)
 	local ctx = contexts[ctxn]
 	-- TODO: optimize it such that if no change was made to a parent's buffer it could just blit
 	if ctx.buffer and not ctx.parent then
-		gpu.blit(ctx.buffer, gpu.screenBuffer(), ctx.x, ctx.y)
+		if ctx.clip then
+			for _, region in pairs(ctx.clip) do
+				local sx = region.x - ctx.x + 1
+				local sy = region.y - ctx.y + 1
+				gpu.blit(ctx.buffer, gpu.screenBuffer(), region.x, region.y, region.w, region.h, sx, sy)
+			end
+		else
+			gpu.blit(ctx.buffer, gpu.screenBuffer(), ctx.x, ctx.y)
+		end
 	else
 		ctx.drawBuffer = ctx.oldDrawBuffer
 		lib.drawContext(ctxn)
@@ -119,7 +127,20 @@ function lib.drawContext(ctxn)
 		local parent = (ctx.parent and contexts[ctx.parent]) or nil
 		local px = (parent and parent.x) or nil
 		local py = (parent and parent.y) or nil
-		gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
+		-- For now, child contexts cannot clip
+		if parent then
+			if not contexts[ctx.parent].blockChildDraw and false then
+				gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
+			end
+		elseif not ctx.clip then
+			gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
+		else
+			for _, region in pairs(ctx.clip) do
+				local sx = region.x - ctx.x + 1
+				local sy = region.y - ctx.y + 1
+				gpu.blit(ctx.buffer, gpu.screenBuffer(), region.x, region.y, region.w, region.h, sx, sy)
+			end
+		end
 		ctx.buffer:unbind()
 	end
 	ctx.oldDrawBuffer = ctx.drawBuffer
@@ -200,13 +221,8 @@ function lib.newContext(x, y, width, height, braille, parent)
 	ctx.y = y
 	ctx.width = width
 	ctx.height = height
-	ctx.braille = braille or 0
 	ctx.parent = parent
-	-- braille=0 - No braille, same default lame size as OC, full color: fastest
-	-- braille=1 - Vertical braille, allows a max resolution (T3) of 160x100, full color: faster
-	-- braille=2 - Horizontal braille, allows a max resolution (T3) of 320x50, full color: faster
-	-- braille=3 - Full braille, allows a max resolution (T3) of 320x200, monochrome: slower
-	-- braille=4 - Full braille, allows a max resolution (T3) of 320x200, averaged colors: slowest
+	ctx.clip = nil
 	ctx.drawBuffer = {}
 	if caps.hardwareBuffers then
 		if parent then
@@ -290,6 +306,19 @@ function lib.moveContext(ctx, x, y)
 	local c = contexts[ctx]
 	c.x = x
 	c.y = y
+end
+
+--- Clip the context to the given regions
+-- @tparam int ctx The ID of the draw context
+-- @tparam region[] A list of regions
+function lib.clipContext(ctx, regions)
+	local c = contexts[ctx]
+	c.clip = regions
+end
+
+function lib.setBlockingDraw(ctx, blockDraw)
+	local c = contexts[ctx]
+	c.blockChildDraw = blockDraw
 end
 
 --- Returns a canvas object made associated to the given draw context

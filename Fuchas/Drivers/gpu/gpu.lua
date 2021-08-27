@@ -149,7 +149,7 @@ function spec.new(address)
 
 		src:validate()
 		dst:validate()
-		comp.bitblt(dst.id, x, y, width, height, src.id, sx, sy)
+		comp.bitblt(dst.id, x, y, width, height, src.id, sy, sx)
 	end
 
 	function drv.screenBuffer()

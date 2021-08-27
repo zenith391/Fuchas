@@ -232,9 +232,30 @@ function lib.load(path)
 	return img
 end
 
+function lib.loadRaster(path)
+	local file, reason = io.open(path, "r")
+	if not file then
+		error(reason)
+	end
+	
+	local f = lib.getFormat(file)
+	if not f then
+		error("image type not recognized")
+	end
+	local img = f:decode(file)
+	if f:getType() ~= "raster" then
+		error("a non-raster image was loaded")
+	end
+	return img
+end
+
 function lib.getAspectRatio(image)
-	-- height * 2 as characters as twice as tall as they're wide!
-	return image.width / image.height * 2
+	if image.pixels then -- if is raster image
+		return image.width / image.height
+	else
+		-- height * 2 as characters as twice as tall as they're wide!
+		return image.width / image.height * 2
+	end
 end
 
 function lib.drawImage(image, ctxn)
@@ -246,10 +267,6 @@ function lib.drawImage(image, ctxn)
 			canvas.drawText(x, y, image.chars[pos], image.foregrounds[pos], image.backgrounds[pos])
 		end
 	end
-end
-
-function lib.loadRaster(path)
-	error("TODO")
 end
 
 return lib

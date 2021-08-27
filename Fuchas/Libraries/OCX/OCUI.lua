@@ -43,9 +43,10 @@ function lib.component()
 	comp.y = 1
 	comp.width = 1
 	comp.height = 1
-	comp.background = 0x000000
-	comp.foreground = 0xFFFFFF
+	comp.background = 0xFFFFFF
+	comp.foreground = 0x000000
 	comp.listeners = {}
+	comp.clip = nil
 	comp.dirty = true
 
 	-- Returns true if the contetx has been re-created
@@ -61,6 +62,9 @@ function lib.component()
 				draw.moveContext(self.context, self.x, self.y)
 				if w~=self.width or h~=self.height then
 					draw.closeContext(self.context)
+					if self.invalidatedContext then
+						self:invalidatedContext()
+					end
 					self.context = nil
 				end
 			end
@@ -72,7 +76,13 @@ function lib.component()
 			end]]
 			self.context = draw.newContext(self.x, self.y, self.width, self.height, 0, parentContext)
 			self.canvas = draw.canvas(self.context)
+			if self.clip then
+				draw.clipContext(self.context, self.clip)
+			end
 			return true
+		end
+		if self.clip then
+			draw.clipContext(self.context, self.clip)
 		end
 		return false
 	end
@@ -86,13 +96,22 @@ function lib.component()
 			end
 			if w ~= self.width or h ~= self.height then
 				draw.closeContext(self.context)
+				if self.invalidatedContext then
+					self:invalidatedContext()
+				end
 				self.context = nil
 			end
+		end
+		if self.dirtyUpdate then -- function for containers so they can set themselves dirty if a child is dirty
+			self:dirtyUpdate()
 		end
 		if self.context == nil or self.dirty == true then -- context has been (re-)created, previous data is lost
 			self.dirty = false
 			self:render()
 		else
+			if self.clip then
+				draw.clipContext(self.context, self.clip)
+			end
 			draw.redrawContext(self.context) -- can benefit of optimization if GPU buffers are present
 		end
 	end
@@ -139,12 +158,35 @@ function lib.container()
 		self:initRender()
 		self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 		draw.drawContext(self.context) -- finally draw
+		draw.setBlockingDraw(self.context, true)
 		for _, c in pairs(self.childrens) do
 			c.x = c.x + self.x - 1
 			c.y = c.y + self.y - 1
 			c:redraw()
 			c.x = c.x - self.x + 1
 			c.y = c.y - self.y + 1
+		end
+		draw.setBlockingDraw(self.context, false)
+		draw.drawContext(self.context)
+	end
+
+	comp.dirtyUpdate = function(self)
+		for _, c in pairs(self.childrens) do
+			if c.dirty then
+				self.dirty = true
+			end
+		end
+	end
+
+	comp.invalidatedContext = function(self)
+		for _, c in pairs(self.childrens) do
+			if c.context then
+				draw.freeContext(c.context)
+				if c.invalidatedContext then
+					c:invalidatedContext()
+				end
+				c.context = nil
+			end
 		end
 	end
 	
@@ -176,6 +218,28 @@ function lib.label(text)
 		self.text = text
 		self.width = text:len()
 		self.dirty = true
+	end
+	return comp
+end
+
+function lib.button(label, onAction)
+	local comp = lib.component()
+	comp.background = 0x2D2D2D
+	comp.foreground = 0xFFFFFF
+	comp.label = label or "Button"
+	comp.width = comp.label:len()
+	comp.onAction = onAction
+	comp._render = function(self)
+		self.canvas.drawText(1, 1, " " .. self.label .. " ", self.foreground, self.background) -- draw button
+	end
+
+	comp.setText = function(self, label)
+		self.label = label
+		self.dirty = true
+	end
+
+	comp.listeners["touch"] = function(self, ...)
+		self.onAction()
 	end
 	return comp
 end
