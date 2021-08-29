@@ -148,4 +148,4 @@ local lib = setmetatable({}, {
 	end
 })
 
-return package
+return lib

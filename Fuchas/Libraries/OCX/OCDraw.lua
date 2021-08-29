@@ -124,21 +124,23 @@ function lib.drawContext(ctxn)
 		::continue::
 	end
 	if ctx.buffer then
-		local parent = (ctx.parent and contexts[ctx.parent]) or nil
-		local px = (parent and parent.x) or nil
-		local py = (parent and parent.y) or nil
-		-- For now, child contexts cannot clip
-		if parent then
-			if not contexts[ctx.parent].blockChildDraw and false then
+		if not ctx.blockDraw then
+			local parent = (ctx.parent and contexts[ctx.parent]) or nil
+			local px = (parent and parent.x) or nil
+			local py = (parent and parent.y) or nil
+			-- For now, child contexts cannot clip
+			if parent then
+				if not contexts[ctx.parent].blockDraw and false then
+					gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
+				end
+			elseif not ctx.clip then
 				gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
-			end
-		elseif not ctx.clip then
-			gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
-		else
-			for _, region in pairs(ctx.clip) do
-				local sx = region.x - ctx.x + 1
-				local sy = region.y - ctx.y + 1
-				gpu.blit(ctx.buffer, gpu.screenBuffer(), region.x, region.y, region.w, region.h, sx, sy)
+			else
+				for _, region in pairs(ctx.clip) do
+					local sx = region.x - ctx.x + 1
+					local sy = region.y - ctx.y + 1
+					gpu.blit(ctx.buffer, gpu.screenBuffer(), region.x, region.y, region.w, region.h, sx, sy)
+				end
 			end
 		end
 		ctx.buffer:unbind()
@@ -318,7 +320,7 @@ end
 
 function lib.setBlockingDraw(ctx, blockDraw)
 	local c = contexts[ctx]
-	c.blockChildDraw = blockDraw
+	c.blockDraw = blockDraw
 end
 
 --- Returns a canvas object made associated to the given draw context

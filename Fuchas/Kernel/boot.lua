@@ -2,7 +2,7 @@ _G.OSDATA = {
 	NAME = "Fuchas",
 	VERSION = "0.7.0",
 	BUILD_DATE = "Tue Apr 20 19:00:00 UTC 2021",
-	DEBUG = false,
+	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
 		DEFAULT_INTERFACE = "Concert",
@@ -188,36 +188,6 @@ if computer.supportsOEFI() then
 end
 print("(3/5) Loading filesystems")
 package.loadPreBoot("filesystem", assert(loadfile("/Fuchas/Libraries/filesystem.lua"))())
-_G.io = {}
-print("(4/5) Mounting A: drive..")
-local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
-if not g then
-	print("Error while mounting A drive: " .. h)
-end
-package.loadPreBoot("event", assert(loadfile("/Fuchas/Libraries/event.lua"))())
-package.loadPreBoot("log", assert(loadfile("/Fuchas/Libraries/log.lua"))())
-package.loadPreBoot("tasks", assert(loadfile("/Fuchas/Libraries/tasks.lua"))())
-local security = assert(loadfile("/Fuchas/Libraries/security.lua"))()
-package.loadPreBoot("security", security)
-
-local nextLetter = string.byte('B')
-for k, v in component.list() do -- TODO: check if letter is over Z
-	if k ~= computer.getBootAddress() and k ~= computer.tmpAddress() then -- drive are initialized later
-		if v == "filesystem" then
-			if string.char(nextLetter) == "T" then
-				print("    Cannot continue mounting! Too much drives")
-				break
-			end
-			print("      Mounting " .. string.char(nextLetter) .. ": drive..")
-			require("filesystem").mountDrive(component.proxy(k), string.char(nextLetter))
-			nextLetter = nextLetter + 1
-		end
-	end
-end
-
-print("(4/5) Mounting T: drive..")
-require("filesystem").mountDrive(component.proxy(computer.tmpAddress()), "T")
-
 loadfile = function(path)
 	local file, reason = require("filesystem").open(path, "r")
 	if not file then
@@ -236,6 +206,42 @@ loadfile = function(path)
 	file:close()
 	return load(buffer, "=" .. path, "bt", _G)
 end
+_G.io = {}
+print("(4/5) Mounting A: drive..")
+local g, h = require("filesystem").mountDrive(component.proxy(computer.getBootAddress()), "A")
+if not g then
+	print("Error while mounting A drive: " .. h)
+end
+package.loadPreBoot("event", assert(loadfile("A:/Fuchas/Libraries/event.lua"))())
+package.loadPreBoot("log", assert(loadfile("A:/Fuchas/Libraries/log.lua"))())
+package.loadPreBoot("tasks", assert(loadfile("A:/Fuchas/Libraries/tasks.lua"))())
+local security = assert(loadfile("A:/Fuchas/Libraries/security.lua"))()
+package.loadPreBoot("security", security)
+
+local bootSplash = function(step, maxStep, text)
+	print("(" .. step .. "/" .. maxStep .. ") " .. text)
+end
+if require("filesystem").exists("A:/Fuchas/Interfaces/" .. _G.OSDATA.CONFIG.DEFAULT_INTERFACE .. "/boot_splash.lua") then
+	bootSplash = loadfile("A:/Fuchas/Interfaces/" .. _G.OSDATA.CONFIG.DEFAULT_INTERFACE .. "/boot_splash.lua")()
+end
+
+local nextLetter = string.byte('B')
+for k, v in component.list() do -- TODO: check if letter is over Z
+	if k ~= computer.getBootAddress() and k ~= computer.tmpAddress() then -- drive are initialized later
+		if v == "filesystem" then
+			if string.char(nextLetter) == "T" then
+				print("    Cannot continue mounting! Too much drives")
+				break
+			end
+			bootSplash(4, 5, "Mounting " .. string.char(nextLetter) .. ": drive..")
+			require("filesystem").mountDrive(component.proxy(k), string.char(nextLetter))
+			nextLetter = nextLetter + 1
+		end
+	end
+end
+
+bootSplash(4, 5, "Mounting T: drive..")
+require("filesystem").mountDrive(component.proxy(computer.tmpAddress()), "T")
 
 local function protectEnv()
 	local toProtect = {"bit32", "string", "debug", "coroutine"} -- "package" is auto-protected inside its code (see package.lua)
@@ -283,16 +289,17 @@ local function protectEnv()
 	setmetatable(_ENV, mt)
 end
 
-computer.pushSignal("Finish starting Fuchas!")
+computer.pushSignal("boot_ended")
 
 local ok, err = xpcall(function()
 	for k, v in require("filesystem").list("A:/Fuchas/Kernel/Startup/") do
-		print("(5/5) Loading " .. k .. "..")
+		bootSplash(5, 5, "Loading " .. k .. "..")
 		dofile("A:/Fuchas/Kernel/Startup/" .. k)
 	end
 	package.endBootPhase()
 	security.lateInit()
 	protectEnv()
+	bootSplash(5, 5, "Loading " .. OSDATA.CONFIG["DEFAULT_INTERFACE"] .. "..")
 	dofile("A:/Fuchas/bootmgr.lua")
 end, function(err)
 		local computer = (computer or package.loaded.computer)

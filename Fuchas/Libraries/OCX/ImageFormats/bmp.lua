@@ -77,10 +77,10 @@ function format:decode(file)
 			end
 			local rgb = (r << 16) | (g << 8) | b
 			if not pixels[i] then pixels[i] = {} end
-			pixels[i][j] = rgb
+			pixels[(j-1)*width + i] = rgb
 		end
-		if width*3 % 4 ~= 0 then
-			file:read(4 - width*3 % 4)
+		if width*bytes % 4 ~= 0 then
+			file:read(4 - width*bytes % 4)
 		end
 	end
 

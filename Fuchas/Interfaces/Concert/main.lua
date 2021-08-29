@@ -178,7 +178,7 @@ local function screenEvent(name, addr, x, y, button, player)
 		end
 	end
 	if name == "drag" then
-		if selectedWin ~= nil then
+		if selectedWin ~= nil and not selectedWin.maximized then
 			windowManager.moveWindow(selectedWin, x-wtx, y)
 		end
 	end

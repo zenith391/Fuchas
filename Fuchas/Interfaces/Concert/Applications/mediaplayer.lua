@@ -82,7 +82,7 @@ while window.visible do
 			os.sleep(0)
 		end
 		timeLabel:setText("Time: " .. math.floor(time/1000) .. "s")
-		window:update()
+		timeLabel:redraw()
 		refreshed = true
 		lastProcess = time
 	end

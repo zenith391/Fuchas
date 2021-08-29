@@ -264,13 +264,19 @@ end
 -- @int width The width of the background section
 -- @int height The height of the background section
 function lib.drawBackground(x, y, width, height)
+	if x+width > 160 then
+		width = 160-x
+	end
+	if y+height > 50 then
+		height = 50-y
+	end
+	if x < 1 or y < 1 or width < 1 or height < 1 then return end
 	if wallpaperBuffer then
 		gpu.blit(wallpaperBuffer, gpu.screenBuffer(), x, y, width, height, x, y)
 	else
 		gpu.setColor(0xAAAAAA)
 		gpu.fill(x, y, width, height)
 	end
-	-- TODO: render non-covered part of beneath windows
 end
 
 --- Move the given window

@@ -2,7 +2,6 @@
 -- @module OCX.OCImage
 -- @alias lib
 local fs = require("filesystem")
-local draw = require("OCX/OCDraw")
 -- TODO: use code from iview
 
 local lib = {}
@@ -42,7 +41,7 @@ function lib.create(width, height, bpp, alpha)
 	return img
 end
 
-local function convertFromRaster(image, opts)
+function lib.convertFromRaster(image, opts)
 	local chars = {}
 	local backgrounds = {}
 	local foregrounds = {}
@@ -51,7 +50,6 @@ local function convertFromRaster(image, opts)
 	local charsHeight = image.height // 4
 
 	local carriedError = {}
-	local gpu = require("driver").gpu
 
 	local function brailleCharRaw(a, b, c, d, e, f, g, h)
 		return 10240 + 128 * h + 64 * g + 32 * f + 16 * d + 8 * b + 4 * e + 2 * c + a
@@ -104,9 +102,12 @@ local function convertFromRaster(image, opts)
 	end
 
 	local start = computer.uptime()
-	local gpuPalette = {}
-	for i=1, gpu.getColors() do
-		gpuPalette[i] = fromRGB(gpu.palette[i])
+	if opts["advancedDithering"] then
+		local gpu = require("driver").gpu
+		local gpuPalette = {}
+		for i=1, gpu.getColors() do
+			gpuPalette[i] = fromRGB(gpu.palette[i])
+		end
 	end
 	for y=1, image.height, 4 do
 		if computer.uptime() > start + 1 then -- avoid 'too long without yielding'
@@ -117,7 +118,8 @@ local function convertFromRaster(image, opts)
 			local colorsOccurances = {}
 			for dy=0, 3 do
 				for dx=0, 1 do
-					local rgb = image.pixels[x+dx][y+dy]
+					local fx, fy = x+dx, y+dy
+					local rgb = image.pixels[(fy-1)*image.width + fx] or 0
 
 					if opts["advancedDithering"] then
 						local error = carriedError[x+dx][y+dy] or {r=0,g=0,b=0}
@@ -153,7 +155,8 @@ local function convertFromRaster(image, opts)
 			local usedColors = {}
 			for dy=0, 3 do
 				for dx=0, 1 do
-					local rgb = fromRGB(image.pixels[x+dx][y+dy])
+					local fx, fy = x+dx, y+dy
+					local rgb = fromRGB(image.pixels[(fy-1)*image.width + fx] or 0)
 					local error = carriedError[x+dx][y+dy] or { r = 0, g = 0, b = 0 }
 					rgb = sub(rgb, error)
 					--carriedError[x+dx][y+dx] = nil -- remove when unused
@@ -215,8 +218,44 @@ local function convertFromRaster(image, opts)
 	}
 end
 
+function lib.scale(image, tw, th)
+	local pixels = {}
+	local hScale = tw / image.width
+	local vScale = th / image.height
+	for y=1, th do
+		for x=1, tw do
+			local pos = (y-1) * tw + (x-1) + 1
+			pixels[pos] = 0x2D2D2D
+		end
+	end
+
+	for y=1, image.height do
+		for x=1, image.width do
+			local nx = math.floor((x-1) * hScale)
+			local ny = math.floor((y-1) * vScale)
+			local pos = (y-1) * image.width + (x-1) + 1
+			for dx=1, math.ceil(hScale) do
+				for dy=1, math.ceil(vScale) do
+					local npos = (ny+dy-1) * tw + (nx+dx-1) + 1
+					pixels[npos] = image.pixels[pos]
+				end
+			end
+		end
+	end
+	return {
+		width = tw,
+		height = th,
+		pixels = pixels
+	}
+end
+
 function lib.load(path)
-	local file, reason = io.open(path, "r")
+	local file, reason
+	if io then
+		file, reason = io.open(path, "r")
+	else
+		file, reason = require("buffer").from(fs.open(path, "r"))
+	end
 	if not file then
 		error(reason)
 	end
@@ -227,13 +266,13 @@ function lib.load(path)
 	end
 	local img = f:decode(file)
 	if f:getType() == "raster" then
-		return convertFromRaster(img, { dithering = "none", advancedDithering = false })
+		return lib.convertFromRaster(img, { dithering = "none", advancedDithering = false })
 	end
 	return img
 end
 
 function lib.loadRaster(path)
-	local file, reason = io.open(path, "r")
+	local file, reason = require("buffer").from(fs.open(path, "r"))
 	if not file then
 		error(reason)
 	end
@@ -258,8 +297,19 @@ function lib.getAspectRatio(image)
 	end
 end
 
+function lib.drawGPU(image, gpu, x, y)
+	for dy=1, image.height do
+		for dx=1, image.width do
+			local pos = (dy-1) * image.width + (dx-1) + 1
+			gpu.setForeground(image.foregrounds[pos])
+			gpu.setBackground(image.backgrounds[pos])
+			gpu.set(x+dx-1, y+dy-1, image.chars[pos])
+		end
+	end
+end
+
 function lib.drawImage(image, ctxn)
-	local canvas = draw.canvas(ctxn)
+	local canvas = require("OCX/OCDraw").canvas(ctxn)
 
 	for y=1, image.height do
 		for x=1, image.width do

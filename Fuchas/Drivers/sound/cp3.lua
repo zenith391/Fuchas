@@ -93,7 +93,8 @@ function spec.new(address)
 	end
 
 	function drv.getMaxChannels()
-		return sound.channel_count
+		-- Floored so it returns an integer instead of a float which would cause printing it as 8.0
+		return math.floor(sound.channel_count)
 	end
 
 	function drv.setVolume(channel, volume)

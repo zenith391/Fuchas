@@ -18,7 +18,6 @@ local interface = tasks.newProcess("System Interface", function()
 	dofile("A:/Fuchas/autorun.lua") -- system variables autorun
 	local f, err = xpcall(function()
 		require("users").login("guest") -- no password required
-		print("(5/5) Loading " .. OSDATA.CONFIG["DEFAULT_INTERFACE"])
 		while true do
 			local name, _, char, code = require("event").pull(0)
 			if not name then
@@ -60,7 +59,7 @@ local interface = tasks.newProcess("System Interface", function()
 			local ok, services = pcall(require("liblon").loadlon, fileStream)
 			fileStream:close()
 			if ok and services then
-				print("Starting services")
+				--print("Starting services")
 				if fs.exists("A:/Fuchas/Services") then
 					for k, v in fs.list("A:/Fuchas/Services") do
 						local fp = fs.concat("A:/Fuchas/Services/", k)

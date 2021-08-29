@@ -105,6 +105,10 @@ function lib.component()
 		if self.dirtyUpdate then -- function for containers so they can set themselves dirty if a child is dirty
 			self:dirtyUpdate()
 		end
+		if self.parent and self.parent.context and not self.parent.rendering and self.dirty then
+			self.parent:redraw()
+			return
+		end
 		if self.context == nil or self.dirty == true then -- context has been (re-)created, previous data is lost
 			self.dirty = false
 			self:render()
@@ -117,9 +121,11 @@ function lib.component()
 	end
 
 	function comp:render()
+		self.rendering = true
 		self:initRender()
 		self:_render()
 		draw.drawContext(self.context)
+		self.rendering = false
 	end
 
 	-- This function should not be called directly
@@ -142,23 +148,36 @@ function lib.component()
 	return comp
 end
 
+-- Each component is on its own line
+
+function lib.LineLayout(opts)
+	return function(container)
+		local flowY = 1
+		for _, child in pairs(container.childrens) do
+			child.y = flowY
+			flowY = flowY + child.height + (opts.spacing or 0)
+		end
+	end
+end
+
 function lib.container()
 	local comp = lib.component()
 	comp.childrens = {}
+	comp.layout = function(self) end -- no-op = fixed layout
 	
-	comp.add = function(self, component)
+	comp.add = function(self, component, pos)
 		if not component then
 			error("cannot add null to container")
 		end
 		component.parent = self
-		return table.insert(self.childrens, component)
+		return table.insert(self.childrens, pos or (#self.childrens+1), component)
 	end
 	
-	comp.render = function(self)
-		self:initRender()
+	comp._render = function(self)
+		self:layout()
 		self.canvas.fillRect(1, 1, self.width, self.height, self.background)
-		draw.drawContext(self.context) -- finally draw
 		draw.setBlockingDraw(self.context, true)
+		draw.drawContext(self.context) -- just flush the background clear
 		for _, c in pairs(self.childrens) do
 			c.x = c.x + self.x - 1
 			c.y = c.y + self.y - 1
@@ -167,11 +186,11 @@ function lib.container()
 			c.y = c.y - self.y + 1
 		end
 		draw.setBlockingDraw(self.context, false)
-		draw.drawContext(self.context)
 	end
 
 	comp.dirtyUpdate = function(self)
 		for _, c in pairs(self.childrens) do
+			if c.dirtyUpdate then c:dirtyUpdate() end
 			if c.dirty then
 				self.dirty = true
 			end
@@ -181,7 +200,7 @@ function lib.container()
 	comp.invalidatedContext = function(self)
 		for _, c in pairs(self.childrens) do
 			if c.context then
-				draw.freeContext(c.context)
+				draw.closeContext(c.context)
 				if c.invalidatedContext then
 					c:invalidatedContext()
 				end
@@ -189,18 +208,27 @@ function lib.container()
 			end
 		end
 	end
+
+	comp.listeners["touch"] = function(self, id, addr, x, y, ...)
+		self.focused = nil
+		for _, child in pairs(comp.childrens) do
+			local cx = child.x
+			local cy = child.y
+			if x >= cx and y >= cy and x < cx + child.width and y < cy + child.height then
+				self.focused = child
+			end
+		end
+		self.listeners["*"](self, id, addr, x, y, ...)
+	end
 	
 	comp.listeners["*"] = function(self, ...)
 		local id = select(1, ...)
-		for _, c in pairs(comp.childrens) do
-			if c.listeners[id] then
-				c.listeners[id](c, ...)
-				goto continue
+		if self.focused then
+			if self.focused.listeners[id] then
+				self.focused.listeners[id](self.focused, ...)
+			elseif self.focused.listeners["*"] then
+				self.focused.listeners["*"](self.focused, ...)
 			end
-			if c.listeners["*"] then
-				c.listeners["*"](c, ...)
-			end
-			::continue::
 		end
 	end
 	return comp
@@ -240,6 +268,33 @@ function lib.button(label, onAction)
 
 	comp.listeners["touch"] = function(self, ...)
 		self.onAction()
+	end
+	return comp
+end
+
+function lib.checkBox(label, onChanged)
+	local comp = lib.component()
+	comp.label = label or "Check Box"
+	comp.width = comp.label:len() + 2
+	comp.onChanged = onChanged
+	comp.active = false
+	comp._render = function(self)
+		local check = unicode.char(0x2B55)
+		if self.active then check = unicode.char(0x2B24) end
+		self.canvas.drawText(1, 1, check .. " " .. self.label, self.foreground, self.background)
+	end
+
+	comp.setText = function(self, label)
+		self.label = label
+		self.width = label:len() + 4
+		self.dirty = true
+	end
+
+	comp.listeners["touch"] = function(self, ...)
+		self.active = not self.active
+		self.dirty = true
+		self:onChanged(self.active)
+		self:redraw()
 	end
 	return comp
 end
