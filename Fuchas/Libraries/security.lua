@@ -19,6 +19,8 @@ end
 -- TODO! Implement https://github.com/zenith391/Fuchas/wiki
 local function loadUserPermissions()
 	local fileStream = io.open("A:/Fuchas/permissions.lon")
+	-- As it is called during boot, calling coroutine.yield would have OC wait for an event
+	fileStream.greedy = true
 	if not fileStream then
 		error("Could not load permissions, 0 permissions given.")
 	end

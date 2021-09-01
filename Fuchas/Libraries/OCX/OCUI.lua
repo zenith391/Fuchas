@@ -89,6 +89,13 @@ function lib.component()
 
 	-- Call this method if you want to draw a component to screen but don't need it to be up-to-date.
 	function comp:redraw()
+		if self.dirtyUpdate then -- function for containers so they can set themselves dirty if a child is dirty
+			self:dirtyUpdate()
+		end
+		if self.parent and self.parent.context and not self.parent.rendering and self.dirty then
+			self.parent:redraw()
+			return
+		end
 		if self.context ~= nil then
 			local x,y,w,h = draw.getContextBounds(self.context)
 			if x ~= self.x or y ~= self.y then
@@ -101,13 +108,6 @@ function lib.component()
 				end
 				self.context = nil
 			end
-		end
-		if self.dirtyUpdate then -- function for containers so they can set themselves dirty if a child is dirty
-			self:dirtyUpdate()
-		end
-		if self.parent and self.parent.context and not self.parent.rendering and self.dirty then
-			self.parent:redraw()
-			return
 		end
 		if self.context == nil or self.dirty == true then -- context has been (re-)created, previous data is lost
 			self.dirty = false

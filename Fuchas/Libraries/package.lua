@@ -56,7 +56,7 @@ function require(module)
 					-- This doesn't allow changing a loaded library but allow setting it to nil (cleaning cache).
 					__newindex = function(self, key, value)
 						if value == nil then
-							loaded[key] = value
+							loaded[key] = nil
 						else
 							error("cannot edit package cache")
 						end

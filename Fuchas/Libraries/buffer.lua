@@ -16,6 +16,8 @@ function buffer.from(handle)
 	stream.wsize = require("config").buffer.defaultWriteBufferSize
 	stream.wmode = "full"
 	stream.off = 0
+	-- if a stream is greedy, it will not call coroutine.yield
+	stream.greedy = false
 
 	function stream:close()
 		self:flush()
@@ -98,7 +100,9 @@ function buffer.from(handle)
 			while true do
 				local r = self.stream:read(math.huge)
 				self.off = self.stream:seek("cur", 0)
-				coroutine.yield() -- to release the CPU atleast some time
+				if not stream.greedy and s ~= " " then
+					coroutine.yield()
+				end
 				if r == nil then
 					break
 				end
