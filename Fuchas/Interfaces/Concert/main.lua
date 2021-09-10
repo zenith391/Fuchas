@@ -189,9 +189,11 @@ windowManager.drawDesktop()
 
 while true do
 	local evt = table.pack(event.pull())
-	taskBar:update()
+	if not windowManager.hasExclusiveContext() then
+		taskBar:update()
+	end
 
-	if evt then
+	if evt and not windowManager.hasExclusiveContext() then
 		local name = evt[1]
 		local oldfocused = focusedWin
 		if name == "touch" or name == "drag" then

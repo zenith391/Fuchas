@@ -12,6 +12,8 @@ local desktop = {}
 -- The buffer containing the desktop wallpaper
 local wallpaperBuffer
 
+local exclusiveContext = nil
+
 local function titleBar()
 	local comp = ui.component()
 	comp._render = function(self)
@@ -165,7 +167,7 @@ function lib.newWindow(width, height, title)
 	end
 
 	function window:update()
-		if self.visible then
+		if self.visible and not exclusiveContext then
 			local cy = self.y+1
 			local ch = self.height-1
 			if self.undecorated then
@@ -281,6 +283,15 @@ end
 
 --- Move the given window
 function lib.moveWindow(win, targetX, targetY)
+	if exclusiveContext then
+		win.x = targetX
+		win.y = targetY
+		win.titleBar.x = win.x
+		win.titleBar.y = win.y
+		win.container.x = win.x
+		win.container.y = (win.undecorated and win.y) or (win.y + 1)
+		return
+	end
 	local rw, rh = gpu.getResolution()
 	
 	-- delta-X and delta-Y, the change between the last position of the window and the new one.
@@ -334,6 +345,7 @@ end
 
 --- Draw the given window
 function lib.drawWindow(win)
+	if exclusiveContext then return end
 	if not win.undecorated then
 		win.titleBar.x = win.x
 		win.titleBar.y = win.y
@@ -364,14 +376,48 @@ function lib.drawWindow(win)
 	end
 end
 
+--- Returns context if the caller can now use the GPU driver freely by temporarily disabling the window manager
+--- This could typically be used for games or fullscreen Fushell programs.
+function lib.requestExclusiveContext()
+	if exclusiveContext then
+		return false
+	end
+
+	local context = {
+		pid = require("tasks").getCurrentProcess().pid
+	}
+	function context:release()
+		if exclusiveContext == self then
+			exclusiveContext = nil
+			lib.forceDrawDesktop()
+		end
+	end
+
+	exclusiveContext = context
+	return context
+end
+
+function lib.hasExclusiveContext()
+	return exclusiveContext ~= nil
+end
+
 function lib.setWallpaper(buffer)
 	wallpaperBuffer = buffer
+end
+
+-- Forcibly redraw all of the desktop, including background
+function lib.forceDrawDesktop()
+	lib.drawBackground(1, 1, 160, 50)
+	for _, win in pairs(desktop) do
+		win.dirty = true
+	end
+	lib.drawDesktop()
 end
 
 --- Draw all the windows in the desktop
 function lib.drawDesktop()
 	for _, win in pairs(desktop) do
-		if win.visible and win.dirty then
+		if win.visible and win.dirty and not exclusiveContext then
 			lib.drawWindow(win)
 			-- win.dirty = false
 		end
