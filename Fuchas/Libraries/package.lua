@@ -57,8 +57,10 @@ function require(module)
 					__newindex = function(self, key, value)
 						if value == nil then
 							loaded[key] = nil
-						else
+						elseif package.exists(key) then
 							error("cannot edit package cache")
+						else
+							loaded[key] = value
 						end
 					end
 				})

@@ -82,9 +82,10 @@ function lib.drawContext(ctxn)
 				x = ctx.x + x - 1
 				y = ctx.y + y - 1
 			end
+
+			x = x + dx
+			y = y + dy
 		end
-		x = x + dx
-		y = y + dy
 		local width = v.width
 		local height = v.height
 		local color = v.color
@@ -118,7 +119,11 @@ function lib.drawContext(ctxn)
 			end
 		else
 			if v.args then
-				g[t](table.unpack(v.args))
+				if v.positional then
+					g[t](ctx.x + v.args[1] - 1, ctx.y + v.args[2] - 1, table.unpack(v.args, 3))
+				else
+					g[t](table.unpack(v.args))
+				end
 			end
 		end
 		::continue::
@@ -171,9 +176,9 @@ local function pushToBuf(ctx, func, x, y, ...)
 		ctx.buffer:unbind()
 	else
 		if x and y then
-			table.insert(ctx.drawBuffer, {type=func,args={ctx.x+x, ctx.y+y, ...}})
+			table.insert(ctx.drawBuffer, {type=func,args={x, y, ...},positional=true})
 		else
-			table.insert(ctx.drawBuffer, {type=func,args={x, y, ...}})
+			table.insert(ctx.drawBuffer, {type=func,args={x, y, ...},positional=false})
 		end
 	end
 end

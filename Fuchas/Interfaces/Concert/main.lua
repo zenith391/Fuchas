@@ -14,18 +14,62 @@ local ui = require("OCX/OCUI")
 local imaging = require("OCX/OCImage")
 local tasks = require("tasks")
 
+local config = nil
+local defaultConfig = {
+	useWallpaper = true,
+	wallpaperPath = "A:/Fuchas/Interfaces/Concert/wallpaper3.bmp"
+}
+do
+	local file = io.open("A:/Fuchas/Interfaces/Concert/config.cfg", "r")
+	if not file then
+		config = defaultConfig
+
+		file = io.open("A:/Fuchas/Interfaces/Concert/config.cfg", "w")
+		file:write(require("liblon").sertable(config, 1, true))
+		file:close()
+	else
+		local ok
+		ok, config = pcall(require("liblon").loadlon, file)
+		if ok == false then
+			config = defaultConfig
+
+			file = io.open("A:/Fuchas/Interfaces/Concert/config.cfg", "w")
+			file:write(require("liblon").sertable(config, 1, true))
+			file:close()
+		end
+		file:close()
+	end
+end
+
 windowManager.clearDesktop()
 
-pcall(function()
-	--error("no wallpaper")
-	local wallpaper = draw.newContext(1, 1, 160, 50)
-	-- TODO: convert image to an OC-specific image format which would make the
-	-- code lighter, the file size lower and the loading time faster
-	local image = imaging.load("A:/Fuchas/Interfaces/Concert/wallpaper3.bmp")
-	imaging.drawImage(image, wallpaper)
-	draw.drawContext(wallpaper)
-	windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
-end)
+local api = {}
+function api.loadWallpaper()
+	local ok, err = pcall(function()
+		--error("no wallpaper")
+		local wallpaper = draw.newContext(1, 1, 160, 50)
+		-- TODO: convert image to an OC-specific image format which would make the
+		-- code lighter, the file size lower and the loading time faster
+		local image = imaging.load(config.wallpaperPath)
+		imaging.drawImage(image, wallpaper)
+		draw.drawContext(wallpaper)
+		windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
+		windowManager.forceDrawDesktop()
+	end)
+	if not ok then return err end
+end
+
+function api.unloadWallpaper()
+	windowManager.setWallpaper(nil)
+	windowManager.forceDrawDesktop()
+end
+
+package.loaded.concert = api
+
+local caps = require("driver").gpu.getCapabilities()
+if config.useWallpaper and config.wallpaperPath and caps.hardwareBuffers then
+	api.loadWallpaper()
+end
 
 local taskBar = windowManager.newWindow()
 local startMenu = windowManager.newWindow()

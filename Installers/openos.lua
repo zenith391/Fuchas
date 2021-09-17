@@ -14,12 +14,13 @@ local run           = true
 local cpioURL       = "https://bwsecondary.ddns.net/fuchas/releases/master.cpio"
 local repoURL       = "https://raw.githubusercontent.com/zenith391/Fuchas/master/"
 local devRelease    = false
+local doErase = false
 local downloading   = ""
 local baseDir = os.getenv("BASE_DIR") or "/"
 local cpioBaseDir = os.getenv("CPIO_BASE_DIR") or "/" -- for fast write speeds
 
-if baseDir:sub(-1) ~= "/" then
-	error("You forgot the '/' at the end of the 'BASE_DIR' environment variable!")
+if baseDir:sub(-1) ~= "/" then -- missing '/' at the end of BASE_DIR
+	baseDir = baseDir .. "/"
 end
 
 node = filesystem.findNode(baseDir)
@@ -86,7 +87,7 @@ local function ext(stream)
 		gpu.setBackground(0x000000)
 		gpu.fill(1, 1, 80, 25, ' ')
 		gpu.set(width / 2 - 9, 1, "Fuchas Installation")
-		gpu.set(5, 5, "Downloading..")
+		gpu.set(5, 5, "Installing..")
 		gpu.set(5, 6, name)
 		
 		if (dent.namesize % 2 ~= 0) then
@@ -207,7 +208,6 @@ local function drawStage()
 			gpu.set(5, 5, "Erasing OpenOS is untested.")
 			gpu.set(5, 6, "For security reasons, dual-boot will be chosen")
 			gpu.set(5, 8, "Please wait..")
-			doErase = false
 		end
 	end
 	if stage == 4 then
@@ -265,7 +265,6 @@ local function drawStage()
 	end
 end
 
-local doErase = false
 local function install()
 	local tmpCpio = io.open(cpioBaseDir .. "fuchas.cpio", "w")
 	if not tmpCpio then

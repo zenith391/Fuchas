@@ -266,11 +266,12 @@ end
 -- @int width The width of the background section
 -- @int height The height of the background section
 function lib.drawBackground(x, y, width, height)
-	if x+width > 160 then
-		width = 160-x
+	local rw, rh = gpu.getResolution()
+	if x+width-1 > rw then
+		width = rw-x
 	end
-	if y+height > 50 then
-		height = 50-y
+	if y+height > rh then
+		height = rh-y
 	end
 	if x < 1 or y < 1 or width < 1 or height < 1 then return end
 	if wallpaperBuffer then
