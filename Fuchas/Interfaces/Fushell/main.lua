@@ -36,14 +36,16 @@ end
 -- splash
 if not os.getenv("INTERFACE") then -- if this is launched at boot
 	print("Fushell on " .. _OSVERSION)
-	os.setenv("PWD", "A:/")
+	os.setenv("INTERFACE", "Fushell")
 	if OSDATA.CONFIG["SAFE_MODE"] then
 		print("/!\\ Safe Mode has been enabled! Services and non-essential drivers aren't loaded!")
 	else
 		print("Type \"help\" if you're new! \"doc\" also helps.")
 	end
 	if computer.getArchitecture() == "Lua 5.2" then
-		for k, v in pairs(computer.getArchitectures()) do
+		local ok, architectures = pcall(computer.getArchitectures)
+		if not ok then architectures = {} end
+		for k, v in pairs(architectures) do
 			if v == "Lua 5.3" then
 					printCentered("/!\\ Fuchas has detected that the Lua 5.3 architecture is available but not in use.")
 			  	if OSDATA.CONFIG["AUTO_SET_ARCH"] then
@@ -62,7 +64,9 @@ if not os.getenv("INTERFACE") then -- if this is launched at boot
 	::cont::
 end
 
-os.setenv("INTERFACE", "Fushell")
+if not os.getenv("PWD") or os.getenv("PWD") == "" then
+	os.setenv("PWD", "A:/")
+end
 
 local function execCmd(l)
 	local async = false

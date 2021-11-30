@@ -13,6 +13,8 @@ local draw = require("OCX/OCDraw")
 local ui = require("OCX/OCUI")
 local imaging = require("OCX/OCImage")
 local tasks = require("tasks")
+local gpu = require("driver").gpu
+gpu.setResolution(gpu.maxResolution())
 
 local config = nil
 local defaultConfig = {
@@ -47,10 +49,14 @@ local api = {}
 function api.loadWallpaper()
 	local ok, err = pcall(function()
 		--error("no wallpaper")
-		local wallpaper = draw.newContext(1, 1, 160, 50)
+		local rw, rh = gpu.getResolution()
+		local wallpaper = draw.newContext(1, 1, rw, rh)
 		-- TODO: convert image to an OC-specific image format which would make the
 		-- code lighter, the file size lower and the loading time faster
-		local image = imaging.load(config.wallpaperPath)
+		local image = imaging.loadRaster(config.wallpaperPath)
+		image = imaging.scale(image, rw * 2, rh * 4)
+		image = imaging.convertFromRaster(image, { dithering = "floyd-steinberg", advancedDithering = true })
+
 		imaging.drawImage(image, wallpaper)
 		draw.drawContext(wallpaper)
 		windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
@@ -66,7 +72,7 @@ end
 
 package.loaded.concert = api
 
-local caps = require("driver").gpu.getCapabilities()
+local caps = gpu.getCapabilities()
 if config.useWallpaper and config.wallpaperPath and caps.hardwareBuffers then
 	api.loadWallpaper()
 end
@@ -81,6 +87,7 @@ local startMenuEntries = {
 	{"OpenMedia Player", "A:/Fuchas/Interfaces/Concert/Applications/mediaplayer.lua"},
 	{"Mario", "A:/Users/Shared/Binaries/subpixeltest.lua"},
 	{"Terminal", "A:/Fuchas/Interfaces/Concert/Applications/terminal.lua"},
+	{"Flarefox", "A:/Users/Shared/Binaries/flarefox.lua"},
 	{"Reboot", ":reboot"}
 }
 
@@ -131,7 +138,7 @@ do
 						end
 						local f, err = loadfile(v[2])
 						if f then
-							require("tasks").newProcess("proc", f)
+							require("tasks").newProcess(name, f)
 						else
 							print(err)
 						end

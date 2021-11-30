@@ -1,6 +1,7 @@
 local file = io.open("A:/Users/Shared/Binaries/mario/music/song-piggies.aaf", "r")
 local sound = require("driver").sound
 local ui = require("OCX/OCUI")
+local SPEED = 1.0
 
 file:read(5) -- skip signature
 file:read(2) -- skip capability flags
@@ -30,7 +31,7 @@ while not fileEnded do
 			local note = channelNotes[i][#channelNotes[i]]
 			start = note.start + note.duration
 		end
-		table.insert(channelNotes[i], { frequency = freq, duration = math.floor(dur/1.0), start = start })
+		table.insert(channelNotes[i], { frequency = freq, duration = dur, start = start })
 	end
 end
 file:close()
@@ -75,7 +76,7 @@ while window.visible do
 		end
 	end
 	time = time + minDur
-	sound.delay(minDur)
+	sound.delay(math.floor(minDur / SPEED))
 	if time - lastProcess > 1000 then
 		local refreshed = false
 		while not sound.flush() do

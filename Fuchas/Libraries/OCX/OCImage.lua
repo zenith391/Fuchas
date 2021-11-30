@@ -102,9 +102,11 @@ function lib.convertFromRaster(image, opts)
 	end
 
 	local start = computer.uptime()
+
+	local gpu
+	local gpuPalette = {}
 	if opts["advancedDithering"] then
-		local gpu = require("driver").gpu
-		local gpuPalette = {}
+		gpu = require("driver").gpu
 		for i=1, gpu.getColors() do
 			gpuPalette[i] = fromRGB(gpu.palette[i])
 		end
@@ -124,7 +126,7 @@ function lib.convertFromRaster(image, opts)
 					if opts["advancedDithering"] then
 						local error = carriedError[x+dx][y+dy] or {r=0,g=0,b=0}
 						rgb = fromRGB(rgb)
-						rgb = sub(rgb, error)
+						rgb = add(rgb, error)
 
 						local closest = 0
 						local closestDist = math.huge
@@ -158,16 +160,16 @@ function lib.convertFromRaster(image, opts)
 					local fx, fy = x+dx, y+dy
 					local rgb = fromRGB(image.pixels[(fy-1)*image.width + fx] or 0)
 					local error = carriedError[x+dx][y+dy] or { r = 0, g = 0, b = 0 }
-					rgb = sub(rgb, error)
+					rgb = add(rgb, error)
 					--carriedError[x+dx][y+dx] = nil -- remove when unused
 					local pos = dx + dy * 2 + 1
 					local pixelError = 0
 					if distance(rgb, mostCommonColor) < distance(rgb, secondMostCommonColor) then
 						usedColors[pos] = 1 -- foreground == mostCommonColor
-						pixelError = sub(mostCommonColor, rgb)
+						pixelError = sub(rgb, mostCommonColor)
 					else
 						usedColors[pos] = 0 -- background == secondMostCommonColor
-						pixelError = sub(secondMostCommonColor, rgb)
+						pixelError = sub(rgb, secondMostCommonColor)
 					end
 
 					if opts.dithering == "floyd-steinberg" then
@@ -183,12 +185,12 @@ function lib.convertFromRaster(image, opts)
 
 						if carriedError[x+dx-1] then -- down left
 							if not carriedError[x+dx-1][y+dy+1] then carriedError[x+dx-1][y+dy+1] = { r = 0, g = 0, b = 0 } end
-							carriedError[x+dx-1][y+dy+1] = add(carriedError[x+dx-1][y+dy+1], mulScalar(pixelError, 5/16))
+							carriedError[x+dx-1][y+dy+1] = add(carriedError[x+dx-1][y+dy+1], mulScalar(pixelError, 3/16))
 						end
 
 						if carriedError[x+dx][y+dy+1] then -- down
 							if not carriedError[x+dx][y+dy+1] then carriedError[x+dx][y+dy+1] = { r = 0, g = 0, b = 0 } end
-							carriedError[x+dx][y+dy+1] = add(carriedError[x+dx][y+dy+1], mulScalar(pixelError, 3/16))
+							carriedError[x+dx][y+dy+1] = add(carriedError[x+dx][y+dy+1], mulScalar(pixelError, 5/16))
 						end
 					elseif opts.dithering == "basic" then
 						if carriedError[x+dx+1] and carriedError[x+dx+1][y+dy] then -- right
@@ -219,6 +221,9 @@ function lib.convertFromRaster(image, opts)
 end
 
 function lib.scale(image, tw, th)
+	if image.width == tw and image.height == th then
+		return image
+	end
 	local pixels = {}
 	local hScale = tw / image.width
 	local vScale = th / image.height
@@ -266,7 +271,7 @@ function lib.load(path)
 	end
 	local img = f:decode(file)
 	if f:getType() == "raster" then
-		return lib.convertFromRaster(img, { dithering = "none", advancedDithering = false })
+		return lib.convertFromRaster(img, {})
 	end
 	return img
 end

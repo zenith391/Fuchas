@@ -16,10 +16,8 @@ local flag = {
 
 do
 	local sweeper = ui.component()
-	sweeper.render = function(self)
-		self:initRender()
-		self.canvas.fillRect(1, 1, self.width, self.height, self.background)
-		draw.drawContext(self.context)
+	sweeper._render = function(self)
+		--self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 	end
 	sweeper.background = 0xFFFFFF
 	sweeper.width = 30

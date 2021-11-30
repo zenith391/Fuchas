@@ -63,9 +63,9 @@ function string.split(str, sep)
 	return t
 end
 
-function table.getn(table)
+function table.getn(tab)
 	local i = 0
-	for k, v in pairs(table) do
+	for k, v in pairs(tab) do
 		if type(k) == "number" then
 			i = math.max(i, k)
 		else
@@ -73,6 +73,16 @@ function table.getn(table)
 		end
 	end
 	return i
+end
+
+function table.contains(tab, element)
+	local i = 0
+	for k, v in pairs(tab) do
+		if v == element then
+			return k
+		end
+	end
+	return nil
 end
 
 if _VERSION ~= "Lua 5.2" and not OSDATA.CONFIG["NO_52_COMPAT"] then
