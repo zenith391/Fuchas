@@ -1,12 +1,16 @@
---- Library for loading, editing (scaling, color changes) and displaying raster and OC-adapted images with OCDraw.
+--- Library for loading, editing (scaling, color changes) and displaying raster and displayed (OC-adapted) images with OCDraw.
+--- The difference between the two types of image is that a DisplayableImage uses characters, while a RasterImage is all pixels.
 -- @module OCX.OCImage
 -- @alias lib
+
 local fs = require("filesystem")
 -- TODO: use code from iview
 
 local lib = {}
 local formats = {}
 
+--- Register a new image format
+-- @tparam format format The image format to register
 function lib.registerImageFormat(format)
 	if format.isSupported == nil then
 		error("no format: getSignature()")
@@ -16,6 +20,9 @@ end
 
 lib.registerImageFormat(require("OCX/ImageFormats/bmp"))
 
+--- Detects the image format the given file is in or returns null if it corresponds to no registered image format
+-- @tparam file file The file containing an image
+-- @treturn ?format The detected image format
 function lib.getFormat(file)
 	for k, v in pairs(formats) do
 		file:seek("set", 0)
@@ -27,10 +34,18 @@ function lib.getFormat(file)
 	return nil -- unknown
 end
 
+--- Creates a displayable image with the given parameters
+-- @tparam int width The width of the image, or 1
+-- @tparam int height The height of the image, or 1
+-- @tparam[opt] int bpp The number of bits per pixel in the image, or 8
+-- @tparam[opt] bool alpha The presence of an alpha channel, or false
+-- @treturn DisplayableImage the newly created image
 function lib.create(width, height, bpp, alpha)
+	checkArg(1, width, "number")
+	checkArg(2, height, "number")
 	local img = {
-		width = math.min(width or 1, 1),
-		height = math.min(height or 1, 1),
+		width = math.min(width, 1),
+		height = math.min(height, 1),
 		backgrounds = {},
 		foregrounds = {},
 		chars = {},
@@ -41,6 +56,13 @@ function lib.create(width, height, bpp, alpha)
 	return img
 end
 
+--- Converts a raster image into a displayable image. This is necessary in order to display a raster image.
+-- @tparam RasterImage image The image to convert
+-- @tab opts Image conversion options
+-- @tparam[opt] bool opts.advancedDithering Whether to dither using the current GPU palette or by assuming all RGB colors are available.
+--  Enabling this will result in a major slow down!
+-- @tparam[opt] string opts.dithering The dithering method to use. Either "floyd-steinberg", "basic" or nil.
+-- @treturn DisplayableImage the converted image
 function lib.convertFromRaster(image, opts)
 	local chars = {}
 	local backgrounds = {}
@@ -220,6 +242,11 @@ function lib.convertFromRaster(image, opts)
 	}
 end
 
+--- Scales a raster image to the given dimensions, this uses nearest neighbour scaling.
+-- @tparam RasterImage image The image to be scaled
+-- @tparam int tw The new width of the image
+-- @tparam int th The new height of the image
+-- @treturn RasterImage The scaled image
 function lib.scale(image, tw, th)
 	if image.width == tw and image.height == th then
 		return image
@@ -254,6 +281,11 @@ function lib.scale(image, tw, th)
 	}
 end
 
+--- Loads a displayable image from the given path. If the file actually contains
+--- a raster image, it will be converted to a displayable image. Returns an error if
+--- the image type is not recognised.
+-- @tparam string path The path of the image to load
+-- @treturn DisplayableImage The loaded image
 function lib.load(path)
 	local file, reason
 	if io then
@@ -276,6 +308,13 @@ function lib.load(path)
 	return img
 end
 
+--- Loads a raster image from the given path. Returns an error if
+--- the image type is not recognised or if it is a displayable image type.
+--- (while it is technically possible to convert a displayable image to a raster
+--- image, it would require packing in OpenComputers's font which would make the
+--- library size huge for a feature that's gonna be rarely used)
+-- @tparam string path The path of the image to load
+-- @treturn RasterImage The loaded image
 function lib.loadRaster(path)
 	local file, reason = require("buffer").from(fs.open(path, "r"))
 	if not file then
@@ -293,6 +332,8 @@ function lib.loadRaster(path)
 	return img
 end
 
+--- Returns the aspect ratio of the given image.
+-- @tparam RasterImage|DisplayableImage image
 function lib.getAspectRatio(image)
 	if image.pixels then -- if is raster image
 		return image.width / image.height
@@ -302,6 +343,13 @@ function lib.getAspectRatio(image)
 	end
 end
 
+--- Draws a displayable image using the given GPU driver or component instance. This can be useful
+--- for using OCImage on OpenOS or other operating systems, and it's also used during boot for the
+--- Concert splash screen.
+-- @tparam DisplayableImage image The image to draw
+-- @tparam driver|component gpu Instance of the GPU driver or component to use
+-- @tparam int x The X position where the image will be drawn
+-- @tparam int y The Y position where the image will be drawn
 function lib.drawGPU(image, gpu, x, y)
 	for dy=1, image.height do
 		for dx=1, image.width do
@@ -313,6 +361,9 @@ function lib.drawGPU(image, gpu, x, y)
 	end
 end
 
+--- Draws a displayable image to the given OCDraw context
+-- @tparam DisplayableImage image The image to draw
+-- @tparam int ctxn The ID of the draw context
 function lib.drawImage(image, ctxn)
 	local canvas = require("OCX/OCDraw").canvas(ctxn)
 

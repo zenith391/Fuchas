@@ -42,6 +42,13 @@ metricsTab._render = function(self)
 	else
 		self.canvas.drawText(1, 2, "VRAM : no", 0)
 	end
+
+	local usedCpu = 0
+	for k, pid in pairs(tasks.getPIDs()) do
+		local metrics = tasks.getProcessMetrics(pid)
+		usedCpu = usedCpu + metrics.cpuLoadPercentage
+	end
+	self.canvas.drawText(1, 3, "CPU  : " .. tostring(math.floor(usedCpu)) .."%")
 end
 
 local tabBar = ui.tabBar()

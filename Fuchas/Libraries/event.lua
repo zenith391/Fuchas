@@ -1,3 +1,7 @@
+--- Event library, similar to the one found in OpenOS.
+-- @module event
+-- @alias event
+
 local event = {}
 local kbd = nil
 local handlers = {}
@@ -5,6 +9,7 @@ event.handlers = handlers
 local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
 
+-- undocumented
 function event.register(key, callback, interval, times, opt_handlers)
 		local pid
 		if require("tasks").getCurrentProcess() then
@@ -27,6 +32,7 @@ function event.register(key, callback, interval, times, opt_handlers)
 		return id
 end
 
+-- undocumented
 function event.exechandlers(event_data)
 		local signal = event_data[1]
 		local copy = {}
@@ -116,6 +122,9 @@ local function createPlainFilter(name, ...)
 	end
 end
 
+--- Gets an event that satisfies filter or a filter and a timeout in seconds.
+-- @tparam[opt] number seconds Time in seconds until the function returns if no event was found
+-- @tparam ?function filter The filter to use to filter out events
 function event.pullFiltered(...)
 	local args = table.pack(...)
 	local seconds, filter
@@ -144,12 +153,15 @@ function event.pullFiltered(...)
 	until computer.uptime() >= deadline
 end
 
--- Flush all pending events
+--- Flush all pending events, that is all pending events of the current process are immediately discarded.
 function event.flush()
 	local cproc = require("tasks").getCurrentProcess()
 	cproc.events = {}
 end
 
+--- Gets an event for which the name satisfies the given match or the timeout is elapsed.
+-- @tparam[opt] number seconds Time in seconds until the function returns if no event was found
+-- @tparam ?string filter The match for the event name
 function event.pull(...)
 	local args = table.pack(...)
 	if type(args[1]) == "string" then
@@ -161,6 +173,10 @@ function event.pull(...)
 	end
 end
 
+--- Setup a callback to be called when an event with the given name is received.
+-- @tparam string name The name of the event
+-- @tparam function callback The function to be called when that event is received
+-- @treturn int The timer ID
 function event.listen(name, callback)
 	checkArg(1, name, "string")
 	checkArg(2, callback, "function")
@@ -172,6 +188,10 @@ function event.listen(name, callback)
 	return event.register(name, callback, math.huge, math.huge)
 end
 
+--- Cancels a listener using its timer ID.
+-- @see ignore
+-- @tparam int timerId The timer ID
+-- @treturn bool Returns true if there was a listener with the given timer iD
 function event.cancel(timerId)
 	checkArg(1, timerId, "number")
 	if event.handlers[timerId] then
@@ -181,6 +201,11 @@ function event.cancel(timerId)
 	return false
 end
 
+--- Cancels one listener waiting for the given event and using the given callback
+-- @see cancel
+-- @tparam string name The name of the event
+-- @tparam function callback The callback funciton
+-- @treturn bool Returns true if a listener matching the criterias was cancelled
 function event.ignore(name, callback)
 	checkArg(1, name, "string")
 	checkArg(2, callback, "function")

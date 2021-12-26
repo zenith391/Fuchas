@@ -1,6 +1,6 @@
 --- IPC library implemented using the per-process event system.
 -- It implements OETF #18 (Open Inter-Process Communication), the main difference being that
--- `computer.pushProcessSignal` should be used instead of `computer.pushSignal`.
+-- `computer.pushProcessSignal` is used instead of `computer.pushSignal`.
 -- @module ipc
 -- @alias lib
 
@@ -34,6 +34,7 @@ function lib.socket(target, id)
 		if id == self.id then
 			return ...
 		else
+			-- TODO: do it in a way that preserves the send order
 			computer.pushProcessSignal(self.pid, "oipc_sock_comms", id, ...) -- resend the event to itself
 		end
 	end

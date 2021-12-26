@@ -369,9 +369,13 @@ function mod.newProcess(name, func, onlyIPC)
 	-- @type process
 	-- @string name The name
 	local proc = {
+		--- The name of the process
 		name = name,
+		--- The coroutine function of the process
 		func = func,
-		pid = pid, -- reliable pointer to process that help know if a process is dead
+		--- The PID of the process. It's a reliable pointer to process that help know if a process is dead
+		pid = pid,
+		--- The status of the process, can be one of "created", "running", "sleeping" or "wait_signal"
 		status = "created",
 		cpuTime = 0,
 		cpuTimeEstimate = 0, -- used for SJF scheduler
@@ -387,13 +391,13 @@ function mod.newProcess(name, func, onlyIPC)
 		},
 		errorHandler = nil,
 
-		--- Detach
+		--- Detach the given process, that is make it an orphan process (with no parent)
 		-- @function detach
 		detach = function(self)
 			self.parent = nil
 		end,
 
-		--- Detach
+		--- Kill the given process
 		-- @function kill
 		kill = function(self)
 			mod.safeKill(self)

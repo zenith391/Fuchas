@@ -7,7 +7,7 @@ local window = require("window").newWindow(70, 23, "NeoQuack")
 local gpu = require("driver").gpu
 
 local fileName = ...
-fileName = fileName or "A:/Fuchas/Interfaces/Concert/editor.lua"
+fileName = fileName or "A:/Fuchas/Interfaces/Concert/Applications/editor.lua"
 
 local tabBar = ui.tabBar()
 local config = {

@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Fuchas Documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>Fuchas</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
+  <li><a href="../modules/OCX.OCImage.html">OCX.OCImage</a></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
+  <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/driver.html">driver</a></li>
+  <li><strong>event</strong></li>
+  <li><a href="../modules/filesystem.html">filesystem</a></li>
+  <li><a href="../modules/ipc.html">ipc</a></li>
+  <li><a href="../modules/log.html">log</a></li>
+  <li><a href="../modules/security.html">security</a></li>
+  <li><a href="../modules/shell.html">shell</a></li>
+  <li><a href="../modules/tasks.html">tasks</a></li>
+  <li><a href="../modules/text.html">text</a></li>
+  <li><a href="../modules/users.html">users</a></li>
+  <li><a href="../modules/velx.html">velx</a></li>
+  <li><a href="../modules/window.html">window</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>event</code></h1>
+<p>Event library, similar to the one found in OpenOS.</p>
+<p>
+
+</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#pullFiltered">pullFiltered ([seconds], filter)</a></td>
+	<td class="summary">Gets an event that satisfies filter or a filter and a timeout in seconds.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#flush">flush ()</a></td>
+	<td class="summary">Flush all pending events, that is all pending events of the current process are immediately discarded.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#pull">pull ([seconds], filter)</a></td>
+	<td class="summary">Gets an event for which the name satisfies the given match or the timeout is elapsed.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#listen">listen (name, callback)</a></td>
+	<td class="summary">Setup a callback to be called when an event with the given name is received.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#cancel">cancel (timerId)</a></td>
+	<td class="summary">Cancels a listener using its timer ID.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ignore">ignore (name, callback)</a></td>
+	<td class="summary">Cancels one listener waiting for the given event and using the given callback</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "pullFiltered"></a>
+    <strong>pullFiltered ([seconds], filter)</strong>
+    </dt>
+    <dd>
+    Gets an event that satisfies filter or a filter and a timeout in seconds.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">seconds</span>
+            <span class="types"><span class="type">number</span></span>
+         Time in seconds until the function returns if no event was found
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">filter</span>
+            <span class="types">optional <span class="type">function</span></span>
+         The filter to use to filter out events
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "flush"></a>
+    <strong>flush ()</strong>
+    </dt>
+    <dd>
+    Flush all pending events, that is all pending events of the current process are immediately discarded.
+
+    </ul>
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "pull"></a>
+    <strong>pull ([seconds], filter)</strong>
+    </dt>
+    <dd>
+    Gets an event for which the name satisfies the given match or the timeout is elapsed.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">seconds</span>
+            <span class="types"><span class="type">number</span></span>
+         Time in seconds until the function returns if no event was found
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">filter</span>
+            <span class="types">optional <a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The match for the event name
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "listen"></a>
+    <strong>listen (name, callback)</strong>
+    </dt>
+    <dd>
+    Setup a callback to be called when an event with the given name is received.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The name of the event
+        </li>
+        <li><span class="parameter">callback</span>
+            <span class="types"><span class="type">function</span></span>
+         The function to be called when that event is received
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        The timer ID
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "cancel"></a>
+    <strong>cancel (timerId)</strong>
+    </dt>
+    <dd>
+    Cancels a listener using its timer ID.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">timerId</span>
+            <span class="types"><span class="type">int</span></span>
+         The timer ID
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">bool</span></span>
+        Returns true if there was a listener with the given timer iD
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/event.html#ignore">ignore</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "ignore"></a>
+    <strong>ignore (name, callback)</strong>
+    </dt>
+    <dd>
+    Cancels one listener waiting for the given event and using the given callback
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The name of the event
+        </li>
+        <li><span class="parameter">callback</span>
+            <span class="types"><span class="type">function</span></span>
+         The callback funciton
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">bool</span></span>
+        Returns true if a listener matching the criterias was cancelled
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/event.html#cancel">cancel</a>
+    </ul>
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-12-18 18:40:23 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

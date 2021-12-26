@@ -332,7 +332,7 @@ function lib.tabBar()
 	function comp:render()
 		-- Draw tab bar
 		local oldHeight = self.height
-		--self.height = 1
+		self.height = 1
 
 		self:initRender()
 		self.canvas.fillRect(1, 1, self.width, 1, self.background)
@@ -348,7 +348,7 @@ function lib.tabBar()
 		end
 		draw.drawContext(self.context)
 
-		--self.height = oldHeight
+		self.height = oldHeight
 
 		if not self.childrens[self.currentTab] then
 			self.currentTab = 1
@@ -356,13 +356,17 @@ function lib.tabBar()
 
 		local tab = self.childrens[self.currentTab]
 		if tab then
+			draw.setBlockingDraw(self.context, true)
 			tab.x = self.x
 			tab.y = self.y + 1
 			tab.width = self.width
 			tab.height = self.height - 1
+			tab.parent = nil
 			tab:render()
+			tab.parent = self
 			tab.x = 1
 			tab.y = 1
+			draw.setBlockingDraw(self.context, false)
 		end
 	end
 

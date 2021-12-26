@@ -93,6 +93,8 @@ local startMenuEntries = {
 
 local focusedWin = nil
 local selectedWin = nil
+local resizedWin = nil
+local oldfocused = nil
 
 tasks.getCurrentProcess().childErrorHandler = function(proc, err)
 	local procType = "process"
@@ -188,6 +190,9 @@ end
 local wtx = 0
 local function screenEvent(name, addr, x, y, button, player)
 	if name == "touch" then
+		if resizedWin then
+			goto drag
+		end
 		selectedWin = nil
 		focusedWin = nil
 		for _, v in pairs(windowManager.desktop()) do
@@ -226,9 +231,22 @@ local function screenEvent(name, addr, x, y, button, player)
 				end
 				break
 			end
+			if oldfocused then
+				if x == oldfocused.x+oldfocused.width and y == oldfocused.y+oldfocused.height then
+					resizedWin = oldfocused
+					break
+				end
+			end
 		end
 	end
+	::drag::
 	if name == "drag" then
+		if resizedWin then
+			resizedWin.width = x-resizedWin.x
+			resizedWin.height = y-resizedWin.y
+			resizedWin:update()
+			return
+		end
 		if selectedWin ~= nil and not selectedWin.maximized then
 			windowManager.moveWindow(selectedWin, x-wtx, y)
 		end
@@ -246,9 +264,16 @@ while true do
 
 	if evt and not windowManager.hasExclusiveContext() then
 		local name = evt[1]
-		local oldfocused = focusedWin
+		oldfocused = focusedWin
 		if name == "touch" or name == "drag" then
 			screenEvent(name, evt[2], evt[3], evt[4], evt[5], evt[6])
+		end
+		if name == "drop" then
+			if resizedWin then
+				resizedWin.oldWidth = nil
+				resizedWin.oldHeight = nil
+			end
+			resizedWin = nil
 		end
 		if focusedWin ~= nil then
 			if name == "touch" or name == "drag" or name == "drop" or name == "scroll" then -- translate screen position to component position

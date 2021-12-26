@@ -135,7 +135,7 @@ function lib.drawContext(ctxn)
 			local py = (parent and parent.y) or nil
 			-- For now, child contexts cannot clip
 			if parent then
-				if not contexts[ctx.parent].blockDraw and false then
+				if not contexts[ctx.parent].blockDraw then
 					gpu.blit(ctx.buffer, gpu.screenBuffer(), px or ctx.x, py or ctx.y)
 				end
 			elseif not ctx.clip then
@@ -260,7 +260,7 @@ function lib.isContextOpened(ctxn)
 	return contexts[ctxn] ~= nil
 end
 
---- Convert the given draw context to a buffer.
+--- Converts the given draw context to a buffer and closes it.
 --- The context must be backed by a buffer!
 -- @tparam int ctxn The ID of the draw context
 function lib.toOwnedBuffer(ctxn)
@@ -317,12 +317,16 @@ end
 
 --- Clip the context to the given regions
 -- @tparam int ctx The ID of the draw context
--- @tparam region[] A list of regions
+-- @tparam region[] regions A list of regions
 function lib.clipContext(ctx, regions)
 	local c = contexts[ctx]
 	c.clip = regions
 end
 
+--- Sets whether or not to block the context's draw, making
+--- drawContext a no-op
+-- @tparam int ctx The ID of the draw context
+-- @tparam bool blockDraw Block draw or not
 function lib.setBlockingDraw(ctx, blockDraw)
 	local c = contexts[ctx]
 	c.blockDraw = blockDraw

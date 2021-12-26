@@ -1,14 +1,26 @@
 --- System logging library
+-- @usage
+--  local log = require("log")("My Library")
+--  log.debug("This is worthless to read except when debugging")
+--  log.info("This is some general information")
+--  log.warn("This should be noticed")
+--  log.error("Critical situation!")
 -- @module log
 -- @alias lib
 
 local filesystem = require("filesystem")
 
 local lib = {}
+--- List of loghandlers
 lib.logHandlers = {}
+
+--- Debug level
 lib.DEBUG_LEVEL = 0
+--- Info level
 lib.INFO_LEVEL  = 1
+--- Warning level
 lib.WARN_LEVEL  = 2
+--- Error level
 lib.ERROR_LEVEL = 3
 
 function lib.levelName(level)
@@ -23,6 +35,9 @@ function lib.levelName(level)
 	end
 end
 
+--- Returns a logger that logs to the file specified by path
+-- @tparam string path The path of the file to write to
+-- @treturn loghandler
 function lib.fileLogger(path)
 	local file = filesystem.open(path, "w")
 	return function(msg, name, level)
@@ -38,6 +53,14 @@ setmetatable(lib, {__call = function(_, name)
 
 	local logLevel = (OSDATA.DEBUG and lib.DEBUG_LEVEL) or lib.INFO_LEVEL
 
+	--- Log a message with the given level, instead of doing that, specialized
+	--- methods (logger.debug, logger.info, ...) should be privileged
+	-- @usage
+	--  local log = require("log")
+	--  local logger = log("My Library")
+	--  logger.log("Hello", log.INFO_LEVEL)
+	-- @tparam string msg The message to log
+	-- @tparam int level The level of the message
 	function logger.log(msg, level)
 		if level >= logLevel then
 			for k, handler in pairs(lib.logHandlers) do
@@ -46,18 +69,26 @@ setmetatable(lib, {__call = function(_, name)
 		end
 	end
 
+	--- Log a message with a debug level
+	-- @tparam string msg The message to log
 	function logger.debug(msg)
 		logger.log(msg, lib.DEBUG_LEVEL)
 	end
 
+	--- Log a message with an information level
+	-- @tparam string msg The message to log
 	function logger.info(msg)
 		logger.log(msg, lib.INFO_LEVEL)
 	end
 
+	--- Log a message with a warning level
+	-- @tparam string msg The message to log
 	function logger.warn(msg)
 		logger.log(msg, lib.WARN_LEVEL)
 	end
 
+	--- Log a message with a error level
+	-- @tparam string msg The message to log
 	function logger.error(msg)
 		logger.log(msg, lib.ERROR_LEVEL)
 	end

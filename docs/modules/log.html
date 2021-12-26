@@ -30,6 +30,12 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
+<li><a href="#Fields">Fields</a></li>
+</ul>
 
 
 <h2>Modules</h2>
@@ -38,6 +44,8 @@
   <li><a href="../modules/OCX.OCImage.html">OCX.OCImage</a></li>
   <li><a href="../modules/buffer.html">buffer</a></li>
   <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/driver.html">driver</a></li>
+  <li><a href="../modules/event.html">event</a></li>
   <li><a href="../modules/filesystem.html">filesystem</a></li>
   <li><a href="../modules/ipc.html">ipc</a></li>
   <li><strong>log</strong></li>
@@ -48,11 +56,6 @@
   <li><a href="../modules/users.html">users</a></li>
   <li><a href="../modules/velx.html">velx</a></li>
   <li><a href="../modules/window.html">window</a></li>
-  <li><a href="../modules/Users.Shared.Binaries.mario.lib.json.html">Users.Shared.Binaries.mario.lib.json</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.geeko.html">Users.Shared.Libraries.geeko</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.liblon.html">Users.Shared.Libraries.liblon</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.lzss.html">Users.Shared.Libraries.lzss</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.xml.html">Users.Shared.Libraries.xml</a></li>
 </ul>
 
 </div>
@@ -64,20 +67,321 @@
 <p>
 
 </p>
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">local log = require(&quot;log&quot;)(&quot;My Library&quot;)
+log.debug(&quot;This is worthless to read except when debugging&quot;)
+log.info(&quot;This is some general information&quot;)
+log.warn(&quot;This should be noticed&quot;)
+log.error(&quot;Critical situation!&quot;)
+</pre>
+    </ul>
 
 
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#fileLogger">fileLogger (path)</a></td>
+	<td class="summary">Returns a logger that logs to the file specified by path</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#logger.log">logger.log (msg, level)</a></td>
+	<td class="summary">Log a message with the given level, instead of doing that, specialized
+ methods (logger.debug, logger.info, ...) should be privileged</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#logger.debug">logger.debug (msg)</a></td>
+	<td class="summary">Log a message with a debug level</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#logger.info">logger.info (msg)</a></td>
+	<td class="summary">Log a message with an information level</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#logger.warn">logger.warn (msg)</a></td>
+	<td class="summary">Log a message with a warning level</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#logger.error">logger.error (msg)</a></td>
+	<td class="summary">Log a message with a error level</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#logHandlers">logHandlers</a></td>
+	<td class="summary">List of loghandlers</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#DEBUG_LEVEL">DEBUG_LEVEL</a></td>
+	<td class="summary">Debug level</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#INFO_LEVEL">INFO_LEVEL</a></td>
+	<td class="summary">Info level</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#WARN_LEVEL">WARN_LEVEL</a></td>
+	<td class="summary">Warning level</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ERROR_LEVEL">ERROR_LEVEL</a></td>
+	<td class="summary">Error level</td>
+	</tr>
+</table>
 
 <br/>
 <br/>
 
 
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "fileLogger"></a>
+    <strong>fileLogger (path)</strong>
+    </dt>
+    <dd>
+    Returns a logger that logs to the file specified by path
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The path of the file to write to
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">loghandler</span></span>
+
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "logger.log"></a>
+    <strong>logger.log (msg, level)</strong>
+    </dt>
+    <dd>
+    Log a message with the given level, instead of doing that, specialized
+ methods (logger.debug, logger.info, ...) should be privileged
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">msg</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The message to log
+        </li>
+        <li><span class="parameter">level</span>
+            <span class="types"><span class="type">int</span></span>
+         The level of the message
+        </li>
+    </ul>
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="keyword">local</span> log = <span class="global">require</span>(<span class="string">"log"</span>)
+<span class="keyword">local</span> logger = log(<span class="string">"My Library"</span>)
+logger.log(<span class="string">"Hello"</span>, log.INFO_LEVEL)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "logger.debug"></a>
+    <strong>logger.debug (msg)</strong>
+    </dt>
+    <dd>
+    Log a message with a debug level
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">msg</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The message to log
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "logger.info"></a>
+    <strong>logger.info (msg)</strong>
+    </dt>
+    <dd>
+    Log a message with an information level
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">msg</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The message to log
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "logger.warn"></a>
+    <strong>logger.warn (msg)</strong>
+    </dt>
+    <dd>
+    Log a message with a warning level
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">msg</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The message to log
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "logger.error"></a>
+    <strong>logger.error (msg)</strong>
+    </dt>
+    <dd>
+    Log a message with a error level
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">msg</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The message to log
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "logHandlers"></a>
+    <strong>logHandlers</strong>
+    </dt>
+    <dd>
+    List of loghandlers
+
+    </ul>
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "DEBUG_LEVEL"></a>
+    <strong>DEBUG_LEVEL</strong>
+    </dt>
+    <dd>
+    Debug level
+
+    </ul>
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "INFO_LEVEL"></a>
+    <strong>INFO_LEVEL</strong>
+    </dt>
+    <dd>
+    Info level
+
+    </ul>
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "WARN_LEVEL"></a>
+    <strong>WARN_LEVEL</strong>
+    </dt>
+    <dd>
+    Warning level
+
+    </ul>
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ERROR_LEVEL"></a>
+    <strong>ERROR_LEVEL</strong>
+    </dt>
+    <dd>
+    Error level
+
+    </ul>
+
+
+
+
+
+
+</dd>
+</dl>
 
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2021-12-18 12:22:19 </i>
+<i style="float:right;">Last updated 2021-12-18 18:40:23 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

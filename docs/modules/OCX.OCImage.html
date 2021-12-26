@@ -30,6 +30,10 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
 
 
 <h2>Modules</h2>
@@ -38,6 +42,8 @@
   <li><strong>OCX.OCImage</strong></li>
   <li><a href="../modules/buffer.html">buffer</a></li>
   <li><a href="../modules/clipboard.html">clipboard</a></li>
+  <li><a href="../modules/driver.html">driver</a></li>
+  <li><a href="../modules/event.html">event</a></li>
   <li><a href="../modules/filesystem.html">filesystem</a></li>
   <li><a href="../modules/ipc.html">ipc</a></li>
   <li><a href="../modules/log.html">log</a></li>
@@ -48,11 +54,6 @@
   <li><a href="../modules/users.html">users</a></li>
   <li><a href="../modules/velx.html">velx</a></li>
   <li><a href="../modules/window.html">window</a></li>
-  <li><a href="../modules/Users.Shared.Binaries.mario.lib.json.html">Users.Shared.Binaries.mario.lib.json</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.geeko.html">Users.Shared.Libraries.geeko</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.liblon.html">Users.Shared.Libraries.liblon</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.lzss.html">Users.Shared.Libraries.lzss</a></li>
-  <li><a href="../modules/Users.Shared.Libraries.xml.html">Users.Shared.Libraries.xml</a></li>
 </ul>
 
 </div>
@@ -60,24 +61,387 @@
 <div id="content">
 
 <h1>Module <code>OCX.OCImage</code></h1>
-<p>Library for loading, editing (scaling, color changes) and displaying raster and OC-adapted images with OCDraw.</p>
-<p>
-
-</p>
+<p>Library for loading, editing (scaling, color changes) and displaying raster and displayed (OC-adapted) images with OCDraw.</p>
+<p> The difference between the two types of image is that a DisplayableImage uses characters, while a RasterImage is all pixels.</p>
 
 
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#registerImageFormat">registerImageFormat (format)</a></td>
+	<td class="summary">Register a new image format</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getFormat">getFormat (file)</a></td>
+	<td class="summary">Detects the image format the given file is in or returns null if it corresponds to no registered image format</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#create">create (width, height[, bpp[, alpha]])</a></td>
+	<td class="summary">Creates a displayable image with the given parameters</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#convertFromRaster">convertFromRaster (image, opts)</a></td>
+	<td class="summary">Converts a raster image into a displayable image.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#scale">scale (image, tw, th)</a></td>
+	<td class="summary">Scales a raster image to the given dimensions, this uses nearest neighbour scaling.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#load">load (path)</a></td>
+	<td class="summary">Loads a displayable image from the given path.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#loadRaster">loadRaster (path)</a></td>
+	<td class="summary">Loads a raster image from the given path.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#getAspectRatio">getAspectRatio (image)</a></td>
+	<td class="summary">Returns the aspect ratio of the given image.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#drawGPU">drawGPU (image, gpu, x, y)</a></td>
+	<td class="summary">Draws a displayable image using the given GPU driver or component instance.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#drawImage">drawImage (image, ctxn)</a></td>
+	<td class="summary">Draws a displayable image to the given OCDraw context</td>
+	</tr>
+</table>
 
 <br/>
 <br/>
 
 
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "registerImageFormat"></a>
+    <strong>registerImageFormat (format)</strong>
+    </dt>
+    <dd>
+    Register a new image format
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">format</span>
+            <span class="types"><span class="type">format</span></span>
+         The image format to register
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getFormat"></a>
+    <strong>getFormat (file)</strong>
+    </dt>
+    <dd>
+    Detects the image format the given file is in or returns null if it corresponds to no registered image format
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">file</span>
+            <span class="types"><span class="type">file</span></span>
+         The file containing an image
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types">optional <span class="type">format</span></span>
+        The detected image format
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "create"></a>
+    <strong>create (width, height[, bpp[, alpha]])</strong>
+    </dt>
+    <dd>
+    Creates a displayable image with the given parameters
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+         The width of the image, or 1
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         The height of the image, or 1
+        </li>
+        <li><span class="parameter">bpp</span>
+            <span class="types"><span class="type">int</span></span>
+         The number of bits per pixel in the image, or 8
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">alpha</span>
+            <span class="types"><span class="type">bool</span></span>
+         The presence of an alpha channel, or false
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">DisplayableImage</span></span>
+        the newly created image
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "convertFromRaster"></a>
+    <strong>convertFromRaster (image, opts)</strong>
+    </dt>
+    <dd>
+    Converts a raster image into a displayable image.  This is necessary in order to display a raster image.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">image</span>
+            <span class="types"><span class="type">RasterImage</span></span>
+         The image to convert
+        </li>
+        <li><span class="parameter">opts</span> Image conversion options
+        <ul>
+        <li><span class="parameter">advancedDithering</span>
+            <span class="types"><span class="type">bool</span></span>
+         Whether to dither using the current GPU palette or by assuming all RGB colors are available.
+  Enabling this will result in a major slow down!
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">dithering</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The dithering method to use. Either "floyd-steinberg", "basic" or nil.
+         (<em>optional</em>)
+        </li>
+        </li></ul>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">DisplayableImage</span></span>
+        the converted image
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "scale"></a>
+    <strong>scale (image, tw, th)</strong>
+    </dt>
+    <dd>
+    Scales a raster image to the given dimensions, this uses nearest neighbour scaling.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">image</span>
+            <span class="types"><span class="type">RasterImage</span></span>
+         The image to be scaled
+        </li>
+        <li><span class="parameter">tw</span>
+            <span class="types"><span class="type">int</span></span>
+         The new width of the image
+        </li>
+        <li><span class="parameter">th</span>
+            <span class="types"><span class="type">int</span></span>
+         The new height of the image
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">RasterImage</span></span>
+        The scaled image
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "load"></a>
+    <strong>load (path)</strong>
+    </dt>
+    <dd>
+    Loads a displayable image from the given path.  If the file actually contains
+ a raster image, it will be converted to a displayable image. Returns an error if
+ the image type is not recognised.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The path of the image to load
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">DisplayableImage</span></span>
+        The loaded image
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "loadRaster"></a>
+    <strong>loadRaster (path)</strong>
+    </dt>
+    <dd>
+    Loads a raster image from the given path.  Returns an error if
+ the image type is not recognised or if it is a displayable image type.
+ (while it is technically possible to convert a displayable image to a raster
+ image, it would require packing in OpenComputers's font which would make the
+ library size huge for a feature that's gonna be rarely used)
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The path of the image to load
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">RasterImage</span></span>
+        The loaded image
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "getAspectRatio"></a>
+    <strong>getAspectRatio (image)</strong>
+    </dt>
+    <dd>
+    Returns the aspect ratio of the given image.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">image</span>
+            <span class="types"><span class="type">RasterImage</span> or <span class="type">DisplayableImage</span></span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "drawGPU"></a>
+    <strong>drawGPU (image, gpu, x, y)</strong>
+    </dt>
+    <dd>
+    Draws a displayable image using the given GPU driver or component instance.  This can be useful
+ for using OCImage on OpenOS or other operating systems, and it's also used during boot for the
+ Concert splash screen.
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">image</span>
+            <span class="types"><span class="type">DisplayableImage</span></span>
+         The image to draw
+        </li>
+        <li><span class="parameter">gpu</span>
+            <span class="types"><span class="type">driver</span> or <span class="type">component</span></span>
+         Instance of the GPU driver or component to use
+        </li>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">int</span></span>
+         The X position where the image will be drawn
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">int</span></span>
+         The Y position where the image will be drawn
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "drawImage"></a>
+    <strong>drawImage (image, ctxn)</strong>
+    </dt>
+    <dd>
+    Draws a displayable image to the given OCDraw context
+
+    </ul>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">image</span>
+            <span class="types"><span class="type">DisplayableImage</span></span>
+         The image to draw
+        </li>
+        <li><span class="parameter">ctxn</span>
+            <span class="types"><span class="type">int</span></span>
+         The ID of the draw context
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
 
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2021-12-18 12:22:19 </i>
+<i style="float:right;">Last updated 2021-12-18 18:40:23 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

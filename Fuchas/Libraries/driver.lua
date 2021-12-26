@@ -1,3 +1,7 @@
+--- Library for handling drivers, which are a secure way of accessing components
+-- @module driver
+-- @alias driver
+
 local driver = {}
 local loading = {}
 local loaded = {}
@@ -30,6 +34,10 @@ function driver.searchpath(name, path, sep, rep)
 	return nil, table.concat(errorFiles, "\n")
 end
 
+--- Force the component with given address and type to use the driver found at 'path'
+-- @tparam string type The type of the component
+-- @tparam string addr The UUID address of the component
+-- @tparam path string The file path of the driver to load
 function driver.changeDriver(type, addr, path)
 	checkArg(1, type, "string")
 	checkArg(2, path, "string")
@@ -103,6 +111,9 @@ local function getDefaultDriver(type)
 	return best
 end
 
+--- Gets an arbitrarily chosen driver of the given type
+-- @tparam string type The type of the drievr to get
+-- @treturn ?driver The loaded driver or nil if none found
 function driver.getDriver(type, addr)
 	if not addr then
 		addr = "default"
@@ -120,36 +131,11 @@ end
 function driver.getDrivers(type)
 end
 
+
 function driver.isDriverAvailable(path)
 	local ok, drv = loadDriver(path)
 	return (ok ~= nil)
 end
-
---[[
-function loadDriver(path)
-	checkArg(1, path, "string")
-	if not loading[path] then
-		local available, driver, status, step
-		step, driver, status = "not found", driver.searchpath(path, os.getenv("DRV_PATH"))
-		if driver then
-			step, driver, status = "loadfile failed", loadfile(driver)
-		end
-		if driver then
-			loading[path] = true
-			step, status, available, driver = "load failed", pcall(driver, path)
-			loading[path] = false
-		end
-
-		if available == false then
-			error("Component not available")
-		end
-		assert(driver, string.format("driver '%s' %s:\n%s", path, step, status))
-		return available, driver
-	else
-		error("already loading: " .. path .. "\n" .. debug.traceback(), 2)
-	end
-end
-]]
 
 function driver.delay(lib, file)
 	local mt = {

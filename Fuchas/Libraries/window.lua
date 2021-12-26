@@ -105,144 +105,6 @@ local function xorRectangle(a, b)
 	return {a}
 end
 
---- Create a new window
-function lib.newWindow(width, height, title)
-	local window = {
-		title = title or "",
-		x = 30,
-		y = 10,
-		width = width or 40,
-		height = height or 10,
-		dirty = false,
-		focused = false,
-		undecorated = false,
-		visible = false,
-		titleBar = titleBar(),
-		container = ui.container()
-	}
-	window.container.width = window.width
-	window.container.height = window.height
-	window.titleBar.parent = window
-	window.container.window = window
-
-	function window:focus()
-		local idx = 0
-		for k, v in pairs(desktop) do
-			if v == self then idx = k end
-		end
-		if idx == 0 then
-			error("window not displayed")
-		end
-		table.remove(desktop, idx)
-		table.insert(desktop, 1, self)
-		self.dirty = true
-		self:update()
-		self.titleBar:redraw()
-	end
-
-	function window:show()
-		table.insert(desktop, 1, self)
-		self.visible = true
-		self.dirty = true
-		lib.drawDesktop()
-	end
-
-	function window:hide(disposing)
-		self.visible = false
-		self.titleBar:dispose(true)
-		self.container:dispose(true)
-		lib.drawBackground(self.x, self.y, self.width, self.height)
-
-		local idx = 0
-		for k, v in pairs(desktop) do
-			if v == self then
-				idx = k
-			end
-		end
-		if idx == 0 then
-			return
-		end
-		table.remove(desktop, idx)
-		lib.drawDesktop()
-	end
-
-	function window:update()
-		if self.visible and not exclusiveContext then
-			local cy = self.y+1
-			local ch = self.height-1
-			if self.undecorated then
-				cy = self.y
-				ch = self.height
-			end
-			self.container.x = self.x
-			self.container.y = cy
-			self.container.width = self.width
-			self.container.height = ch
-
-			if not self.undecorated and self.titleBar.width ~= self.width then
-				self.titleBar.x = self.x
-				self.titleBar.y = self.y
-				self.titleBar.width = self.width
-				self.titleBar:redraw()
-			end
-
-			local i = 1
-			local aRect = {
-					x = self.container.x,
-					y = self.container.y,
-					w = self.container.width,
-					h = self.container.height
-				}
-			local rectangles = {
-				aRect
-			}
-			while i < #desktop do
-				if desktop[i] == self then break end
-				local winRect = {
-					x = desktop[i].container.x,
-					y = desktop[i].container.y,
-					w = desktop[i].container.width,
-					h = desktop[i].container.height
-				}
-				local newRects = {}
-				for _, rect in pairs(rectangles) do
-					local rectList = xorRectangle(rect, winRect)
-					for _, r in pairs(rectList) do
-						table.insert(newRects, r)
-					end
-				end
-				rectangles = newRects
-				i = i + 1
-			end
-			--if rectangles[1].x ~= aRect.x or rectangles[1].w ~= aRect.w then
-				--print("col " .. aRect.x .. " -> " .. rectangles[1].x .. "; " .. aRect.w .. " -> " .. rectangles[1].w)
-			--end
-			self.container.clip = rectangles
-			self.container:redraw()
-		end
-	end
-
-	function window:dispose()
-		local idx = 0
-		for k, v in pairs(desktop) do
-			if v == self then
-				idx = k
-			end
-		end
-		if idx == 0 then
-			return
-		end
-		if self.visible then
-			self:hide()
-		end
-	end
-
-	table.insert(tasks.getCurrentProcess().exitHandlers, function()
-		window:dispose()
-	end)
-	return window
-end
-
 --- Returns the desktop
 function lib.desktop()
 	return desktop
@@ -423,6 +285,156 @@ function lib.drawDesktop()
 			-- win.dirty = false
 		end
 	end
+end
+
+--- Create a new window
+-- @tparam int width The width of the new window
+-- @tparam int height The height of the new window
+-- @tparam[opt] string title The title of the new window
+-- @treturn window The newly created window
+-- @constructor
+function lib.newWindow(width, height, title)
+
+	--- A window object.
+	-- @type window
+	-- @string name The name
+	local window = {
+		--- Title of the window
+		title = title or "",
+		x = 30,
+		y = 10,
+		width = width or 40,
+		height = height or 10,
+		dirty = false,
+		focused = false,
+		undecorated = false,
+		visible = false,
+		titleBar = titleBar(),
+		container = ui.container()
+	}
+	window.container.width = window.width
+	window.container.height = window.height
+	window.titleBar.parent = window
+	window.container.window = window
+
+	--- Focus the window
+	-- @function window.focus
+	function window:focus()
+		local idx = 0
+		for k, v in pairs(desktop) do
+			if v == self then idx = k end
+		end
+		if idx == 0 then
+			error("window not displayed")
+		end
+		table.remove(desktop, idx)
+		table.insert(desktop, 1, self)
+		self.dirty = true
+		self:update()
+		self.titleBar:redraw()
+	end
+
+	function window:show()
+		table.insert(desktop, 1, self)
+		self.visible = true
+		self.dirty = true
+		lib.drawDesktop()
+	end
+
+	function window:hide(disposing)
+		self.visible = false
+		self.titleBar:dispose(true)
+		self.container:dispose(true)
+		lib.drawBackground(self.x, self.y, self.width, self.height)
+
+		local idx = 0
+		for k, v in pairs(desktop) do
+			if v == self then
+				idx = k
+			end
+		end
+		if idx == 0 then
+			return
+		end
+		table.remove(desktop, idx)
+		lib.drawDesktop()
+	end
+
+	function window:update()
+		if self.visible and not exclusiveContext then
+			local cy = self.y+1
+			local ch = self.height-1
+			if self.undecorated then
+				cy = self.y
+				ch = self.height
+			end
+			self.container.x = self.x
+			self.container.y = cy
+			self.container.width = self.width
+			self.container.height = ch
+
+			if not self.undecorated and self.titleBar.width ~= self.width then
+				self.titleBar.x = self.x
+				self.titleBar.y = self.y
+				self.titleBar.width = self.width
+				self.titleBar:redraw()
+			end
+
+			local i = 1
+			local aRect = {
+					x = self.container.x,
+					y = self.container.y,
+					w = self.container.width,
+					h = self.container.height
+				}
+			local rectangles = {
+				aRect
+			}
+			while i < #desktop do
+				if desktop[i] == self then break end
+				local winRect = {
+					x = desktop[i].container.x,
+					y = desktop[i].container.y,
+					w = desktop[i].container.width,
+					h = desktop[i].container.height
+				}
+				local newRects = {}
+				for _, rect in pairs(rectangles) do
+					local rectList = xorRectangle(rect, winRect)
+					for _, r in pairs(rectList) do
+						table.insert(newRects, r)
+					end
+				end
+				rectangles = newRects
+				i = i + 1
+			end
+			--if rectangles[1].x ~= aRect.x or rectangles[1].w ~= aRect.w then
+				--print("col " .. aRect.x .. " -> " .. rectangles[1].x .. "; " .. aRect.w .. " -> " .. rectangles[1].w)
+			--end
+			self.container.clip = rectangles
+			self.container:redraw()
+		end
+	end
+
+	function window:dispose()
+		local idx = 0
+		for k, v in pairs(desktop) do
+			if v == self then
+				idx = k
+			end
+		end
+		if idx == 0 then
+			return
+		end
+		if self.visible then
+			self:hide()
+		end
+	end
+
+	table.insert(tasks.getCurrentProcess().exitHandlers, function()
+		window:dispose()
+	end)
+	return window
 end
 
 return lib

@@ -9,14 +9,18 @@ file:read(2) -- skip capability flags
 local channelsNum = file:read(1):byte()
 local channelNotes = {}
 local channelIdx = {}
+local channelsVolume = {}
 
 for i=1, channelsNum do
-	sound.openChannel(i)
-	sound.setWave(i, "square")
-	sound.setVolume(i, 0)
-	sound.setADSR(i)
+	if i <= sound.getCapabilities().channels then
+		sound.openChannel(i)
+		sound.setWave(i, "sine")
+		sound.setVolume(i, 0)
+		sound.setADSR(i)
+	end
 	channelNotes[i] = {}
 	channelIdx[i] = 1
+	channelsVolume[i] = 1
 end
 
 local fileEnded = false
@@ -25,18 +29,39 @@ while not fileEnded do
 		local freqStr = file:read(2)
 		if not freqStr then fileEnded = true; break; end
 		local freq = string.unpack("<I2", freqStr)
-		local dur = string.unpack("<I2", file:read(2))
-		local start = 0
-		if channelNotes[i][#channelNotes[i]] then
-			local note = channelNotes[i][#channelNotes[i]]
-			start = note.start + note.duration
+		if freq == 2 then -- set volume
+			local volume = string.unpack("<I1", file:read(1))
+			local start = 0
+			if channelNotes[i][#channelNotes[i]] then
+				local note = channelNotes[i][#channelNotes[i]]
+				start = note.start + (note.duration or 0)
+			end
+			table.insert(channelNotes[i], { volume = volume / 255, start = start })
+		else
+			local dur = string.unpack("<I2", file:read(2))
+			local start = 0
+			if channelNotes[i][#channelNotes[i]] then
+				local note = channelNotes[i][#channelNotes[i]]
+				start = note.start + (note.duration or 0)
+			end
+			table.insert(channelNotes[i], { frequency = freq, duration = dur, start = start })
 		end
-		table.insert(channelNotes[i], { frequency = freq, duration = dur, start = start })
 	end
 end
 file:close()
 
+local songDuration = 0
+for i=1, channelsNum do
+	for j=1, #channelNotes[i] do
+		local note = channelNotes[i][j]
+		if note.frequency and note.frequency ~= 0 then
+			songDuration = math.max(songDuration, note.start + note.duration)
+		end
+	end
+end
+
 local time = 0
+--time = 90 * 1000
 local lastProcess = 0
 
 
@@ -51,40 +76,74 @@ window.container:add(timeLabel)
 
 window:show()
 
+local BUFFER_MSECS = 1000 * SPEED
+
+local function formatTime(secs)
+	local time = ""
+	if secs >= 60 then
+		time = time .. tostring(math.floor(secs / 60)) .. "m"
+	end
+	if secs % 60 < 10 and secs / 60 >= 1 then time = time .. "0" end
+	time = time .. tostring(secs % 60) .. "s"
+	return time
+end
+
+local cardChannels = sound.getCapabilities().channels
 while window.visible do
 	local minDur = math.huge
 	for i=1, channelsNum do
 		local note = channelNotes[i][channelIdx[i]]
-		if note and (time >= note.start + note.duration) then
+		while note and time > note.start + (note.duration or 0) do
 			channelIdx[i] = channelIdx[i] + 1
 			note = channelNotes[i][channelIdx[i]]
 		end
 		if note then
-			if time >= note.start and not note.played then
-				if note.frequency == 0 then
-					sound.setFrequency(i, 0)
-				else
-					sound.setADSR(i)
-					sound.setADSR(i, 0, 250, 0.3, 100)
-					sound.setVolume(i, 1)
-					sound.setFrequency(i, note.frequency)
+			if note.volume then
+				sound.setVolume(i, note.volume)
+				channelsVolume[i] = note.volume
+			else
+				if time >= note.start and not note.played then
+					if i < cardChannels then
+						if note.frequency == 0 then
+							sound.setFrequency(i, 0)
+						else
+							sound.setADSR(i)
+							sound.setADSR(i, 0, 250, 0.3, 100)
+							sound.setVolume(i, channelsVolume[i])
+							sound.setFrequency(i, note.frequency)
+						end
+					end
+					note.played = true
 				end
-				note.played = true
+				--print("note dur of " .. channelIdx[i] .. " = " .. note.duration)
+				--for k in pairs(note) do print(k .. " = " .. note[k]) end
+				local dur = (note.start + note.duration) - time
+				minDur = math.min(minDur, dur)
 			end
-			local dur = (note.start + note.duration) - time
-			minDur = math.min(minDur, dur)
 		end
+	end
+	if minDur >= lastProcess - time + BUFFER_MSECS then minDur = lastProcess - time + BUFFER_MSECS end
+	if minDur <= 0 then minDur = 1 end
+	if minDur == math.huge then
+		goto continue
 	end
 	time = time + minDur
 	sound.delay(math.floor(minDur / SPEED))
-	if time - lastProcess > 1000 then
+	if time - lastProcess > BUFFER_MSECS then
 		local refreshed = false
 		while not sound.flush() do
 			os.sleep(0)
 		end
-		timeLabel:setText("Time: " .. math.floor(time/1000) .. "s")
-		timeLabel:redraw()
+		timeLabel:setText("Time: " .. formatTime(math.floor(time/1000)) .. " / " .. formatTime(math.floor(songDuration/1000)))
+		if time > songDuration then
+			break
+		end
+		local ok, err = pcall(timeLabel.redraw, timeLabel)
+		if not ok then
+			print(err)
+		end
 		refreshed = true
 		lastProcess = time
 	end
+	::continue::
 end

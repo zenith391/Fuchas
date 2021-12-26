@@ -40,9 +40,9 @@
 <ul class="nowrap">
   <li><a href="../modules/OCX.OCDraw.html">OCX.OCDraw</a></li>
   <li><a href="../modules/OCX.OCImage.html">OCX.OCImage</a></li>
-  <li><strong>buffer</strong></li>
+  <li><a href="../modules/buffer.html">buffer</a></li>
   <li><a href="../modules/clipboard.html">clipboard</a></li>
-  <li><a href="../modules/driver.html">driver</a></li>
+  <li><strong>driver</strong></li>
   <li><a href="../modules/event.html">event</a></li>
   <li><a href="../modules/filesystem.html">filesystem</a></li>
   <li><a href="../modules/ipc.html">ipc</a></li>
@@ -60,8 +60,8 @@
 
 <div id="content">
 
-<h1>Module <code>buffer</code></h1>
-<p>Library used to buffer I/O streams and for some I/O stream utilities</p>
+<h1>Module <code>driver</code></h1>
+<p>Library for handling drivers, which are a secure way of accessing components</p>
 <p>
 
 </p>
@@ -70,16 +70,12 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#from">from (handle)</a></td>
-	<td class="summary">Create a buffered stream from the given unbuffered stream</td>
+	<td class="name" nowrap><a href="#changeDriver">changeDriver (type, addr, string)</a></td>
+	<td class="summary">Force the component with given address and type to use the driver found at 'path'</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#fromString">fromString (str)</a></td>
-	<td class="summary">Returns an unbuffered stream that is backed by a string (in variable stream.data)</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#pipedStreams">pipedStreams ([unbuffered=false])</a></td>
-	<td class="summary">Return a set of stream that are piped to each other.</td>
+	<td class="name" nowrap><a href="#getDriver">getDriver (type)</a></td>
+	<td class="summary">Gets an arbitrarily chosen driver of the given type</td>
 	</tr>
 </table>
 
@@ -91,85 +87,57 @@
 
     <dl class="function">
     <dt>
-    <a name = "from"></a>
-    <strong>from (handle)</strong>
+    <a name = "changeDriver"></a>
+    <strong>changeDriver (type, addr, string)</strong>
     </dt>
     <dd>
-    Create a buffered stream from the given unbuffered stream
+    Force the component with given address and type to use the driver found at 'path'
 
     </ul>
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">handle</span>
-            <span class="types"><span class="type">stream</span></span>
-         unbuffered stream
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">stream</span></span>
-        Buffered stream
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "fromString"></a>
-    <strong>fromString (str)</strong>
-    </dt>
-    <dd>
-    Returns an unbuffered stream that is backed by a string (in variable stream.data)
-
-    </ul>
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">str</span>
+        <li><span class="parameter">type</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
-         The string from which to read or write
+         The type of the component
+        </li>
+        <li><span class="parameter">addr</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The UUID address of the component
+        </li>
+        <li><span class="parameter">string</span>
+            <span class="types"><span class="type">path</span></span>
+         The file path of the driver to load
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">stream</span></span>
-        String stream
-    </ol>
 
 
 
 
 </dd>
     <dt>
-    <a name = "pipedStreams"></a>
-    <strong>pipedStreams ([unbuffered=false])</strong>
+    <a name = "getDriver"></a>
+    <strong>getDriver (type)</strong>
     </dt>
     <dd>
-    Return a set of stream that are piped to each other.
- This is the equivalent of a <code>pipe</code> library on other operating systems.
+    Gets an arbitrarily chosen driver of the given type
 
     </ul>
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">unbuffered</span>
-            <span class="types"><span class="type">bool</span></span>
-         Whether the streams should be unbuffered or buffered
-         (<em>default</em> false)
+        <li><span class="parameter">type</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+         The type of the drievr to get
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><span class="type">{stream,stream}</span></span>
-        The piped input and output stream
+           <span class="types">optional <span class="type">driver</span></span>
+        The loaded driver or nil if none found
     </ol>
 
 

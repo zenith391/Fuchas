@@ -74,7 +74,7 @@ end
 --- Request a permission to the parent process
 -- @string perm requested permission
 -- @treturn bool true if the was the permission given
--- @treturn[opt] string details on why the permission was not given
+-- @treturn ?string details on why the permission was not given
 function lib.requestPermission(perm)
 	if tasks.getCurrentProcess() == nil then
 		return
