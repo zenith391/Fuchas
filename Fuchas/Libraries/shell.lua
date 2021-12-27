@@ -322,8 +322,9 @@ function lib.parse(tab)
 	return ntab, options
 end
 
---- Resolve a local or absolute file using PATH, PWD and PATHEXT
+--- Resolve a local or absolute file using PATH, PWD and PATHEXT. This shouldn't be used by CLI programs.
 -- @string path Path to a file to resolve
+-- @boolean alwaysResolve Whether it should resolve even if the path is not found
 function lib.resolve(path, alwaysResolve)
 	checkArg(1, path, "string")
 	local paths = string.split(os.getenv("PATH"), ";")
@@ -356,7 +357,9 @@ function lib.resolve(path, alwaysResolve)
 	return nil
 end
 
---- Resolve to PWD
+--- Resolve to PWD. If the path exists, returns it, otherwise checks if it exists in the
+-- PWD. This method should be preferred for CLI programs.
+-- @string path Path to be resolved
 function lib.resolveToPwd(path)
 	if fs.exists(path) then
 		return path

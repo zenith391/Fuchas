@@ -1,4 +1,9 @@
-local file = io.open("A:/Users/Shared/Binaries/song.aaf", "r")
+local shell = require("shell")
+local args, ops = shell.parse(...)
+if args[1] then
+	args[1] = shell.resolveToPwd(args[1])
+end
+local file = io.open(args[1] or "A:/Users/Shared/Binaries/song.aaf", "r")
 local sound = require("driver").sound
 
 file:read(5) -- skip signature
@@ -30,7 +35,7 @@ while not fileEnded do
 			local note = channelNotes[i][#channelNotes[i]]
 			start = note.start + note.duration
 		end
-		table.insert(channelNotes[i], { frequency = freq, duration = math.floor(dur/1.3), start = start })
+		table.insert(channelNotes[i], { frequency = freq, duration = math.floor(dur/1.0), start = start })
 	end
 end
 

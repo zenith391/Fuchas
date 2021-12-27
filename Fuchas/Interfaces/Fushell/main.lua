@@ -3,6 +3,7 @@ local fs = require("filesystem")
 local tasks = require("tasks")
 local driver = require("driver")
 local users = require("users")
+local filesystem = require("filesystem")
 
 tasks.getCurrentProcess().childErrorHandler = function(proc, err)
 	local procType = "process"
@@ -112,6 +113,36 @@ local function execCmd(l)
 			for i=#newargs, 1, -1 do
 				table.insert(args, 1, newargs[i])
 			end
+		end
+
+		if args[1] == "cd" then
+			local pwd = os.getenv("PWD")
+			local drive = pwd:sub(1, 3)
+			local current = filesystem.canonical(pwd)
+			if #args < 2 then
+				print(current .. "/")
+			else
+				if args[2]:sub(1, 1) == '/' then
+					pwd = drive
+					args[2] = args[2]:sub(2)
+				end
+				local canon = filesystem.canonical(pwd:sub(4)) .. "/"
+				if canon:sub(1, 1) == '/' then
+					canon = canon:sub(2, canon:len())
+				end
+				local newPath = canon .. args[2]
+				local effectivePath = drive .. filesystem.canonical(newPath)
+				if filesystem.exists(effectivePath) and filesystem.isDirectory(effectivePath) then
+					os.setenv("PWD", effectivePath)
+				else
+					if not filesystem.exists(effectivePath) then
+						print(newPath .. " doesn't exists.")
+					else
+						print(newPath .. " isn't a directory.")
+					end
+				end
+			end
+			goto continue
 		end
 		
 		local path = sh.resolve(args[1])

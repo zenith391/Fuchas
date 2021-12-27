@@ -11,6 +11,10 @@ local channelNotes = {}
 local channelIdx = {}
 local channelsVolume = {}
 
+for i=1, sound.getCapabilities().channels do
+	sound.closeChannel(i)
+end
+
 for i=1, channelsNum do
 	if i <= sound.getCapabilities().channels then
 		sound.openChannel(i)
