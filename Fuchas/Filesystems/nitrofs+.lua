@@ -230,6 +230,7 @@ function fs.open(path, mode)
 			table.insert(parentEntry.children, newBlock)
 			writeFileEntry(newBlock, { parent = parentBlock, name = name, attributes = 0, size = 0, firstFragment = 0 })
 			writeDirectoryEntry(parentBlock, parentEntry)
+			_blockIds[path] = newBlock
 		end
 	end
 
@@ -311,7 +312,7 @@ function fs.asFilesystem()
 		spaceUsed = fs.spaceUsed,
 		spaceTotal = fs.spaceTotal,
 
-		address = partitionUUID or "undefined"
+		address = partitionUUID or driver.address
 	}
 end
 

@@ -18,6 +18,8 @@ end
 function spec.new(address)
 	drive = cp.proxy(address)
 
+	local sectorSize = drive.getSectorSize()
+
 	local drv = {}
 	local diskBuffer = {}
 	local sectorCache = { -- sectors are cached for faster properties/content reading.
@@ -33,15 +35,28 @@ function spec.new(address)
 		return drive.setLabel(label)
 	end
 
-	-- Should be used instdead of drv.readByte when possible, as it *can be* optimized
+	-- Should be used instead of drv.readByte when possible, as it *can be* optimized
 	-- off is zero-based!
 	function drv.readBytes(off, len, asString)
 		local sectorId = math.floor(off/512) + 1
+		if len > sectorSize then
+			local a = drv.readBytes(off, sectorSize, asString)
+			local b = drv.readBytes(off+sectorSize, len-sectorSize, asString)
+			if asString then
+				local result = a .. b
+				return result
+			else
+				local result = {}
+				for _, v in ipairs(a) do table.insert(result, v) end
+				for _, v in ipairs(b) do table.insert(result, v) end
+				return result
+			end
+		end
+
 		if diskBuffer[sectorId] then
 			sectorCache.id = sectorId
 			sectorCache.text = diskBuffer[sectorId]
 		end
-
 		if sectorCache.id ~= sectorId then
 			sectorCache.id = sectorId
 			sectorCache.text = drive.readSector(sectorId)
@@ -67,9 +82,8 @@ function spec.new(address)
 
 		if #data > SECTOR_IO_TRESHOLD or diskBuffer[sectorId] then -- if it became more efficient to use sector i/o
 			local offset = off%512
-			if offset == 0 and #data == drive.getSectorSize() then
+			if offset == 0 and #data == sectorSize then
 				local sec = string.char(table.unpack(data))
-				drive.writeSector(sectorId, sec)
 				diskBuffer[sectorId] = sec
 			else
 				if #data > 512 - offset then
@@ -103,11 +117,16 @@ function spec.new(address)
 	-- off is zero-based!
 	function drv.writeByte(off, val)
 		local sectorId = math.floor(off/512) + 1
+		if not diskBuffer[sectorId] then
+			-- writeByte calls tend to happen randomly on few sectors, which is perfect for disk buffer
+			diskBuffer[sectorId] = drive.readSector(sectorId)
+		end
+
 		if diskBuffer[sectorId] then
-			local offset = off%512
+			local offset = off%512 + 1
 			local sec = diskBuffer[sectorId]
-			val = io.fromunum(io.tounum(val, 1))
-			sec = sec:sub(1, offset) .. string.char(val) .. sec:sub(offset+1+1)
+			val = bit32.band(val, 0xFF) -- convert to unsigned
+			sec = sec:sub(1, offset-1) .. string.char(val) .. sec:sub(offset+1)
 			diskBuffer[sectorId] = sec
 		else
 			drive.writeByte(off+1, val)

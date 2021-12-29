@@ -62,7 +62,7 @@ if options.fs == "nitrofs+" then
 	local ptlist = part.openupt1().readPartitionList(drive)
 	local ptDriver = part.openupt1().partitionDriver(drive, pt)
 	local nfs = loadfile("A:/Fuchas/Filesystems/nitrofs+.lua")(ptDriver, pt.guid) -- TODO: expand GUID to give an UUID
-	nfs.format()
+	if not options.peek then nfs.format() end
 
 	local driveLetter = fs.freeDriveLetter()
 	print("The shell has " .. driveLetter .. ": mounted for NitroFS filesystem")
