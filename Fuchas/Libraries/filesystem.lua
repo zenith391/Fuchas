@@ -110,12 +110,15 @@ end
 
 function filesystem.freeDriveLetter()
 	local letter = "A"
-	for k in pairs(drives) do
-		if k == letter then
-			if letter == "Z" then -- Z: is maximum letter
-				return nil
-			end
+	while true do
+		if drives[letter] then
 			letter = string.char(string.byte(letter) + 1)
+			if letter == 'Z' then
+				if drives[letter] then return nil end
+				break
+			end
+		else
+			break
 		end
 	end
 	return letter
@@ -140,6 +143,9 @@ end
 function filesystem.mountDrive(proxy, letter)
 	if letter:len() ~= 1 then
 		return false, "invalid length"
+	end
+	if drives[letter:upper()] then
+		return false, "drive already mounted"
 	end
 	drives[letter:upper()] = {
 		fs = proxy,

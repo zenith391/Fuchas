@@ -48,14 +48,14 @@ function lib.openupt1()
 		for i=0, 7 do
 			local partition = {
 				id = i,
-				start = io.fromunum(driver.readBytes(off+1, 4), true),
-				["end"] = io.fromunum(driver.readBytes(off+5, 4), true),
-				type = driver.readBytes(off+9, 8, true),
-				flags = io.fromunum(driver.readBytes(off+17, 4), true),
-				guid = toTextGUID(driver.readBytes(off+21, 8)),
-				label = driver.readBytes(off+29, 36, true)
+				start = io.fromunum(driver.readBytes(off+0, 4), true),
+				["end"] = io.fromunum(driver.readBytes(off+4, 4), true),
+				type = driver.readBytes(off+8, 8, true),
+				flags = io.fromunum(driver.readBytes(off+16, 4), true),
+				guid = toTextGUID(driver.readBytes(off+20, 8)),
+				label = driver.readBytes(off+28, 36, true)
 			}
-			if partition.type ~= "\x00\x00\x00\x00\x00\x00\x00\x00" then -- non-null FS type
+			if partition.type ~= ("\x00"):rep(8) and partition.start ~= 0 then -- non-null FS type
 				table.insert(partitions, partition)
 			end
 			off = off + 64
@@ -66,7 +66,8 @@ function lib.openupt1()
 	function upt.partitionDriver(driver, partition)
 		local driver = {
 			getLabel = function()
-				return partition.label
+				local labelEnd = partition.label:find("\x00") or partition.label:len()+1
+				return partition.label:sub(1, labelEnd-1)
 			end,
 			setLabel = function(label)
 				partition.label = label:sub(1, 36)
@@ -86,8 +87,10 @@ function lib.openupt1()
 			end,
 			getCapacity = function()
 				return (partition["end"] - partition.start) * 512
-			end
+			end,
+			address = partition.guid
 		}
+		return driver
 	end
 
 	local guidSeed = 1
@@ -110,7 +113,7 @@ function lib.openupt1()
 			["end"] = pend or 0,
 			type = ("\x00"):rep(8),
 			flags = 0,
-			guid = upt.randomGUID(),
+			guid = guid or upt.randomGUID(),
 			label = ("\x00"):rep(36)
 		}
 	end
@@ -128,10 +131,14 @@ function lib.openupt1()
 		addTables(data, io.tounum(partition.start, 4, true))
 		addTables(data, io.tounum(partition["end"], 4, true))
 		addTables(data, string.toByteArray(partition.type))
+		addTables(data, io.tounum(partition.flags, 4, true))
 		addTables(data, fromTextGUID(partition.guid))
+		if partition.label:len() < 36 then
+			partition.label = partition.label .. ("\x00"):rep(36 - partition.label:len())
+		end
 		addTables(data, string.toByteArray(partition.label:sub(1, 36)))
 		if progressHandler then progressHandler("Writing partition #" .. (partition.id+1) .. "..") end
-		driver.writeBytes(off+1, data)
+		driver.writeBytes(off, data)
 		if progressHandler then progressHandler("Done writing partition.") end
 	end
 
