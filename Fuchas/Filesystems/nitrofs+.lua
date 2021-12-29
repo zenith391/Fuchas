@@ -178,6 +178,9 @@ function fs.makeDirectory(path)
 	if not fs.exists(parent) then
 		return false, parent .. " does not exists"
 	end
+	if name:len() > 32 then
+		return false, "name too long"
+	end
 	local parentBlock = getBlockId(parent)
 	local parentEntry = readDirectoryEntry(parentBlock)
 	local newBlock = allocateBlock()
@@ -217,6 +220,9 @@ function fs.open(path, mode)
 			local name = segments[#segments]
 			if not fs.exists(parent) then
 				return false, parent .. " does not exists"
+			end
+			if name:len() > 32 then
+				return false, "name too long"
 			end
 			local parentBlock = getBlockId(parent)
 			local parentEntry = readDirectoryEntry(parentBlock)
