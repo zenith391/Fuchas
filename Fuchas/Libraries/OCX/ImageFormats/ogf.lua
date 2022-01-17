@@ -2,7 +2,11 @@ local format = {}
 local buffer = require("buffer")
 
 function format:getType()
-	return "raster"
+	return "oc"
+end
+
+function format:getExtension()
+	return "ogf"
 end
 
 function format:isSupported(file)
@@ -19,7 +23,56 @@ function format:decode(file)
 	for i=1, numEntries do
 		local type = string.unpack("<I1", file:read(1))
 		local length = string.unpack("<I4", file:read(4))
-		file:seek("cur", length)
+		local data = file:read(length)
+		local entry = buffer.fromString(data)
+		if type == 2 then
+			local width = string.unpack("<I2", entry:read(2))
+			local height = string.unpack("<I2", entry:read(2))
+			local bitDepth = string.unpack("<I1", entry:read(1))
+			local compression = string.unpack("<I1", entry:read(1))
+			local palette = string.unpack("<I4", entry:read(4))
+			if bitDepth ~= 3 then
+				error("unsupported bit depth: " .. bitDepth)
+			elseif compression ~= 0 then
+				error("compression not supported")
+			elseif palette ~= 0 then
+				error("palette not supported")
+			end
+
+			local textLength = string.unpack("<I4", entry:read(4))
+			local text = entry:read(textLength)
+			local chars = {}
+			local imageSize = width * height
+			local i = 1
+			for p, c in utf8.codes(text) do
+				chars[i] = utf8.char(c)
+				i = i + 1
+			end
+
+			local backgrounds = {}
+			for i=1, imageSize do
+				local rgb = string.unpack("<I3", entry:read(3))
+				table.insert(backgrounds, rgb)
+			end
+
+			local foregrounds = {}
+			for i=1, imageSize do
+				local rgb = string.unpack("<I3", entry:read(3))
+				table.insert(foregrounds, rgb)
+			end
+
+			return {
+				width = width,
+				height = height,
+				backgrounds = backgrounds,
+				foregrounds = foregrounds,
+				chars = chars,
+				hasAlpha = false,
+				bpp = 8
+			}
+		else
+			error("unsupported entry type: " .. type)
+		end
 	end
 end
 
@@ -36,13 +89,22 @@ function format:encode(file, image)
 	entry:write(string.pack("<I1", 0)) -- no compression
 	entry:write(string.pack("<I4", 0)) -- 0 offset = no palette
 
-	entry:write(string.pack("<I4", image.width * image.height)) -- byte length
+	local charsBuf = buffer.fromString("")
 	for _, char in pairs(image.chars) do
-		entry:write()
+		charsBuf:write(char)
+	end
+	entry:write(string.pack("<I4", charsBuf.data:len()))
+	entry:write(charsBuf.data)
+
+	for _, bg in pairs(image.backgrounds) do
+		entry:write(string.pack("<I3", bg))
 	end
 
+	for _, fg in pairs(image.foregrounds) do
+		entry:write(string.pack("<I3", fg))
+	end
 
-	file:write(string.pack("<I1", 3)) -- entry type 3: Bitmap Image Data
+	file:write(string.pack("<I1", 2)) -- entry type 2: OC Image Data
 	file:write(string.pack("<I4", entry.data:len()))
 	file:write(entry.data)
 end 

@@ -18,7 +18,16 @@ function lib.registerImageFormat(format)
 	table.insert(formats, format)
 end
 
+function lib.findFormat(ext)
+	for _, format in pairs(formats) do
+		if format:getExtension() == ext then
+			return format
+		end
+	end
+end
+
 lib.registerImageFormat(require("OCX/ImageFormats/bmp"))
+lib.registerImageFormat(require("OCX/ImageFormats/ogf"))
 
 --- Detects the image format the given file is in or returns null if it corresponds to no registered image format
 -- @tparam file file The file containing an image

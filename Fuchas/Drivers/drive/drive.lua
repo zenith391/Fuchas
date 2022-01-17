@@ -150,7 +150,7 @@ function spec.new(address)
 				break
 			end
 		end
-		diskBuffer = {}
+		if wrote == 0 then diskBuffer = {} end
 		return wrote
 	end
 

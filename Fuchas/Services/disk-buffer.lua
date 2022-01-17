@@ -8,6 +8,8 @@ while true do
 	local wroteSectors = drive.flushBuffer(10)
 	if wroteSectors > 0 then
 		log.info("Wrote " .. wroteSectors .. " sectors")
+		os.sleep(1)
+	else
+		os.sleep(5)
 	end
-	os.sleep(5)
 end

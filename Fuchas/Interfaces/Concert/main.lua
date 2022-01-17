@@ -8,6 +8,7 @@ package.loaded["OCX/OCUI"] = nil
 package.loaded["OCX/OCDraw"] = nil
 
 local windowManager = require("window")
+local filesystem = require("filesystem")
 local event = require("event")
 local draw = require("OCX/OCDraw")
 local ui = require("OCX/OCUI")
@@ -47,21 +48,30 @@ windowManager.clearDesktop()
 
 local api = {}
 function api.loadWallpaper()
-	local ok, err = pcall(function()
+	local ok, err = pcall((function()
 		--error("no wallpaper")
 		local rw, rh = gpu.getResolution()
 		local wallpaper = draw.newContext(1, 1, rw, rh)
 		-- TODO: convert image to an OC-specific image format which would make the
 		-- code lighter, the file size lower and the loading time faster
-		local image = imaging.loadRaster(config.wallpaperPath)
-		image = imaging.scale(image, rw * 2, rh * 4)
-		image = imaging.convertFromRaster(image, { dithering = "floyd-steinberg", advancedDithering = true })
+		local image
+		if not filesystem.exists("A:/Fuchas/Interfaces/Concert/wallpaper-cache.ogf") then
+			image = imaging.loadRaster(config.wallpaperPath)
+			image = imaging.scale(image, rw * 2, rh * 4)
+			image = imaging.convertFromRaster(image, { dithering = "floyd-steinberg", advancedDithering = true })
+			local file = io.open("A:/Fuchas/Interfaces/Concert/wallpaper-cache.ogf", "w")
+			imaging.findFormat("ogf"):encode(file, image)
+			file:close()
+		else
+			image = imaging.load("A:/Fuchas/Interfaces/Concert/wallpaper-cache.ogf")
+			coroutine.yield()
+		end
 
 		imaging.drawImage(image, wallpaper)
 		draw.drawContext(wallpaper)
 		windowManager.setWallpaper(draw.toOwnedBuffer(wallpaper))
 		windowManager.forceDrawDesktop()
-	end)
+	end))
 	if not ok then return err end
 end
 

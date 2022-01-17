@@ -4,6 +4,10 @@ function format:getType()
 	return "raster"
 end
 
+function format:getExtension()
+	return "bmp"
+end
+
 function format:isSupported(file)
 	local signature = file:read(2)
 	return signature == "BM"
