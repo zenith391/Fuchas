@@ -98,6 +98,7 @@ local startMenuEntries = {
 	{"Mario", "A:/Users/Shared/Binaries/subpixeltest.lua"},
 	{"Terminal", "A:/Fuchas/Interfaces/Concert/Applications/terminal.lua"},
 	{"Flarefox", "A:/Users/Shared/Binaries/flarefox.lua"},
+	{"Explorer", "A:/Fuchas/Interfaces/Concert/Applications/explorer.lua"},
 	{"Reboot", ":reboot"}
 }
 
@@ -295,7 +296,8 @@ while true do
 			end
 			if focusedWin.container.listeners[name] then
 				focusedWin.container.listeners[name](focusedWin.container, table.unpack(evt))
-			elseif focusedWin.container.listeners["*"] then
+			end
+			if focusedWin.container.listeners["*"] then
 				focusedWin.container.listeners["*"](focusedWin.container, table.unpack(evt))
 			end
 			::cancel::

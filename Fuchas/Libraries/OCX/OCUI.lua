@@ -154,9 +154,11 @@ function lib.LineLayout(opts)
 	return function(container)
 		local flowY = 1
 		for _, child in pairs(container.childrens) do
+			child.width = container.width
 			child.y = flowY
 			flowY = flowY + child.height + (opts.spacing or 0)
 		end
+		container.height = flowY
 	end
 end
 
@@ -210,23 +212,38 @@ function lib.container()
 	end
 
 	comp.listeners["touch"] = function(self, id, addr, x, y, ...)
+		local oldFocused = self.focused
 		self.focused = nil
-		for _, child in pairs(comp.childrens) do
+		for _, child in pairs(self.childrens) do
 			local cx = child.x
 			local cy = child.y
 			if x >= cx and y >= cy and x < cx + child.width and y < cy + child.height then
 				self.focused = child
+				break
 			end
 		end
-		self.listeners["*"](self, id, addr, x, y, ...)
+		if self.focused ~= oldFocused then
+			if oldFocused and oldFocused.listeners["defocus"] then
+				oldFocused.listeners["defocus"](oldFocused, "defocus")
+			end
+			if self.focused and self.focused.listeners["focus"] then
+				self.focused.listeners["focus"](self.focused, "focus")
+			end
+		end
 	end
 	
 	comp.listeners["*"] = function(self, ...)
 		local id = select(1, ...)
 		if self.focused then
 			if self.focused.listeners[id] then
-				self.focused.listeners[id](self.focused, ...)
-			elseif self.focused.listeners["*"] then
+				if id == "touch" or id == "drag" or id == "drop" then
+					local id, addr, x, y = ...
+					self.focused.listeners[id](self.focused, id, addr, x, y)
+				else
+					self.focused.listeners[id](self.focused, ...)
+				end
+			end
+			if self.focused.listeners["*"] then
 				self.focused.listeners["*"](self.focused, ...)
 			end
 		end
@@ -250,9 +267,63 @@ function lib.label(text)
 	return comp
 end
 
+function lib.listItem(label)
+	local comp = lib.component()
+	comp.text = label or "List Item"
+	comp.width = comp.text:len()
+	comp.height = 1
+	comp.foreground = 0xFFFFFF
+	comp.background = 0x808080
+	comp.selected = false
+	comp._render = function(self)
+		local spaces = self.width - self.text:len()
+		local bg = self.background
+		if self.selected then bg = 0x2D2D2D end
+		self.canvas.drawText(1, 1, self.text .. (" "):rep(spaces), self.foreground, bg) -- draw text
+	end
+
+	comp.setText = function(self, text)
+		self.text = text
+		self.width = text:len()
+		self.dirty = true
+	end
+
+	comp.listeners["touch"] = function(self, ...)
+		if not self.selected then
+			self.selected = true
+			self.dirty = true
+			self:redraw()
+		else
+			self.selected = false
+			self.dirty = true
+			self:redraw()
+		end
+	end
+
+	comp.listeners["defocus"] = function(self, ...)
+		self.selected = false
+		self.dirty = true
+		self:redraw()
+	end
+
+	return comp
+end
+
+function lib.list()
+	local comp = lib.container()
+	comp.layout = lib.LineLayout({ spacing = 0})
+
+	function comp:addItem(item)
+		checkArg(1, item, "table")
+		self:add(item)
+	end
+
+	return comp
+end
+
 function lib.button(label, onAction)
 	local comp = lib.component()
-	comp.background = 0x2D2D2D
+	comp.background = 0x4D4D4D
 	comp.foreground = 0xFFFFFF
 	comp.label = label or "Button"
 	comp.width = comp.label:len()
@@ -267,7 +338,22 @@ function lib.button(label, onAction)
 	end
 
 	comp.listeners["touch"] = function(self, ...)
-		self.onAction()
+		if not self.oldBackground then
+			self.oldBackground = self.background
+			self.background = 0x2D2D2D
+			self.dirty = true
+			self:redraw()
+		end
+	end
+
+	comp.listeners["drop"] = function(self, ...)
+		self.background = self.oldBackground
+		self.oldBackground = nil
+		self.dirty = true
+		self:redraw()
+		if self.onAction then
+			self:onAction()
+		end
 	end
 	return comp
 end
@@ -293,7 +379,9 @@ function lib.checkBox(label, onChanged)
 	comp.listeners["touch"] = function(self, ...)
 		self.active = not self.active
 		self.dirty = true
-		self:onChanged(self.active)
+		if self.onChanged then
+			self:onChanged(self.active)
+		end
 		self:redraw()
 	end
 	return comp

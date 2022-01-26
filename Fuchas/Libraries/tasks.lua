@@ -304,9 +304,14 @@ function mod.unsafeKill(proc)
 	if require("security").isRegistered(proc.pid) then
 		require("security").revoke(proc.pid)
 	end
+
+	local oldCurrentProc = currentProc
+	currentProc = proc
 	for k, v in pairs(proc.exitHandlers) do
 		v()
 	end
+	currentProc = oldCurrentProc
+
 	proc.io.stdout:close()
 	proc.io.stdin:close()
 	proc.io.stderr:close()
