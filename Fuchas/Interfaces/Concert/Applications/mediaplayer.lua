@@ -1,4 +1,4 @@
-local file = io.open("A:/Users/Shared/Binaries/mario/music/song-piggies.aaf", "r")
+local file = io.open("A:/Users/Shared/Binaries/mario/music/song.aaf", "r")
 local sound = require("driver").sound
 local ui = require("OCX/OCUI")
 local SPEED = 1.0
@@ -65,7 +65,7 @@ for i=1, channelsNum do
 end
 
 local time = 0
---time = 90 * 1000
+--time = 120 * 1000
 local lastProcess = 0
 
 
@@ -100,6 +100,10 @@ while window.visible do
 		while note and time > note.start + (note.duration or 0) do
 			channelIdx[i] = channelIdx[i] + 1
 			note = channelNotes[i][channelIdx[i]]
+			if note.volume then
+				sound.setVolume(i, note.volume)
+				channelsVolume[i] = note.volume
+			end
 		end
 		if note then
 			if note.volume then
