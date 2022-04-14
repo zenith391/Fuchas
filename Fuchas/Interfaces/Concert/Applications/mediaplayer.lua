@@ -1,7 +1,11 @@
-local file = io.open("A:/Users/Shared/Binaries/mario/music/song.aaf", "r")
+local file = io.open("A:/Users/Shared/Binaries/mario/music/song-still-alive-2.aaf", "r")
 local sound = require("driver").sound
 local ui = require("OCX/OCUI")
+local dbg = require("driver").debugger
 local SPEED = 1.0
+
+-- disable debug
+dbg = nil
 
 file:read(5) -- skip signature
 file:read(2) -- skip capability flags
@@ -24,7 +28,16 @@ for i=1, channelsNum do
 	end
 	channelNotes[i] = {}
 	channelIdx[i] = 1
-	channelsVolume[i] = 1
+	channelsVolume[i] = 0.5
+end
+
+if channelsNum < 8 and false then
+	sound.openChannel(8)
+	sound.setWave(8, "sine")
+	sound.setFrequency(8, 880)
+	for i=1, channelsNum do
+		sound.setFM(i, 8, 100)
+	end
 end
 
 local fileEnded = false
@@ -65,7 +78,7 @@ for i=1, channelsNum do
 end
 
 local time = 0
---time = 120 * 1000
+--time = 90 * 1000
 local lastProcess = 0
 
 
@@ -97,10 +110,10 @@ while window.visible do
 	local minDur = math.huge
 	for i=1, channelsNum do
 		local note = channelNotes[i][channelIdx[i]]
-		while note and time > note.start + (note.duration or 0) do
+		while note and time >= note.start + (note.duration or 0) do
 			channelIdx[i] = channelIdx[i] + 1
 			note = channelNotes[i][channelIdx[i]]
-			if note.volume then
+			if note and note.volume then
 				sound.setVolume(i, note.volume)
 				channelsVolume[i] = note.volume
 			end
@@ -127,6 +140,10 @@ while window.visible do
 				--for k in pairs(note) do print(k .. " = " .. note[k]) end
 				local dur = (note.start + note.duration) - time
 				minDur = math.min(minDur, dur)
+				if dbg then
+					dbg.out():write("At " .. time .. "ms play note " .. note.frequency .. "Hz for " .. note.duration .. "ms"
+						.. " (=" .. dur .. " ms) on channel " .. i .. " (note start is " .. note.start .. "ms)")
+				end
 			end
 		end
 	end
@@ -137,6 +154,9 @@ while window.visible do
 	end
 	time = time + minDur
 	sound.delay(math.floor(minDur / SPEED))
+	if dbg then
+		dbg.out():write("Effective minDur = " .. math.floor(minDur))
+	end
 	if time - lastProcess > BUFFER_MSECS then
 		local refreshed = false
 		while not sound.flush() do

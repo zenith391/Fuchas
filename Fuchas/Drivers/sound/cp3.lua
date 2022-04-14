@@ -41,15 +41,17 @@ function spec.new(address)
 	end
 
 	function drv.setADSR(ch, attack, decay, sustain, release)
-		if not attack then
-			sound.resetEnvelope(ch)
-		else
+		if attack then
 			sound.setADSR(ch, attack, decay, sustain, release)
+		else
+			sound.resetEnvelope(ch)
 		end
 		return true
 	end
 
-	-- TODO: LFSR
+	function drv.setLFSR(channel, initial, mask)
+		sound.setLFSR(channel, initial, mask)
+	end
 
 	function drv.setWave(ch, type)
 		sound.setWave(ch, sound.modes[type])
@@ -109,6 +111,22 @@ function spec.new(address)
 		end
 	end
 
+	function drv.setAM(carrier, modulator)
+		if modulator then
+			sound.setAM(carrier, modulator)
+		else
+			sound.resetAM(carrier)
+		end
+	end
+
+	function drv.setFM(carrier, modulator, index)
+		if modulator then
+			sound.setFM(carrier, modulator, index)
+		else
+			sound.resetFM(carrier)
+		end
+	end
+
 	function drv.getRank()
 		return 4
 	end
@@ -126,7 +144,9 @@ function spec.new(address)
 	        asynchronous = true,
 	        volume = true,
 	        waveTypes = waveTypes,
-	        channels = sound.channel_count
+	        channels = sound.channel_count,
+	        frequencyModulation = true,
+	        amplitudeModulation = true,
 	    }
 	end
 

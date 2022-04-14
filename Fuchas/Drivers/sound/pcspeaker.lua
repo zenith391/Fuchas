@@ -84,7 +84,9 @@ function spec.new(address)
 	        asynchronous = false,
 	        volume = false,
 	        waveTypes = {"square"},
-	        channels = 1
+	        channels = 1,
+	        frequencyModulation = false,
+	        amplitudeModulation = false,
 	    }
 	end
 	return drv
