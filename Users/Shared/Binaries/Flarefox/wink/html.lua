@@ -20,6 +20,7 @@ function html.tokenize(text)
 	local state = {
 		name = "data"
 	}
+	print("Tokenizing..")
 
 	local i = 1
 	while i < #text do
@@ -138,18 +139,32 @@ function html.tokenize(text)
 					i = i + 1
 				end
 			end,
+
+			-- Attributes
 			before_attribute_name = function()
 				if char == '\t' or char == '\n' or char == '\x0c' or char == ' ' then
 					-- ignore
 					i = i + 1
 				elseif char == '/' or char == '>' then
-					--state.name = "after_attribute_name"
-					state.name = "tag_name"
+					state.name = "after_attribute_name"
+				elseif char == '=' then
+					error("unexpected-equals-sign-before-attribute-name")
 				else
-					-- TODO: handle attributes!
+					state.attributeName = ""
+					state.name = "attribute_name"
+				end
+			end,
+			attribute_name = function()
+				if char == '\t' or char == '\n' or char == '\x0c' or char == ' ' or char == '/' or char == '>' then
+					state.name = "after_attribute_name"
+				elseif char == '=' then
+					state.name = "before_attribute_value"
+				elseif char == '"' or char == "'" or char == '<' then
+					error("unexpected-character-in-attribute-name")
+				else
+					state.attributeName = state.attributeName .. char:lower()
 					i = i + 1
 				end
-
 			end,
 
 			-- Everything DOCTYPE
@@ -264,6 +279,10 @@ function html.tokenize(text)
 		else
 			error("missing state implementation: " .. state.name)
 		end
+
+		if i % 5000 == 0 then
+			coroutine.yield()
+		end
 	end
 	if state.name ~= "data" then
 		error("eof-in-" .. state.name)
@@ -334,6 +353,8 @@ function html.parse(text)
 			closeNode()
 		end
 	end
+
+	print("Parsing..")
 
 	local line = 1
 	local lastYield = 0

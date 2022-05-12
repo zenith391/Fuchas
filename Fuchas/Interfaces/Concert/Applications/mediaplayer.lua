@@ -1,4 +1,4 @@
-local file = io.open("A:/Users/Shared/Binaries/mario/music/song-still-alive-2.aaf", "r")
+local file = io.open("A:/Users/Shared/Binaries/mario/music/song-piggies.aaf", "r")
 local sound = require("driver").sound
 local ui = require("OCX/OCUI")
 local dbg = require("driver").debugger
@@ -14,6 +14,12 @@ local channelsNum = file:read(1):byte()
 local channelNotes = {}
 local channelIdx = {}
 local channelsVolume = {}
+
+if sound.getCapabilities().channels < 8 then
+	require("concert").dialogs.showErrorMessage(
+		"You can have much better sound quality using the Sound Card from the Computronics mod!",
+		"Warning")
+end
 
 for i=1, sound.getCapabilities().channels do
 	sound.closeChannel(i)
@@ -138,7 +144,7 @@ while window.visible do
 				sound.setWave(i, note.waveType)
 			else
 				if time >= note.start and not note.played then
-					if i < cardChannels then
+					if i <= cardChannels then
 						if note.frequency == 0 then
 							sound.setFrequency(i, 0)
 						else

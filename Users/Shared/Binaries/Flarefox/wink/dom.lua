@@ -36,7 +36,7 @@ function Event:new(type, opts)
 		type = type,
 		arguments = {},
 		dispatch = false
-	})
+	}, Event)
 end
 
 function Event:getType()
@@ -140,7 +140,7 @@ function Text:new(text, parent)
 end
 
 function Text:__tostring()
-	return "#text" .. self.wholeText
+	return "#text (" .. self.wholeText .. ")"
 end
 
 return {

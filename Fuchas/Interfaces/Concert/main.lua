@@ -17,6 +17,10 @@ local tasks = require("tasks")
 local gpu = require("driver").gpu
 gpu.setResolution(gpu.maxResolution())
 
+if not os.getenv("INTERFACE") then
+	os.setenv("INTERFACE", "Concert")
+end
+
 local config = nil
 local defaultConfig = {
 	useWallpaper = true,
@@ -52,6 +56,7 @@ function api.loadWallpaper()
 		--error("no wallpaper")
 		local rw, rh = gpu.getResolution()
 		local wallpaper = draw.newContext(1, 1, rw, rh)
+		
 		-- TODO: convert image to an OC-specific image format which would make the
 		-- code lighter, the file size lower and the loading time faster
 		local image
@@ -79,6 +84,8 @@ function api.unloadWallpaper()
 	windowManager.setWallpaper(nil)
 	windowManager.forceDrawDesktop()
 end
+
+api.dialogs = dofile("A:/Fuchas/Interfaces/Concert/dialogs.lua")
 
 package.loaded.concert = api
 

@@ -17,7 +17,7 @@ end
 function spec.new(address)
 	local drv = {}
 	drv.getName = spec.getName
-	drv.freq = 20
+	drv.freq = 440
 	function drv.appendFrequency(channel, time, freq)
 		table.insert(buffer, {time / 1000, freq})
 		return true
@@ -31,6 +31,16 @@ function spec.new(address)
 	end
 
 	function drv.delay(time)
+		if buffer[#buffer] then
+			local previousItem = buffer[#buffer]
+			-- If we're adding the same frequency as the previous item
+			if previousItem[2] == drv.freq then
+				-- Just merge the two
+				previousItem[1] = previousItem[1] + time / 1000
+				return
+			end
+		end
+		
 		table.insert(buffer, {time / 1000, drv.freq})
 	end
 
