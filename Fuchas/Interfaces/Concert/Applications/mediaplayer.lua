@@ -22,7 +22,7 @@ end
 for i=1, channelsNum do
 	if i <= sound.getCapabilities().channels then
 		sound.openChannel(i)
-		sound.setWave(i, "sine")
+		sound.setWave(i, "square")
 		sound.setVolume(i, 0)
 		sound.setADSR(i)
 	end
@@ -54,6 +54,15 @@ while not fileEnded do
 				start = note.start + (note.duration or 0)
 			end
 			table.insert(channelNotes[i], { volume = volume / 255, start = start })
+		elseif freq == 3 then -- set wave type
+			local waveTypeInt = string.unpack("<I1", file:read(1))
+			local waveType = ({"square","sine","triangle","sawtooth"})[waveTypeInt + 1]
+			local start = 0
+			if channelNotes[i][#channelNotes[i]] then
+				local note = channelNotes[i][#channelNotes[i]]
+				start = note.start + (note.duration or 0)
+			end
+			table.insert(channelNotes[i], { waveType = waveType, start = start })
 		else
 			local dur = string.unpack("<I2", file:read(2))
 			local start = 0
@@ -117,11 +126,16 @@ while window.visible do
 				sound.setVolume(i, note.volume)
 				channelsVolume[i] = note.volume
 			end
+			if note and note.waveType then
+				sound.setWave(i, note.waveType)
+			end
 		end
 		if note then
 			if note.volume then
 				sound.setVolume(i, note.volume)
 				channelsVolume[i] = note.volume
+			elseif note.waveType then
+				sound.setWave(i, note.waveType)
 			else
 				if time >= note.start and not note.played then
 					if i < cardChannels then
