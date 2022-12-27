@@ -3,9 +3,11 @@
 computer.supportsOEFI = function()
 	return true
 end
-local oefiapi = oefi or ...
+local oefiapi = oefi or select(1, ...)
+if not oefiapi then error("Missing OEFI API!") end
 
-loadfile = load([[return function(file)
+loadfile = load([[local oefiapi = ...
+return function(file)
 	local addr, invoke = oefiapi.getBootAddress(), component.invoke
 	local handle, reason = invoke(addr, "open", file)
 	assert(handle, reason)
@@ -17,6 +19,6 @@ loadfile = load([[return function(file)
 	until not data
 	invoke(addr, "close", handle)
 	return load(buffer, "=" .. file, "bt", _G)
-end]], "=loadfile", "bt", _G)()
+end]], "=loadfile", "bt", _G)(oefiapi)
 os_arguments = ...
 loadfile("Fuchas/Kernel/boot.lua")()
