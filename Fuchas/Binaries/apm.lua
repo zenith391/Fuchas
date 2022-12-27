@@ -299,12 +299,13 @@ if args[1] == "update" then
 	return
 end
 
-if args[1] == "info" then
+if args[1] == "info" or args[1] == "list-all" then
+	local listAll = args[1] == "list-all"
 	if not hasInternet then
 		io.stderr:write("Internet card required!")
 		return
 	end
-	if #args < 2 then
+	if #args < 2 and not listAll then
 		args[1] = "help"
 	else
 		local pkg = args[2]
@@ -317,17 +318,17 @@ if args[1] == "info" then
 		local isFound = false
 		for src, v in pairs(packageList) do
 			for k, e in pairs(v) do
-				if k == pkg then
+				if (k == pkg or listAll) and k ~= "expiresOn" and k ~= "_version" then
 					print(k .. ":")
 					print("    Name: " .. e.name)
 					print("    Description: " .. e.description)
 					print("    Authors: " .. e.authors)
 					isFound = true
-					break
+					if not listAll then break end
 				end
 			end
 		end
-		if not isFound then
+		if not isFound and pkg then
 			print("Package not found: " .. pkg)
 		end
 		return
@@ -404,7 +405,7 @@ if args[1] == "help" then
 		print(doc:read("*a"))
 		doc:close()
 	else
-		print("Usage: apm [-g] <help|install|remove|update|upgrade|list>")
+		print("Usage: apm [-g] <help|install|remove|update|upgrade|list|list-all>")
 	end
 	return
 end
