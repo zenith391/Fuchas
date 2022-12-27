@@ -206,10 +206,10 @@ end
 -- @tparam int y The Y position of the new draw context
 -- @tparam int width The width of the new draw context
 -- @tparam int height The height of the new draw context
--- @tparam[opt=0] int braille The braille pattern of the new draw context (deprecated)
+-- @tparam[opt=false] bool noBuffer If true, never use a VRAM buffer to back this context
 -- @tparam[opt] int parent The ID of the parent of the new draw context
 -- @treturn DrawContext
-function lib.newContext(x, y, width, height, braille, parent)
+function lib.newContext(x, y, width, height, noBuffer, parent)
 	checkArg(1, x, "number")
 	checkArg(2, y, "number")
 	checkArg(3, width, "number")
@@ -231,7 +231,7 @@ function lib.newContext(x, y, width, height, braille, parent)
 	ctx.parent = parent
 	ctx.clip = nil
 	ctx.drawBuffer = {}
-	if caps.hardwareBuffers then
+	if caps.hardwareBuffers and not noBuffer then
 		if parent then
 			ctx.buffer = contexts[parent].buffer
 		else

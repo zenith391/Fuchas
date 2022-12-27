@@ -21,6 +21,7 @@ function spec.new(address)
 	local syn = false
 	local sound = cp.proxy(address)
 	local drv = {}
+	local max = math.floor(sound.channel_count)
 
 	function drv.appendFrequency(channel, time, freq)
 		sound.setFrequency(channel, freq)
@@ -30,6 +31,9 @@ function spec.new(address)
 	end
 
 	function drv.setFrequency(channel, freq)
+		if channel < 1 or channel > max then
+			return false, "channel must be in range [1, " .. max .. "]"
+		end
 		sound.setFrequency(channel, freq)
 		return true
 	end
@@ -41,6 +45,9 @@ function spec.new(address)
 	end
 
 	function drv.setADSR(ch, attack, decay, sustain, release)
+		if ch < 1 or ch > max then
+			return false, "channel must be in range [1, " .. max .. "]"
+		end
 		if attack then
 			sound.setADSR(ch, attack, decay, sustain, release)
 		else
@@ -50,10 +57,19 @@ function spec.new(address)
 	end
 
 	function drv.setLFSR(channel, initial, mask)
+		if channel < 1 or channel > max then
+			return false, "channel must be in range [1, " .. max .. "]"
+		end
 		sound.setLFSR(channel, initial, mask)
 	end
 
 	function drv.setWave(ch, type)
+		if ch < 1 or ch > max then
+			return false, "channel must be in range [1, " .. max .. "]"
+		end
+		if not sound.modes[type] then
+			error("invalid wave type '" .. tostring(type) .. "', expected one of 'sine', 'square', 'sawtooth', 'triangle', 'noise'")
+		end
 		sound.setWave(ch, sound.modes[type])
 		return true
 	end
@@ -79,16 +95,16 @@ function spec.new(address)
 	end
 
 	function drv.openChannel(channel)
-		if channel > drv.getMaxChannels() or channel <= 0 then
-			return false
+		if channel < 1 or channel > max then
+			return false, "channel must be in range [1, " .. max .. "]"
 		end
 		sound.open(channel)
 		return true
 	end
 
 	function drv.closeChannel(channel)
-		if channel > drv.getMaxChannels() or channel <= 0 then
-			return false
+		if channel < 1 or channel > max then
+			return false, "channel must be in range [1, " .. max .. "]"
 		end
 		sound.close(channel)
 		return true
@@ -107,6 +123,9 @@ function spec.new(address)
 		if channel == -1 then
 			sound.setTotalVolume(volume)
 		else
+			if channel < 1 or channel > max then
+				return false, "channel must be in range [1, " .. max .. "] or -1"
+			end
 			sound.setVolume(channel, volume)
 		end
 	end

@@ -1,4 +1,4 @@
-local file = io.open("A:/Users/Shared/Binaries/mario/music/song-piggies.aaf", "r")
+local file = io.open("A:/Users/Shared/Binaries/mario/music/song-toccata.aaf", "r")
 local sound = require("driver").sound
 local ui = require("OCX/OCUI")
 local dbg = require("driver").debugger
@@ -15,10 +15,10 @@ local channelNotes = {}
 local channelIdx = {}
 local channelsVolume = {}
 
-if sound.getCapabilities().channels < 8 then
+if sound.getCapabilities().channels < channelsNum and sound.getCapabilities().channels ~= 8 then
 	require("concert").dialogs.showErrorMessage(
 		"You can have much better sound quality using the Sound Card from the Computronics mod!",
-		"Warning")
+		"Notice")
 end
 
 for i=1, sound.getCapabilities().channels do
@@ -28,7 +28,7 @@ end
 for i=1, channelsNum do
 	if i <= sound.getCapabilities().channels then
 		sound.openChannel(i)
-		sound.setWave(i, "square")
+		sound.setWave(i, "triangle")
 		sound.setVolume(i, 0)
 		sound.setADSR(i)
 	end
@@ -93,11 +93,11 @@ for i=1, channelsNum do
 end
 
 local time = 0
---time = 90 * 1000
+--time = 120 * 1000
 local lastProcess = 0
 
 
-local window = require("window").newWindow(50, 16, "Horacles")
+local window = require("window").newWindow(50, 16, "Fuchas Media Player")
 
 local title = ui.label("Audio has " .. channelsNum .. " channel(s) / Playing on " .. sound.getMaxChannels() .. " channel(s)")
 window.container:add(title)

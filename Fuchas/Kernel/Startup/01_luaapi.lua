@@ -67,7 +67,7 @@ function table.getn(tab)
 	local i = 0
 	for k, v in pairs(tab) do
 		if type(k) == "number" then
-			i = math.max(i, k)
+			i = math.max(i, k+1)
 		else
 			i = i + 1
 		end

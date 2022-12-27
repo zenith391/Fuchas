@@ -13,6 +13,9 @@
 	list
 		Print every packages currently installed by apm on a new line, including their version and revision number.
 
+	list-all
+		Print and show information about every packages that can be installed with apm.
+
 	install <packages..>
 		Installs packages <packages..> from the first application source containing <packages..>.
 
