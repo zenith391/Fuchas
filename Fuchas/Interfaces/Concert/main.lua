@@ -15,6 +15,7 @@ local ui = require("OCX/OCUI")
 local imaging = require("OCX/OCImage")
 local tasks = require("tasks")
 local gpu = require("driver").gpu
+local log = require("log")("Concert Desktop")
 gpu.setResolution(gpu.maxResolution())
 
 if not os.getenv("INTERFACE") then
@@ -57,8 +58,6 @@ function api.loadWallpaper()
 		local rw, rh = gpu.getResolution()
 		local wallpaper = draw.newContext(1, 1, rw, rh)
 		
-		-- TODO: convert image to an OC-specific image format which would make the
-		-- code lighter, the file size lower and the loading time faster
 		local image
 		if not filesystem.exists("A:/Fuchas/Interfaces/Concert/wallpaper-cache.ogf") then
 			image = imaging.loadRaster(config.wallpaperPath)
@@ -181,6 +180,10 @@ do
 	do
 		local comp = ui.component()
 		comp.background = 0x000000
+		comp.dirtyUpdate = function(self)
+			-- We're always dirty
+			self.dirty = true
+		end
 		comp._render = function(self)
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
@@ -275,10 +278,8 @@ windowManager.drawBackground(1, 1, 160, 50)
 windowManager.drawDesktop()
 
 while true do
-	local evt = table.pack(event.pull())
-	if not windowManager.hasExclusiveContext() then
-		taskBar:update()
-	end
+	local evt = table.pack(event.pull(1))
+	taskBar:update()
 
 	if evt and not windowManager.hasExclusiveContext() then
 		local name = evt[1]

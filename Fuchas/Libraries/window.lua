@@ -382,30 +382,31 @@ function lib.newWindow(width, height, title)
 
 			local i = 1
 			local aRect = {
-					x = self.container.x,
-					y = self.container.y,
-					w = self.container.width,
-					h = self.container.height
-				}
+				x = self.container.x,
+				y = self.container.y,
+				w = self.container.width,
+				h = self.container.height
+			}
 			local rectangles = {
 				aRect
 			}
 			while i < #desktop do
-				if desktop[i] == self then break end
-				local winRect = {
-					x = desktop[i].container.x,
-					y = desktop[i].container.y,
-					w = desktop[i].container.width,
-					h = desktop[i].container.height
-				}
-				local newRects = {}
-				for _, rect in pairs(rectangles) do
-					local rectList = xorRectangle(rect, winRect)
-					for _, r in pairs(rectList) do
-						table.insert(newRects, r)
+				if desktop[i] ~= self then
+					local winRect = {
+						x = desktop[i].container.x,
+						y = desktop[i].container.y,
+						w = desktop[i].container.width,
+						h = desktop[i].container.height
+					}
+					local newRects = {}
+					for _, rect in pairs(rectangles) do
+						local rectList = xorRectangle(rect, winRect)
+						for _, r in pairs(rectList) do
+							table.insert(newRects, r)
+						end
 					end
+					rectangles = newRects
 				end
-				rectangles = newRects
 				i = i + 1
 			end
 			--if rectangles[1].x ~= aRect.x or rectangles[1].w ~= aRect.w then

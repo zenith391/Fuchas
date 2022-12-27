@@ -83,7 +83,11 @@ function require(module)
 				mtSetup = true
 			end
 		end
-		step, library, status = "not found", package.searchpath(module, package.path)
+		local packagePath = package.path
+		if os.getenv then
+			packagePath = packagePath .. ";" .. (os.getenv("CWD") or "A:/")
+		end
+		step, library, status = "not found", package.searchpath(module, packagePath)
 		if library then
 			step, library, status = "loadfile failed", loadfile(library)
 		end
