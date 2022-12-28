@@ -130,7 +130,7 @@ end
 function lib.drawBackground(x, y, width, height)
 	local rw, rh = gpu.getResolution()
 	if x+width-1 > rw then
-		width = rw-x
+		width = rw-x+1
 	end
 	if y+height > rh then
 		height = rh-y

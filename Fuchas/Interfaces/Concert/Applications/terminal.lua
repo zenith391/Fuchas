@@ -42,6 +42,7 @@ local function createTerminal()
 	local terminal = ui.component()
 	terminal.background = 0x000000
 	terminal.foreground = 0xFFFFFF
+	terminal.unbuffered = true
 	terminal.text = ""
 
 	local function drawLine(canvas, x, y, line, fg, bg)

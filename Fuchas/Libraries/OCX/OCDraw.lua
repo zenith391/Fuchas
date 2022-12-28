@@ -231,7 +231,7 @@ function lib.newContext(x, y, width, height, noBuffer, parent)
 	ctx.parent = parent
 	ctx.clip = nil
 	ctx.drawBuffer = {}
-	if caps.hardwareBuffers and not noBuffer then
+	if caps.hardwareBuffers and noBuffer ~= true then
 		if parent then
 			ctx.buffer = contexts[parent].buffer
 		else

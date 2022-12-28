@@ -48,8 +48,9 @@ function lib.component()
 	comp.listeners = {}
 	comp.clip = nil
 	comp.dirty = true
+	comp.unbuffered = false
 
-	-- Returns true if the contetx has been re-created
+	-- Returns true if the context has been re-created
 	function comp:initRender()
 		local mustReupdate = false
 		if self.context and not draw.isContextOpened(self.context) then
@@ -74,7 +75,7 @@ function lib.component()
 			--[[if config.accelerationMethod == 1 then -- full usage of VRAM
 				parentContext = nil
 			end]]
-			self.context = draw.newContext(self.x, self.y, self.width, self.height, 0, parentContext)
+			self.context = draw.newContext(self.x, self.y, self.width, self.height, self.unbuffered, parentContext)
 			self.canvas = draw.canvas(self.context)
 			if self.clip then
 				draw.clipContext(self.context, self.clip)
@@ -486,6 +487,52 @@ function lib.menuBar()
 	end
 	comp.background = 0xC2C2C2
 	return comp
+end
+
+function lib.contextMenu(x, y, items)
+	local contextMenu = require("window").newWindow()
+
+	local width = 10
+	for _, item in pairs(items) do
+		width = math.max(item[1]:len() + 2, width)
+	end
+
+	contextMenu.undecorated = true
+	contextMenu.x = x
+	contextMenu.y = y
+	contextMenu.width = width
+	contextMenu.height = #items
+	do
+		local comp = lib.component()
+		comp._render = function(self)
+			self.canvas.fillRect(1, 1, self.width, self.height, 0xFFFFFF)
+			for k, v in pairs(items) do
+				local name = v[1]
+				local y = k
+				self.canvas.drawText(2, y, name, 0x000000)
+			end
+		end
+		comp.listeners["defocus"] = function(self, name, self, new)
+			if contextMenu.visible then
+				contextMenu:hide()
+			end
+		end
+		comp.listeners["touch"] = function(self, name, _, x, y, button)
+			if button == 0 then
+				for k, v in pairs(items) do
+					local name = v[1]
+					local cy = 2 + k
+					if x > 1 and x < 1+name:len() and y == cy then
+						-- TODO
+					end
+				end
+			end
+		end
+		comp.background = 0xFFFFFF
+		contextMenu.container = comp
+	end
+
+	return contextMenu
 end
 
 return lib

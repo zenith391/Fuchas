@@ -176,19 +176,20 @@ do
 	taskBar.x = 1
 	taskBar.width = 160
 	taskBar.height = taskBarSize
+	taskBar.oldDate = ""
 	taskBar:show()
 	do
 		local comp = ui.component()
 		comp.background = 0x000000
 		comp.dirtyUpdate = function(self)
-			-- We're always dirty
-			self.dirty = true
+			self.dirty = os.date("%T") ~= taskBar.oldDate
 		end
 		comp._render = function(self)
 			self.canvas.fillRect(1, 1, self.width, self.height, self.background)
 			self.canvas.fillRect(1, 1, 8, self.height, 0xBFFBFF)
 			self.canvas.drawText(2, 1, "Fuchas", 0x000000, 0xBFFBFF)
 			local clock = os.date("%T")
+			taskBar.oldDate = clock
 			self.canvas.drawText(self.width-#clock, 1, clock, 0xFFFFFF, 0x000000)
 		end
 
@@ -313,6 +314,17 @@ while true do
 		if oldfocused ~= nil and oldfocused ~= focusedWin then
 			if oldfocused.container.listeners["defocus"] then
 				oldfocused.container.listeners["defocus"](oldfocused.container, "defocus", oldfocused, focusedWin)
+			end
+		end
+		if focusedWin == nil and name == "touch" then
+			local button = evt[5]
+			-- Right button pressed
+			if button == 1 then
+				local mx, my = evt[3], evt[4]
+
+				local ctxMenu = ui.contextMenu(mx, my+1, { {"New File..."}, {"Open Settings..."}, {"Shutdown"} })
+				ctxMenu:show()
+				focusedWin = ctxMenu
 			end
 		end
 	end
