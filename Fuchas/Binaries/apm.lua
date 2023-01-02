@@ -372,7 +372,7 @@ if args[1] == "install" then
 
 							local major,minor,patch = tonumber(v:sub(1,1)),tonumber(v:sub(3,3)),'*'
 							if v:len() > 3 then patch = v:sub(5,5) end
-							if fmajor >= major or fminor >= minor or (patch ~= '*' and patch ~= fpatch) then
+							if fmajor > major or fminor > minor or (patch ~= '*' and patch ~= fpatch) then
 								print("Package " .. e.name .. " doesn't work with the current version of Fuchas.")
 								print("It is made for version " .. v .. ", but the current version is " .. OSDATA.VERSION)
 								return
