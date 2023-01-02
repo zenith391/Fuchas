@@ -24,11 +24,7 @@ jobs:
       - name: Build CPIO
         run: |
           cd $GITHUB_WORKSPACE
-          cd .efi/Source
-          find . | cpio -oHbin > "../fuchas.efi2"
-          cd ../..
-          find Fuchas Users/Shared .efi | cpio -oHbin > "release.cpio"
-          cd ..
+          sh release_cpio.sh
       - name: Upload build
         uses: wei/curl@v1.1.1
         with:
