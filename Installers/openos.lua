@@ -259,7 +259,7 @@ local function drawStage()
 	if stage == 7 then
 		gpu.set(5, 5, "Done!")
 		gpu.set(5, 6, "Now restarting the computer..")
-		os.sleep(3)
+		gpu.set(5, 7, "Please wait..")
 		require("computer").shutdown(true)
 		run = false
 	end
