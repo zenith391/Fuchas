@@ -5,7 +5,7 @@ _G.OSDATA = {
 	DEBUG = true,
 	CONFIG = {
 		NO_52_COMPAT = false, -- disable Lua 5.2 compatibility (bit32 library)
-		DEFAULT_INTERFACE = "Concert",
+		DEFAULT_INTERFACE = "Fushell",
 		SAFE_MODE = false, -- restrict drivers
     	AUTO_SET_ARCH = true -- automatically switch to Lua 5.3 in Fushell
 	}
