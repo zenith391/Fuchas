@@ -49,7 +49,7 @@ function lib.drawContext(ctxn)
 		for k, v in pairs(contexts) do
 			concat = concat .. tostring(k) .. ","
 		end
-		gpu.drawText(1, 1, "Active Draw Contexts: " .. concat .. (" "):rep(10), 0)
+		gpu.drawText(1, 1, "Active Draw Contexts: " .. concat .. (" "):rep(160), 0)
 	end
 	if ctx.parent then
 		if not contexts[ctx.parent] then

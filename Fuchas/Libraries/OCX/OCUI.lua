@@ -2,6 +2,7 @@
 
 local draw = require("OCX/OCDraw")
 local width, height = require("driver").gpu.getResolution()
+local log = require("log")("OCUI")
 local lib = {}
 
 function lib.getWidth()
@@ -54,7 +55,7 @@ function lib.component()
 	function comp:initRender()
 		local mustReupdate = false
 		if self.context and not draw.isContextOpened(self.context) then
-			print(tostring(self.context) .. " doesn't exist!")
+			log.warn(tostring(self.context) .. " doesn't exist!")
 			self.context = nil
 		end
 		if self.context ~= nil then
@@ -103,6 +104,7 @@ function lib.component()
 				draw.moveContext(self.context, self.x, self.y)
 			end
 			if w ~= self.width or h ~= self.height then
+				log.info("width: " .. w .. " ~= " .. self.width .. " and height: " .. h .. " ~= " .. self.height .. ", therefore closing context")
 				draw.closeContext(self.context)
 				if self.invalidatedContext then
 					self:invalidatedContext()
@@ -155,11 +157,18 @@ function lib.LineLayout(opts)
 	return function(container)
 		local flowY = 1
 		for _, child in pairs(container.childrens) do
+			local prefW, prefH
+			if child.layout then
+				prefW, prefH = child:layout()
+			else
+				prefW, prefH = child.width, child.height
+			end
 			child.width = container.width
 			child.y = flowY
-			flowY = flowY + child.height + (opts.spacing or 0)
+			flowY = flowY + prefH + (opts.spacing or 0)
 		end
-		container.height = flowY
+		-- return preferred size
+		return container.width, flowY
 	end
 end
 
@@ -182,6 +191,9 @@ function lib.container()
 		draw.setBlockingDraw(self.context, true)
 		draw.drawContext(self.context) -- just flush the background clear
 		for _, c in pairs(self.childrens) do
+			if c.dirty then
+				log.info("component @ " .. c.x .. ", " .. c.y .. " is dirty")
+			end
 			c.x = c.x + self.x - 1
 			c.y = c.y + self.y - 1
 			c:redraw()
@@ -198,6 +210,7 @@ function lib.container()
 				self.dirty = true
 			end
 		end
+		log.info("set dirty = " .. tostring(self.dirty))
 	end
 
 	comp.invalidatedContext = function(self)
@@ -239,7 +252,7 @@ function lib.container()
 			if self.focused.listeners[id] then
 				if id == "touch" or id == "drag" or id == "drop" then
 					local id, addr, x, y = ...
-					self.focused.listeners[id](self.focused, id, addr, x, y)
+					self.focused.listeners[id](self.focused, id, addr, x - self.focused.x + 1, y - self.focused.y + 1)
 				else
 					self.focused.listeners[id](self.focused, ...)
 				end
@@ -290,21 +303,17 @@ function lib.listItem(label)
 	end
 
 	comp.listeners["touch"] = function(self, ...)
-		if not self.selected then
-			self.selected = true
-			self.dirty = true
-			self:redraw()
-		else
+		self.selected = not self.selected
+		self.dirty = true
+		self:redraw()
+	end
+
+	comp.listeners["defocus"] = function(self, ...)
+		if self.selected then
 			self.selected = false
 			self.dirty = true
 			self:redraw()
 		end
-	end
-
-	comp.listeners["defocus"] = function(self, ...)
-		self.selected = false
-		self.dirty = true
-		self:redraw()
 	end
 
 	return comp
@@ -316,6 +325,7 @@ function lib.list()
 
 	function comp:addItem(item)
 		checkArg(1, item, "table")
+		item:dispose()
 		self:add(item)
 	end
 
