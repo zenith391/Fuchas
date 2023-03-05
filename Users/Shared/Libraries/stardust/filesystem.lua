@@ -41,6 +41,11 @@ function fs.proxy(filter)
 	return tfs.proxy(filter) -- dangerous, TODO: change
 end
 
+function fs.findNode(path)
+	local _, _, drive = tfs.getDrive(fixPath(path))
+	return drive
+end
+
 function fs.mount(fs, path)
 	local letter = path:sub(1, 1)
 	local idx = 1

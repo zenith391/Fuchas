@@ -43,6 +43,7 @@ local function userLogin(user)
 		pid = curProc.pid
 	}
 	curProc.userKey = userKey
+	security.initPermissions(curProc.pid)
 end
 
 --- Returns the shared user path

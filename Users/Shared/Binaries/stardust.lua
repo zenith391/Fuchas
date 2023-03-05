@@ -25,14 +25,16 @@ if path == nil then
 	return
 end
 
---[[for k, v in pairs(package.loaded) do
+for k, v in pairs(package.loaded) do
 	if k:sub(1, 8) == "stardust" then
 		package.loaded[k] = nil
 	end
-end]]
-
+end
+local env = {}
+local openOSLibPath = "A:/usr/lib"
 local libs = {
-	component = require("component").unrestricted,
+	--component = require("component").unrestricted,
+	component = require("component"),
 	computer = require("stardust/computer"),
 	filesystem = require("stardust/filesystem"), -- no porting necessary.. yet
 	colors = require("stardust/colors"),
@@ -49,44 +51,6 @@ local libs = {
 	bit32 = _G.bit32
 }
 
-local env = {
-	require = req,
-	_OSVERSION = "OpenOS 1.7.5",
-	_VERSION = _VERSION,
-	io = require("stardust/io"),
-	math = _G.math,
-	coroutine = _G.coroutine,
-	bit32 = _G.bit32,
-	string = _G.string,
-	table = _G.table,
-	unicode = _G.unicode,
-	debug = _G.debug,
-
-	assert = _G.assert,
-	error = _G.error,
-	getmetatable = _G.getmetatable,
-	ipairs = _G.ipairs,
-	load = _G.load,
-	next = _G.next,
-	pairs = _G.pairs,
-	pcall = _G.pcall,
-	rawequal = _G.rawequal,
-	rawget = _G.rawget,
-	rawlen = _G.rawlen,
-	rawset = _G.rawset,
-	select = _G.select,
-	setmetatable = _G.setmetatable,
-	tonumber = _G.tonumber,
-	tostring = _G.tostring,
-	type = _G.type,
-	xpcall = _G.xpcall,
-	print = _G.print,
-	loadfile = loadfile,
-	dofile = dofile
-}
-
-local openOSLibPath = "A:/usr/lib"
-
 local function req(name)
 	if libs[name] then
 		return libs[name]
@@ -94,6 +58,9 @@ local function req(name)
 		local ok, lib = pcall(require(name))
 		if not ok then
 			local handle = io.open(openOSLibPath .. "/" .. name, "r")
+			if not handle then
+				error("no require: " .. name)
+			end
 			local code = handle:read("a")
 			handle:close()
 			return load(code, name, "bt", env)()
@@ -127,14 +94,54 @@ local function dofile(file, ...)
 	end
 end
 
+env = {
+	require = req,
+	_OSVERSION = "OpenOS 1.7.5",
+	_VERSION = _VERSION,
+	io = require("stardust/io"),
+	math = _G.math,
+	coroutine = _G.coroutine,
+	bit32 = _G.bit32,
+	string = _G.string,
+	table = _G.table,
+	unicode = _G.unicode,
+	debug = _G.debug,
+	os = libs.os,
+
+	assert = _G.assert,
+	error = _G.error,
+	getmetatable = _G.getmetatable,
+	ipairs = _G.ipairs,
+	load = _G.load,
+	next = _G.next,
+	pairs = _G.pairs,
+	pcall = _G.pcall,
+	rawequal = _G.rawequal,
+	rawget = _G.rawget,
+	rawlen = _G.rawlen,
+	rawset = _G.rawset,
+	select = _G.select,
+	setmetatable = _G.setmetatable,
+	tonumber = _G.tonumber,
+	tostring = _G.tostring,
+	type = _G.type,
+	xpcall = _G.xpcall,
+	print = _G.print,
+	loadfile = loadfile,
+	dofile = dofile
+}
+
 local handle = io.open(path)
+if handle == nil then
+	error("missing file " .. path)
+end
 local code = handle:read("a")
 handle:close()
 local f, err = load(code, args[1], "bt", env)
 table.remove(args, 1)
 
 if f then
-	xpcall(f, debug.traceback, args)
+	xpcall(f, function(e) print(debug.traceback(e, 2)) end, args)
 else
 	error(err)
 end

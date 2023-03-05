@@ -1,4 +1,4 @@
-local file = io.open("A:/Users/Shared/Binaries/mario/music/song-toccata.aaf", "r")
+local file = io.open("A:/Users/Shared/Binaries/mario/music/song-spider-dance.aaf", "r")
 local sound = require("driver").sound
 local ui = require("OCX/OCUI")
 local dbg = require("driver").debugger
@@ -28,7 +28,7 @@ end
 for i=1, channelsNum do
 	if i <= sound.getCapabilities().channels then
 		sound.openChannel(i)
-		sound.setWave(i, "triangle")
+		sound.setWave(i, "square")
 		sound.setVolume(i, 0)
 		sound.setADSR(i)
 	end

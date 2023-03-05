@@ -25,6 +25,12 @@ function html.tokenize(text)
 	local i = 1
 	while i < #text do
 		local char = text:sub(i, i)
+		local function emitTag()
+			table.insert(tokens, {
+				name = "tag_" .. state.tagType,
+				tagName = state.tagName
+			})
+		end
 		local ops = {
 			data = function()
 				if char == '<' then
@@ -127,11 +133,7 @@ function html.tokenize(text)
 					state.name = "data"
 					i = i + 2
 				elseif char == '>' then
-					-- TODO: emit tag name token
-					table.insert(tokens, {
-						name = "tag_" .. state.tagType,
-						tagName = state.tagName
-					})
+					emitTag()
 					state.name = "data"
 					i = i + 1
 				else -- TODO: handle NULL and EOF
@@ -159,11 +161,94 @@ function html.tokenize(text)
 					state.name = "after_attribute_name"
 				elseif char == '=' then
 					state.name = "before_attribute_value"
+					i = i + 1
 				elseif char == '"' or char == "'" or char == '<' then
+					print(char)
+					print(text:sub(i-5, i+5))
 					error("unexpected-character-in-attribute-name")
 				else
 					state.attributeName = state.attributeName .. char:lower()
 					i = i + 1
+				end
+			end,
+			after_attribute_name = function()
+				if char == '\t' or char == '\n' or char == '\x0c' or char == ' ' then
+					-- ignore
+					i = i + 1
+				elseif char == '/' then
+					--state.name = "self_closing_start_tag"
+					table.insert(tokens, {
+						name = "tag_self_closing",
+						tagName = state.tagName
+					})
+					i = i + 2
+					state.name = "data"
+				elseif char == '=' then
+					state.name = "before_attribute_value"
+					i = i + 1
+				elseif char == '>' then
+					emitTag()
+					state.name = "data"
+					i = i + 1
+				else
+					-- TOOD: start new attribute
+					state.name = "attribute_name"
+					state.attributeName = ""
+				end
+			end,
+			before_attribute_value = function()
+				if char == '\t' or char == '\n' or char == '\x0c' or char == ' ' then
+					-- ignore
+					i = i + 1
+				elseif char == '"' or char == "'" then
+					state.name = "attribute_value"
+					state.attributeValue = ""
+					if char == '"' then
+						state.quotation = "double"
+					else
+						state.quotation = "single"
+					end
+					i = i + 1
+				elseif char == '>' then
+					error("missing-attribute-value")
+				else
+					state.name = "attribute_value"
+					state.attributeValue = ""
+					state.quotation = "unquoted"
+				end
+			end,
+			attribute_value = function()
+				local isBlankChar = char == '\t' or char == '\n' or char == '\x0c' or char == ' '
+				if
+					(state.quotation == "double" and char == '"') or
+					(state.quotation == "single" and char == "'") then
+					state.name = "after_attribute_value"
+					i = i + 1
+				elseif state.quotation == "unquoted" and isBlankChar then
+					state.name = "before_attribute_name"
+				elseif char == "&" then
+					state.returnState = state.name
+					state.name = "character_reference"
+					i = i + 1
+				elseif state.quotation == "unquoted" and char == '>' then
+					emitTag()
+					state.name = "data"
+					i = i + 1
+				else
+					state.attributeValue = state.attributeValue .. char
+					i = i + 1
+				end
+			end,
+			after_attribute_value = function()
+				if char == '\t' or char == '\n' or char == '\x0c' or char == ' ' then
+					state.name = "before_attribute_name"
+					i = i + 1
+				elseif char == '>' then
+					emitTag()
+					state.name = "data"
+					i = i + 1
+				else
+					error("after_attribute_value: TODO char '" .. char .. "'")
 				end
 			end,
 
@@ -323,7 +408,7 @@ function html.parse(text)
 		"dd", "dt", "li","optgroup", "option", "p", "rb", "rp", "rt", "rtc",
 
 		"nextid", -- backward compatibility with the first web page
-		"hr" -- it isn't the spec list? TODO see the special thing about it in html spec
+		"hr", "link" -- those aren't in the spec list? TODO see the special thing about it in html spec
 	}
 	local impliedTagCloser = {
 		"address", "article", "aside", "blockquote", "center", "details",

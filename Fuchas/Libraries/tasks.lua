@@ -338,6 +338,23 @@ function mod.getProcessMetrics(pid)
 	}
 end
 
+--- Returns the permission granter function from the given PID
+--- This is only used in the security library
+-- @param pid pid of process
+-- @return function?
+function mod.getPermissionGrant(pid)
+	local proc = processes[pid]
+	return proc.permissionGrant
+end
+
+--- Returns the user key
+-- @param pid pid of process
+-- @return user key
+function mod.getUserKey(pid)
+	local proc = processes[pid]
+	return proc.userKey
+end
+
 --- Returns the list of PIDs used by living processes
 -- @treturn number[] all PIDs
 function mod.getPIDs()

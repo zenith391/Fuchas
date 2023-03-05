@@ -1,0 +1,7 @@
+{
+	"lua.targetVersion": "5.3",
+	"Lua.diagnostics.globals": [
+		"computer",
+		"checkArg"
+	]
+}

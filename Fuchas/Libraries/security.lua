@@ -56,7 +56,7 @@ function lib.revoke(pid)
 end
 
 local function initPerms(pid)
-	if package.loaded.users then
+	if package.loaded.users and not permtable[pid] then
 		local user = package.loaded.users.getUser()
 		if user ~= nil then
 			for k, v in pairs(userPerms) do
@@ -69,6 +69,10 @@ local function initPerms(pid)
 			end
 		end
 	end
+end
+
+function lib.initPermissions(pid)
+	initPerms(pid)
 end
 
 --- Request a permission to the parent process
@@ -84,9 +88,9 @@ function lib.requestPermission(perm)
 		return true
 	end
 	local proc = currentProcess().parent
-	if proc.permissionGrant then
-		if not permtable[proc.pid] then permtable[proc.pid] = {} end
-		if lib.hasPermission(perm, proc.pid) and proc.permissionGrant(perm, currentProcess().pid) then
+	if tasks.getPermissionGrant(proc) then
+		if not permtable[proc] then permtable[proc] = {} end
+		if lib.hasPermission(perm, proc) and tasks.getPermissionGrant(proc)(perm, currentProcess().pid) then
 			permtable[currentProcess().pid][perm] = true
 			return true
 		else

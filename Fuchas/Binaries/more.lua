@@ -13,7 +13,7 @@ while not io.stdin.closed do
 	if not b then break end
 	io.write(b)
 	dy = dy + 1
-	if dy > rh then
+	if dy > rh - 3 then
 		print("-- More --")
 		require("event").pull("key_down")
 		shell.setY(shell.getY() - 1)
